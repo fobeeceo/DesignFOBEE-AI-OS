@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { AuthForm } from "@/components/auth/AuthForm";
 
+// 회원가입도 빌드 프리렌더 대상에서 제외 (Supabase env 미설정 시 빌드 실패 방지)
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "회원가입",
   description: "DesignFOBEE 회원가입",

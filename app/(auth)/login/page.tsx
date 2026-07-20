@@ -2,6 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { AuthForm } from "@/components/auth/AuthForm";
 
+// 로그인은 요청 시점 인증 상태에 의존하므로 빌드 프리렌더 대상에서 제외한다.
+// (Supabase env 미설정 상태에서도 배포 빌드가 실패하지 않도록 보장)
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "로그인",
   description: "DesignFOBEE 로그인",

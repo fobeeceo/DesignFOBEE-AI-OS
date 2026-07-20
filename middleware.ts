@@ -6,13 +6,22 @@ import { NextResponse, type NextRequest } from "next/server";
  * STEP 3 이후 보호 라우트(사진업로드 등)가 추가되면 여기서 리다이렉트 로직을 확장한다.
  */
 export async function middleware(request: NextRequest) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  // 환경변수 미설정 시(예: env 입력 전 초기 배포) 인증을 건너뛰어
+  // 공개 페이지(홈·/design 등)가 정상적으로 렌더되도록 한다.
+  if (!supabaseUrl || !supabaseAnonKey) {
+    return NextResponse.next({ request: { headers: request.headers } });
+  }
+
   let response = NextResponse.next({
     request: { headers: request.headers },
   });
 
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl,
+    supabaseAnonKey,
     {
       cookies: {
         get(name: string) {
