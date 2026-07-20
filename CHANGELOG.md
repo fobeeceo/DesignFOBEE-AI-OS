@@ -13,6 +13,16 @@
 - **2-Plane 정의**: 운영 SSOT=Notion Master DB / 실행 앱 SSOT=코드(`prompts/*`,Prisma), Living Document로 정합.
 - **테스트**: notion-fetch로 Master DB 단일 질의 → 스키마+10개 데이터셋 조회 확인. ✅
 
+#### AI Media Automation OS (v3.0 모듈) ✅ MVP
+- **`content-automation-agent/` 워크스페이스** 신설: guides/src/output/assets/templates/prompts/logs/config + README + .env.example + config.
+- **OSMU 생성기**(`src/generate_osmu.py`): 1 소스 → blog/blogger/naver.md·shorts/youtube.json·instagram/facebook/threads/x.txt·report.json 생성. **테스트 통과(exit 0, 산출물 10종)**.
+- **가드레일 내장**(`src/base_publisher.py`): API키는 .env만, 기본 dry-run/Private, 자격증명 없으면 강제 dry-run, 실패 시 logs/ 저장.
+- **성과 환류**(`src/analytics.py`): 지표→분석→Living Document Change Report 제안(상태=제안, CEO 승인 게이트 준수).
+- **AI Media Workforce DB**(Notion) + 13 Worker 등록(Director/Trend/Blog/Shorts/Voice/Video/Thumbnail/SEO/Instagram/YouTube/TikTok/Naver/Analyst), 각 Mission/SOP/KPI.
+- **가이드**: gbrick-style·designpobee-style(브랜드 SSOT).
+- **Master DB 등록** + `.gitignore`(.env/output/logs 제외).
+- 🔌 업로드 API(YouTube/Meta/TikTok/Naver/Blogger)·Voice/Video 생성 = OAuth 자격증명+플랫폼 심사 후 활성(그 전 dry-run).
+
 ### 이전 완료 (이번 세션)
 - **Living Document 자동 루프**: Change Report DB(상태머신) + SOP + CEO 승인 게이트. 메뉴원가 PDF로 1사이클 실증(제안 3건).
 - **AI 역할팀**: AI Prompt Library + 6개 역할 시스템프롬프트(디자이너/견적/마케터/CRM/콘텐츠/CEO).
