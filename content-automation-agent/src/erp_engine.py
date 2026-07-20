@@ -70,11 +70,27 @@ def daily_report() -> dict:
     return report
 
 
+def _pos_summary() -> dict:
+    """POS 분석(pos_import 산출물)이 있으면 실매출/판매순위를 대시보드에 연결."""
+    p = OUT / "pos_analysis.json"
+    if not p.exists():
+        return {}
+    d = json.loads(p.read_text(encoding="utf-8"))
+    return {
+        "매출_순액": d.get("총매출_순액"),
+        "판매수량": d.get("총판매수량"),
+        "할인": d.get("총할인"),
+        "판매순위_TOP3": [f"{x['메뉴']} {int(x['수량'])}개" for x in d.get("판매순위_수량", [])[:3]],
+        "기간": d.get("period"),
+    }
+
+
 def dashboard() -> dict:
-    """CEO Dashboard — 재고부족·발주추천·원가율·오늘의 KPI."""
+    """CEO Dashboard — 매출·판매순위·원가율·재고부족·발주추천·오늘의 KPI."""
     r = daily_report()
     dash = {
         "오늘": r["date"],
+        "매출_POS": _pos_summary(),
         "재고부족": r["재고부족_건수"],
         "긴급발주": r["긴급발주_건수"],
         "발주추천_TOP3": [f"{x['품목']} {x['발주추천']}개" for x in r["발주추천"][:3]],

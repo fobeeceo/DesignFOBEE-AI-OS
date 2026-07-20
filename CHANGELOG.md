@@ -18,7 +18,7 @@
 - **실데이터**: 01_MENU_MASTER v1.4(실매장가)·09_MENU_COST_TABLE(원가율)·05_RECIPE_ADE v1.1(레시피)·재고관리 DB(현재/적정/부족).
 - **테스트 통과(exit 0)**: 재고부족 15건·긴급발주 3건·발주추천 TOP(딸기라떼소분 6)·평균원가율 22.6%·고원가경고(카페모카 30.9%). `output/erp_daily_report.json`·`erp_dashboard.json` 생성.
 - **Master DB(SSOT) 등록**: MENU/RECIPE/INVENTORY_MASTER 3건(Drive 링크=SSOT).
-- 🔌 POS Excel Import(Priority 2): 실제 POS Excel 파일 제공 시 연결(현재 POS 데이터는 분석 docs 형태).
+- **POS Excel Import(Priority 2)** ✅: `src/pos_import.py`(openpyxl) — 실제 POS 마감 Excel(clsProd) 파싱. **테스트: 상품 182종·판매 5,406잔·매출 16,627,700원·할인 169,250원·판매순위/카테고리** 산출(output/pos_analysis.json). erp_engine 대시보드에 실매출 연결. Master DB 등록.
 
 #### Media OS Phase 2 — 7 Publisher 완성 ✅ (기존 구조 연결, 새 폴더 없음)
 - **`src/publishers.py`**: YouTube·Blogger·Naver·Instagram·Threads·Facebook·TikTok 7종 Publisher (우선순위 순). OAuth 인증(Google refresh→access / Meta / TikTok / Naver), 의존성 없이 stdlib urllib.
