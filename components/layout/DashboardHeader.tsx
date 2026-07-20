@@ -29,6 +29,9 @@ export function DashboardHeader({ email }: DashboardHeaderProps) {
         </Link>
 
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
+          <Link href="/hq" className="font-semibold text-foreground hover:text-accent">
+            AI Headquarters
+          </Link>
           <span className="hidden sm:inline">{email}</span>
           <button onClick={handleLogout} className="font-medium hover:text-foreground">
             로그아웃

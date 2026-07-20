@@ -1,0 +1,75 @@
+import { ERP_SNAPSHOT as E, won } from "@/lib/hq/erpSnapshot";
+
+function Stat({ label, value, sub }: { label: string; value: string; sub?: string }) {
+  return (
+    <div className="rounded-2xl border border-border bg-background p-5">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="mt-1 text-2xl font-bold tracking-tight">{value}</p>
+      {sub && <p className="mt-1 text-xs text-muted-foreground">{sub}</p>}
+    </div>
+  );
+}
+
+/** CEO Dashboard — 매출·재고·원가·발주·판매순위·KPI 한눈에 (실데이터). */
+export default function HqDashboard() {
+  return (
+    <div className="flex flex-col gap-6">
+      <div>
+        <h1 className="text-xl font-bold">CEO Dashboard</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {E.store} · 기준일 {E.updatedAt} · POS {E.sales.period}
+        </p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <Stat label="매출 (순액)" value={won(E.sales.revenue)} sub={`${E.sales.qty.toLocaleString()}잔 판매`} />
+        <Stat label="평균 원가율" value={`${E.cost.avgRatio}%`} sub={`메뉴 ${E.masters.menus}종`} />
+        <Stat label="재고 부족" value={`${E.inventory.shortageCount}건`} sub={`긴급 ${E.inventory.urgentCount}건`} />
+        <Stat label="총 할인" value={won(E.sales.discount)} sub={`상품 ${E.sales.products}종`} />
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <div className="rounded-2xl border border-border p-5">
+          <h2 className="text-sm font-bold">🏆 판매 순위 (수량)</h2>
+          <ul className="mt-3 flex flex-col gap-2">
+            {E.topByQty.map((t, i) => (
+              <li key={t.name} className="flex items-center justify-between text-sm">
+                <span><span className="mr-2 text-muted-foreground">{i + 1}</span>{t.name}</span>
+                <span className="font-semibold">{t.qty.toLocaleString()}잔 · {won(t.revenue)}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="rounded-2xl border border-border p-5">
+          <h2 className="text-sm font-bold">📦 발주 추천 (안전재고 미달)</h2>
+          <ul className="mt-3 flex flex-col gap-2">
+            {E.inventory.reorders.map((r) => (
+              <li key={r.item} className="flex items-center justify-between text-sm">
+                <span className="flex items-center gap-2">
+                  {r.urgent && <span className="rounded bg-red-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-red-500">긴급</span>}
+                  {r.item}
+                </span>
+                <span className="font-semibold">{r.order}개 <span className="text-muted-foreground">(현 {r.current}/적정 {r.safe})</span></span>
+              </li>
+            ))}
+          </ul>
+          <a href="/hq/erp" className="mt-3 inline-block text-xs font-semibold text-accent underline underline-offset-4">
+            ERP 전체 보기 →
+          </a>
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-border p-5">
+        <h2 className="text-sm font-bold">⚠️ 고원가 메뉴 (원가율 25%+)</h2>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {E.cost.menus.filter((m) => m.ratio >= 25).map((m) => (
+            <span key={m.name} className="rounded-full border border-border px-3 py-1 text-xs">
+              {m.name} <span className="font-semibold text-red-500">{m.ratio}%</span>
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
