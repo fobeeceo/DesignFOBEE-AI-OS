@@ -23,6 +23,7 @@ const PROJECTS: Project[] = [
     category: "카페 · 커피전문점",
     location: "서울 은평구",
     meta: "직영 1호점 · 2013",
+    image: "/images/portfolio/gbrick-eunpyeong.jpg",
     tone: "from-[#2b2620] to-[#4a3d2e]",
   },
   {
@@ -30,6 +31,7 @@ const PROJECTS: Project[] = [
     category: "카페 · 커피전문점",
     location: "경기 안산시",
     meta: "가맹점 시공",
+    image: "/images/portfolio/gbrick-ansan.jpg",
     tone: "from-[#3a2e28] to-[#6b4a33]",
   },
   {
@@ -37,6 +39,7 @@ const PROJECTS: Project[] = [
     category: "카페 · 커피전문점",
     location: "경기 성남시",
     meta: "2013",
+    image: "/images/portfolio/gbrick-dandae.jpg",
     tone: "from-[#26302b] to-[#3f5748]",
   },
   {
@@ -44,6 +47,7 @@ const PROJECTS: Project[] = [
     category: "카페 · 커피전문점",
     location: "경기 고양시 삼송",
     meta: "가맹점 시공",
+    image: "/images/portfolio/gbrick-samsong.jpg",
     tone: "from-[#302a24] to-[#5c5148]",
   },
   {
@@ -51,6 +55,7 @@ const PROJECTS: Project[] = [
     category: "카페 · 커피전문점",
     location: "경기",
     meta: "가맹점 시공",
+    image: "/images/portfolio/gbrick-singil.jpg",
     tone: "from-[#2a2620] to-[#8a6f52]",
   },
   {
