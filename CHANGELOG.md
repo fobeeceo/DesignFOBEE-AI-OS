@@ -4,6 +4,11 @@
 
 ## [Unreleased]
 
+### GBRICK AI SYSTEM Master Command (2026-07-20)
+- **PROJECT 1 (Drive 전체 분석·MASTER INDEX)** ✅: GBRICK_AI_SYSTEM 11개 공식 폴더 전수 열거 → Notion에 MASTER INDEX 자동문서화(구조·핵심 마스터·중복 버전 분석·누락/확인대기·연결관계). SSOT=Drive.
+- 세션 누적으로 이미 구축: P6 ERP 엔진(실데이터)·P9 OSMU+7퍼블리셔·P4 메뉴/원가·P10 Living Document·P11 AI Prompt/Workforce·Master DB(SSOT). (상세 최종보고서 참조)
+- 미구축(멀티세션/자격증명/설계결정 필요): P2 홈 전 페이지·P3 포트폴리오 자동분류·P5 AI HQ(로그인)·P7 가맹점·P8 본사·P10 완전자동감지·P12 자동테스트스위트·P13 전수검수.
+
 ### AI OS 업그레이드 (2026-07-20)
 
 #### Priority 1 — SSOT (Master DB) ✅ 완료 (MVP)
