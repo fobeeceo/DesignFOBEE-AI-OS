@@ -26,7 +26,7 @@ export function Header() {
           DesignFOBEE
         </a>
 
-        <nav className="hidden items-center gap-8 md:flex">
+        <nav className="hidden items-center gap-8 lg:flex">
           {NAV_ITEMS.map((item) => (
             <a
               key={item.href}
@@ -38,7 +38,7 @@ export function Header() {
           ))}
         </nav>
 
-        <div className="hidden items-center gap-4 md:flex">
+        <div className="hidden items-center gap-4 lg:flex">
           <a href="/login" className="text-sm font-medium text-muted-foreground hover:text-foreground">
             로그인
           </a>
@@ -49,7 +49,7 @@ export function Header() {
 
         <button
           aria-label="메뉴 열기"
-          className="md:hidden"
+          className="lg:hidden"
           onClick={() => setOpen(true)}
         >
           <Menu className="h-6 w-6" />

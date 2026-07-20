@@ -21,7 +21,7 @@ export function MobileNav({ open, onClose, items }: MobileNavProps) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex flex-col bg-background md:hidden"
+          className="fixed inset-0 z-50 flex flex-col bg-background lg:hidden"
         >
           <div className="container-px flex h-16 items-center justify-between border-b border-border">
             <span className="text-lg font-bold">DesignFOBEE</span>
