@@ -1,27 +1,47 @@
 {
-  "name": "reroom-ai",
+  "name": "designfobee-ai",
   "version": "0.1.0",
   "private": true,
+  "description": "DesignFOBEE AI Sales OS - STEP 1-10: Homepage, Auth, Upload, AI Design, Estimate, Consult, CRM, Admin",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "next lint",
+    "postinstall": "prisma generate",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev"
+  },
+  "prisma": {
+    "schema": "database/prisma/schema.prisma"
   },
   "dependencies": {
     "@google/genai": "^2.10.0",
-    "next": "16.2.10",
-    "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "@hookform/resolvers": "^3.9.0",
+    "@prisma/client": "^5.19.1",
+    "@supabase/ssr": "^0.5.1",
+    "@supabase/supabase-js": "^2.45.4",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.1",
+    "framer-motion": "^11.5.4",
+    "lucide-react": "^0.445.0",
+    "next": "14.2.35",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-hook-form": "^7.53.0",
+    "tailwind-merge": "^2.5.2",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "16.2.10",
-    "tailwindcss": "^4",
-    "typescript": "^5"
+    "@types/node": "^20.16.5",
+    "@types/react": "^18.3.5",
+    "@types/react-dom": "^18.3.0",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "14.2.35",
+    "postcss": "^8.4.47",
+    "prisma": "^5.19.1",
+    "tailwindcss": "^3.4.11",
+    "typescript": "^5.6.2"
   }
 }

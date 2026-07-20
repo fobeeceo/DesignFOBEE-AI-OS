@@ -1,0 +1,177 @@
+// DesignFOBEE-AI Sales OS — Prisma Schema
+// STEP 1: Lead. STEP 2: Profile. STEP 3: Project/SpacePhoto(사진 업로드).
+// STEP 4~5: DesignImage(AI 생성 결과)/DesignGeneration(사용량 로그).
+// STEP 6: DesignImage.description(AI 설명 생성).
+// STEP 7: Estimate(AI 예상 견적).
+// STEP 8: Lead.designImageId(AI 디자인 결과를 첨부한 상담 신청).
+// STEP 9: Profile.isAdmin(관리자 구분) / LeadNote(상담 이력 CRM 저장).
+// 이후 STEP에서 확장.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  CONVERTED
+  CLOSED
+}
+
+enum AuthProvider {
+  EMAIL
+  GOOGLE
+  KAKAO
+  NAVER
+}
+
+enum ProjectStatus {
+  UPLOADED
+  ANALYZING
+  ANALYZED
+  DESIGNED
+  ESTIMATED
+  CONSULTED
+}
+
+/// 홈페이지 상담 신청 (STEP 1) → STEP 9 CRM의 기반 테이블.
+/// 로그인 사용자가 신청한 경우 profile과 연결된다 (STEP 2 이후).
+/// STEP 8: AI 디자인 스튜디오에서 신청한 경우 designImage와 연결된다.
+/// STEP 9: notes로 상담원이 남긴 상담 이력을 조회할 수 있다.
+model Lead {
+  id            String       @id @default(cuid())
+  name          String
+  phone         String
+  email         String?
+  message       String?
+  source        String       @default("homepage")
+  status        LeadStatus   @default(NEW)
+  profileId     String?
+  profile       Profile?     @relation(fields: [profileId], references: [id])
+  designImageId String?
+  designImage   DesignImage? @relation(fields: [designImageId], references: [id])
+  notes         LeadNote[]
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@map("leads")
+}
+
+/// STEP 2: 회원가입 사용자 프로필.
+/// id는 Supabase auth.users.id(uuid)와 1:1로 동일한 값을 사용한다.
+/// (auth.users는 Supabase가 관리하므로 Prisma로 직접 매핑하지 않고 id만 공유)
+/// STEP 9: isAdmin으로 관리자(CRM/관리자 페이지 접근 가능) 여부를 구분한다.
+/// ⚠️ 기본값은 false — 실제 배포 시 관리자 계정은 DB에서 직접 true로 전환해야 한다.
+model Profile {
+  id          String             @id
+  name        String
+  phone       String?
+  provider    AuthProvider       @default(EMAIL)
+  isAdmin     Boolean            @default(false)
+  leads       Lead[]
+  projects    Project[]
+  generations DesignGeneration[]
+  leadNotes   LeadNote[]
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  @@map("profiles")
+}
+
+/// STEP 3: 사진 업로드 세션 단위. STEP 4(AI 공간분석)부터 STEP 8(상담신청)까지
+/// 이 Project를 기준으로 결과가 누적된다.
+model Project {
+  id           String        @id @default(cuid())
+  profileId    String
+  profile      Profile       @relation(fields: [profileId], references: [id])
+  title        String?
+  status       ProjectStatus @default(UPLOADED)
+  photos       SpacePhoto[]
+  designImages DesignImage[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@map("projects")
+}
+
+/// STEP 3: 업로드된 공간 사진. storagePath는 Supabase Storage 내 경로.
+model SpacePhoto {
+  id           String        @id @default(cuid())
+  projectId    String
+  project      Project       @relation(fields: [projectId], references: [id])
+  storagePath  String
+  url          String
+  originalName String
+  mimeType     String
+  sizeBytes    Int
+  designImages DesignImage[]
+  createdAt    DateTime      @default(now())
+
+  @@map("space_photos")
+}
+
+/// STEP 4+5: 사용자가 선택한 공간 유형·스타일로 Gemini가 생성한 리디자인 결과 이미지.
+/// STEP 6: description에 AI가 생성한 설명 문구를 저장한다.
+/// STEP 8: leads로 이 결과를 첨부한 상담 신청들을 역참조한다.
+model DesignImage {
+  id            String     @id @default(cuid())
+  projectId     String
+  project       Project    @relation(fields: [projectId], references: [id])
+  sourcePhotoId String
+  sourcePhoto   SpacePhoto @relation(fields: [sourcePhotoId], references: [id])
+  roomType      String
+  style         String
+  storagePath   String
+  url           String
+  description   String?
+  estimate      Estimate?
+  leads         Lead[]
+  createdAt     DateTime   @default(now())
+
+  @@map("design_images")
+}
+
+/// STEP 4+5: 로그인 사용자별 AI 생성 사용량 로그 (무료 횟수 제한에 사용).
+model DesignGeneration {
+  id        String   @id @default(cuid())
+  profileId String
+  profile   Profile  @relation(fields: [profileId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@map("design_generations")
+}
+
+/// STEP 7: AI 예상 견적. 임시 단가(prompts/pricing.ts) 기준으로 계산된
+/// 참고용 범위이며, 실제 견적은 현장 실측 후 확정된다.
+model Estimate {
+  id            String      @id @default(cuid())
+  designImageId String      @unique
+  designImage   DesignImage @relation(fields: [designImageId], references: [id])
+  areaSqm       Float
+  pricePerSqm   Int
+  minPrice      Int
+  maxPrice      Int
+  createdAt     DateTime    @default(now())
+
+  @@map("estimates")
+}
+
+/// STEP 9: CRM 저장 — 상담원이 리드에 남기는 메모/통화 이력.
+/// 이 테이블이 쌓일수록 고객 상담 히스토리가 데이터 자산으로 축적된다.
+model LeadNote {
+  id        String   @id @default(cuid())
+  leadId    String
+  lead      Lead     @relation(fields: [leadId], references: [id])
+  authorId  String?
+  author    Profile? @relation(fields: [authorId], references: [id])
+  content   String
+  createdAt DateTime @default(now())
+
+  @@map("lead_notes")
+}

@@ -1,5 +1,5 @@
-<!-- BEGIN:nextjs-agent-rules -->
-# This is NOT the Next.js you know
+# DesignFOBEE-AI 작업 규칙
 
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
-<!-- END:nextjs-agent-rules -->
+- Next.js 14 (App Router) 기준. 코드 작성 전 항상 설계(데이터/폴더/API/화면 구조)를 먼저 제시하고 승인받는다.
+- 작은 기능부터 하나씩 완성한다. 모든 API는 리소스 단위로 분리한다.
+- STEP 순서: 1 홈페이지 → 2 회원가입 → 3 사진업로드 → 4 AI공간분석 → 5 AI이미지생성 → 6 AI설명생성 → 7 AI예상견적 → 8 상담신청 → 9 CRM저장 → 10 관리자페이지.

@@ -24,13 +24,13 @@ export default function Studio() {
 
   // 무료 체험 횟수 + BYOK (localStorage와 동기화)
   const [freeCountRaw, setFreeCountRaw] = useLocalStorage(
-    'reroom_free_generations',
+    'designfobee_free_generations',
     String(FREE_GENERATIONS)
   );
   const freeCount = Number(freeCountRaw);
-  const [byokModeRaw, setByokModeRaw] = useLocalStorage('reroom_byok_mode', 'false');
+  const [byokModeRaw, setByokModeRaw] = useLocalStorage('designfobee_byok_mode', 'false');
   const byokMode = byokModeRaw === 'true';
-  const [byokKey, setByokKey] = useLocalStorage('reroom_byok_key', '');
+  const [byokKey, setByokKey] = useLocalStorage('designfobee_byok_key', '');
 
   // 생성 상태
   const [isLoading, setIsLoading] = useState(false);
@@ -48,8 +48,8 @@ export default function Studio() {
         setResultImage(null);
       }
     };
-    window.addEventListener('reroom:style', onPickStyle);
-    return () => window.removeEventListener('reroom:style', onPickStyle);
+    window.addEventListener('designfobee:style', onPickStyle);
+    return () => window.removeEventListener('designfobee:style', onPickStyle);
   }, []);
 
   const handleByokToggle = () => setByokModeRaw(String(!byokMode));
@@ -164,7 +164,7 @@ export default function Studio() {
     if (!resultImage) return;
     const link = document.createElement('a');
     link.href = resultImage;
-    link.download = `reroom_${selectedRoom}_${selectedStyle}.png`;
+    link.download = `designfobee_${selectedRoom}_${selectedStyle}.png`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -248,6 +248,13 @@ export default function Studio() {
                     다른 사진 업로드
                   </button>
                 </div>
+
+                <a
+                  href="/#contact"
+                  className="text-sm font-semibold text-clay underline underline-offset-4 transition-colors hover:text-clay-deep"
+                >
+                  이 디자인으로 전문가 상담·예상 견적 받기 →
+                </a>
               </div>
             ) : (
               /* ── 입력 단계 ── */
