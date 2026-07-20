@@ -1,4 +1,4 @@
-import { HQ_MENU, ERP_SNAPSHOT as E } from "@/lib/hq/erpSnapshot";
+import { HQ_MENU, ERP_SNAPSHOT as E, STORES, won } from "@/lib/hq/erpSnapshot";
 
 const SECTION: Record<string, { title: string; desc: string; note: string }> = {
   franchise: { title: "가맹점", desc: "가맹점 로그인 · 오늘 매출 · 재고 · 발주 · 교육 · 공지 · 매뉴얼 · 본사 문의", note: "가맹점별 뷰(멀티테넌트)는 HQ 셸 위에 역할별로 연결 예정. 현재 본점 데이터 기준." },
@@ -29,10 +29,53 @@ export default function HqSection({ params }: { params: { section: string } }) {
         <p className="mt-3 text-sm leading-relaxed">{s.note}</p>
       </div>
 
+      {params.section === "franchise" && (
+        <div className="rounded-2xl border border-border p-5">
+          <h2 className="mb-3 text-sm font-bold">전국 가맹/직영점 ({STORES.length}개 · 3년 폐점 0건)</h2>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border text-left text-xs text-muted-foreground">
+                <th className="py-2">매장</th><th>유형</th><th>지역</th><th>개점</th><th>데이터</th>
+              </tr>
+            </thead>
+            <tbody>
+              {STORES.map((s) => (
+                <tr key={s.name} className="border-b border-border/50">
+                  <td className="py-2 font-medium">{s.name}</td>
+                  <td>{s.type}</td>
+                  <td className="text-muted-foreground">{s.region}</td>
+                  <td className="text-muted-foreground">{s.open}</td>
+                  <td>{s.live ? <span className="text-accent font-semibold">POS 연결</span> : <span className="text-muted-foreground">대기</span>}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <p className="mt-3 text-xs text-muted-foreground">본점 실적: {won(E.sales.revenue)} · {E.sales.qty.toLocaleString()}잔 ({E.sales.period}). 타 매장은 POS 업로드 연결 시 자동 집계.</p>
+        </div>
+      )}
+
+      {params.section === "logistics" && (
+        <div className="rounded-2xl border border-border p-5">
+          <h2 className="mb-3 text-sm font-bold">발주 집계 (본점 · 안전재고 미달 {E.inventory.shortageCount}건)</h2>
+          <ul className="flex flex-col gap-2 text-sm">
+            {E.inventory.reorders.map((r) => (
+              <li key={r.item} className="flex items-center justify-between">
+                <span className="flex items-center gap-2">
+                  {r.urgent && <span className="rounded bg-red-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-red-500">긴급</span>}
+                  {r.item}
+                </span>
+                <span className="font-semibold">{r.order}개</span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-3 text-xs text-muted-foreground">거래처 라우팅은 SUPPLIER_MASTER 연결 후. 전국 발주 취합은 매장 POS 연결 시 자동.</p>
+        </div>
+      )}
+
       {params.section === "content" && (
         <div className="rounded-2xl border border-border p-5 text-sm">
           <p className="font-semibold">콘텐츠센터 요약</p>
-          <p className="mt-2 text-muted-foreground">AI 직원 {E.masters.menus > 0 ? "13 Media Worker" : ""} · OSMU 산출: blog/shorts/instagram/youtube/tiktok/naver.</p>
+          <p className="mt-2 text-muted-foreground">AI 직원 13 Media Worker · OSMU 산출: blog/shorts/instagram/youtube/tiktok/naver.</p>
         </div>
       )}
     </div>

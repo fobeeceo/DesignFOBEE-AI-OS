@@ -54,6 +54,17 @@ export const ERP_SNAPSHOT = {
   masters: { ingredientGroups: 57, options: 8, menus: 63 },
 } as const;
 
+/** 가맹/직영점 로스터 (SSOT: Franchise KB 정보공개서 2024-07-18). 본점만 POS 실데이터 연결됨. */
+export const STORES = [
+  { name: "은평본점", type: "직영", region: "서울 은평구", open: "2013-11-11", live: true },
+  { name: "단대점", type: "가맹", region: "경기 성남시", open: "2013-12-23", live: false },
+  { name: "월곳점", type: "가맹", region: "경기 김포시", open: "2017-06-20", live: false },
+  { name: "가좌점", type: "가맹", region: "경기 고양시", open: "2018-04-10", live: false },
+  { name: "인덕원점", type: "가맹", region: "경기 의왕시", open: "2019-06-30", live: false },
+  { name: "덕은점", type: "가맹", region: "경기 고양 덕양", open: "2021-05-15", live: false },
+  { name: "신원점", type: "가맹", region: "경기", open: "2023-03-25", live: false },
+] as const;
+
 export const HQ_MENU = [
   { key: "", label: "CEO Dashboard", icon: "📊" },
   { key: "erp", label: "ERP", icon: "🏭" },

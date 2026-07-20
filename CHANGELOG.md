@@ -4,6 +4,11 @@
 
 ## [Unreleased]
 
+### GBRICK AI SYSTEM Master Command (2026-07-21 이어서)
+- **디저트 정밀원가** ✅: 제원 단가표(생지/디저트 xlsx)에서 실 매입 개당단가 12품목(베이글 500~650·크로아상 630·머핀 750~900·마들렌 300~550) → erp_engine 연결. 평균 매입 640원.
+- **P7 가맹점 뷰 + 물류 뷰** ✅: `/hq/franchise` 전국 7매장 로스터(직영1+가맹6, 폐점0)·본점 실적 · `/hq/logistics` 발주 집계. env 없이 빌드 OK.
+- **/api/hq/erp** 라이브 JSON 엔드포인트 추가.
+
 ### GBRICK AI SYSTEM Master Command (2026-07-20)
 - **AI HQ 웹 셸 (PROJECT 5)** ✅: `/hq` 라우트 + 8메뉴 사이드바(CEO Dashboard·ERP·가맹점·물류·교육센터·콘텐츠센터·AI직원·설정). CEO Dashboard·ERP는 **실데이터**(매출 16,627,700원·재고부족 15·원가율 22.6%), 나머지는 연결 스텁. 로그인 헤더에 AI Headquarters 링크. env 없이 빌드 OK(exit 0)·Preview 렌더 확인. `lib/hq/erpSnapshot.ts`(SSOT 스냅샷) → 추후 라이브 API 대체 가능.
 - **INGREDIENT/OPTION/SUPPLIER 마스터** SSOT 등록 + ERP 옵션단가 8종·원재료 57품목 연결(정밀단가는 SUPPLIER 매핑 대기).
