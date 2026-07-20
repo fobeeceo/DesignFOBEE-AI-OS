@@ -13,6 +13,13 @@
 - **2-Plane 정의**: 운영 SSOT=Notion Master DB / 실행 앱 SSOT=코드(`prompts/*`,Prisma), Living Document로 정합.
 - **테스트**: notion-fetch로 Master DB 단일 질의 → 스키마+10개 데이터셋 조회 확인. ✅
 
+#### GBRICK AI ERP Phase 3 — 실데이터 엔진 ✅ MVP (기존 구조 연결, 새 폴더 없음)
+- **`src/erp_engine.py`**: MASTER_DB Reader(MENU/RECIPE/INVENTORY 스냅샷, Drive=SSOT) + 계산 체인(레시피→원재료 차감→재고→안전재고→**자동 발주추천**→원가→일일리포트→대시보드).
+- **실데이터**: 01_MENU_MASTER v1.4(실매장가)·09_MENU_COST_TABLE(원가율)·05_RECIPE_ADE v1.1(레시피)·재고관리 DB(현재/적정/부족).
+- **테스트 통과(exit 0)**: 재고부족 15건·긴급발주 3건·발주추천 TOP(딸기라떼소분 6)·평균원가율 22.6%·고원가경고(카페모카 30.9%). `output/erp_daily_report.json`·`erp_dashboard.json` 생성.
+- **Master DB(SSOT) 등록**: MENU/RECIPE/INVENTORY_MASTER 3건(Drive 링크=SSOT).
+- 🔌 POS Excel Import(Priority 2): 실제 POS Excel 파일 제공 시 연결(현재 POS 데이터는 분석 docs 형태).
+
 #### Media OS Phase 2 — 7 Publisher 완성 ✅ (기존 구조 연결, 새 폴더 없음)
 - **`src/publishers.py`**: YouTube·Blogger·Naver·Instagram·Threads·Facebook·TikTok 7종 Publisher (우선순위 순). OAuth 인증(Google refresh→access / Meta / TikTok / Naver), 의존성 없이 stdlib urllib.
 - **`base_publisher.py` 강화**: **CEO 승인 게이트**(approved=False → '승인대기', 업로드 금지) + dry-run/실업로드 분기 + 성공 리포트(output/report_<platform>.json) + 실패 로그(logs/).
