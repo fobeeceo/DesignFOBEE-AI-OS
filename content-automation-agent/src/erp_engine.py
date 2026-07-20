@@ -26,9 +26,15 @@ OPTIONS = {  # 실제 옵션 단가 (01_OPTION_MASTER v1.2 · MENU_MASTER 포장
     "두유": 300, "무가당두유": 300, "오트밀크": 500, "아몬드브리즈": 300,
     "샷추가": 500, "사이즈업": 500, "포장할인_음료": -1000, "포장할인_아메리카노": -1500,
 }
-INGREDIENT_GROUPS = {  # 01_INGREDIENT_MASTER v1.0 코드체계 (품목 수)  ※ 절대단가는 SUPPLIER 매핑 대기
+INGREDIENT_GROUPS = {  # 01_INGREDIENT_MASTER v1.0 코드체계 (품목 수)  ※ 음료 절대단가는 SUPPLIER 매핑 대기
     "원두": 3, "우유": 4, "시럽": 5, "파우더": 9, "과일청": 7, "프라페과일": 5, "티": 5,
     "디저트": 9, "탄산": 1, "컵": 4, "빨대": 5,
+}
+DESSERT_COST = {  # 실제 매입 개당단가(원) — 제원인터내쇼날 단가표(생지/디저트 xlsx) SSOT
+    "플레인베이글": 500, "어니언베이글": 550, "아지아고치즈베이글": 650,
+    "크로아상": 630, "초콜릿헤즐넛크로아상": 1400, "미니크로아상": 310,
+    "블루베리머핀": 900, "초콜릿머핀": 790, "초코칩머핀": 750,
+    "마들렌": 550, "쁘띠버터마들렌": 300, "쁘띠초코마들렌": 350,
 }
 INVENTORY = [  # (품목, 현재수량, 적정수량)  ← 재고관리 DB 2026-07-05 실측
     ("디카페인원두", 3, 4), ("우유", 1, 10), ("오트밀크", 1.5, 4), ("일반두유", 0.5, 10),
@@ -74,6 +80,8 @@ def daily_report() -> dict:
         "메뉴원가": costs,
         "옵션단가": OPTIONS,
         "원재료그룹수": sum(INGREDIENT_GROUPS.values()),
+        "디저트매입원가": DESSERT_COST,
+        "디저트평균매입원가": round(sum(DESSERT_COST.values()) / len(DESSERT_COST)),
     }
     (OUT / "erp_daily_report.json").write_text(
         json.dumps(report, ensure_ascii=True, indent=2), encoding="utf-8")
