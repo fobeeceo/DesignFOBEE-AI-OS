@@ -21,3 +21,7 @@ __delete_test.txt
 content-automation-agent/.env
 content-automation-agent/output/
 content-automation-agent/logs/
+
+# Python
+__pycache__/
+*.pyc
