@@ -13,6 +13,13 @@
 - **2-Plane 정의**: 운영 SSOT=Notion Master DB / 실행 앱 SSOT=코드(`prompts/*`,Prisma), Living Document로 정합.
 - **테스트**: notion-fetch로 Master DB 단일 질의 → 스키마+10개 데이터셋 조회 확인. ✅
 
+#### Media OS Phase 2 — 7 Publisher 완성 ✅ (기존 구조 연결, 새 폴더 없음)
+- **`src/publishers.py`**: YouTube·Blogger·Naver·Instagram·Threads·Facebook·TikTok 7종 Publisher (우선순위 순). OAuth 인증(Google refresh→access / Meta / TikTok / Naver), 의존성 없이 stdlib urllib.
+- **`base_publisher.py` 강화**: **CEO 승인 게이트**(approved=False → '승인대기', 업로드 금지) + dry-run/실업로드 분기 + 성공 리포트(output/report_<platform>.json) + 실패 로그(logs/).
+- **`src/publish_all.py`**: 오케스트레이터(생성물→승인→7종 배포→통합 report). 기본 Private 가드레일.
+- **테스트 통과**: `publish_all` 승인없음→7종 '승인대기', `--approve`→7종 dry_run(키 없어 안전). 리포트 8개·로그 7개 생성 확인. exit 0.
+- 🔌 실업로드: `.env`에 각 플랫폼 OAuth 키 입력 + DRY_RUN=false + approved → `_do_publish()` 실행(코드 완비).
+
 #### AI Media Automation OS (v3.0 모듈) ✅ MVP
 - **`content-automation-agent/` 워크스페이스** 신설: guides/src/output/assets/templates/prompts/logs/config + README + .env.example + config.
 - **OSMU 생성기**(`src/generate_osmu.py`): 1 소스 → blog/blogger/naver.md·shorts/youtube.json·instagram/facebook/threads/x.txt·report.json 생성. **테스트 통과(exit 0, 산출물 10종)**.
