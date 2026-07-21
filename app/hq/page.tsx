@@ -1,4 +1,7 @@
-import { ERP_SNAPSHOT as E, won } from "@/lib/hq/erpSnapshot";
+"use client";
+
+import { useEffect, useState } from "react";
+import { ERP_SNAPSHOT, won } from "@/lib/hq/erpSnapshot";
 
 function Stat({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
@@ -12,6 +15,13 @@ function Stat({ label, value, sub }: { label: string; value: string; sub?: strin
 
 /** CEO Dashboard — 매출·재고·원가·발주·판매순위·KPI 한눈에 (실데이터). */
 export default function HqDashboard() {
+  const [E, setE] = useState(ERP_SNAPSHOT);
+  useEffect(() => {
+    fetch("/api/hq/erp")
+      .then((r) => r.json())
+      .then((d) => { if (d?.data) setE(d.data); })
+      .catch(() => {});
+  }, []);
   return (
     <div className="flex flex-col gap-6">
       <div>
