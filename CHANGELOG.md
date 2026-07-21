@@ -4,6 +4,14 @@
 
 ## [Unreleased]
 
+### CEO Operating Charter v1.0 갱신 + Docker Compose 인프라 구축 (2026-07-21)
+- **CEO-CHARTER.md 갱신**: 승인 대상 5항목(데이터삭제·비용발생·외부서비스가입·GitHub공개변경·정책변경)으로 재정의. Dead Code(소스코드) 삭제는 CTO 해석상 보류 유지 — 직전 명시적 지시와의 충돌 가능성을 문서화하고 신중을 택함(§문제해결규칙).
+- **Docker Compose 인프라**(`AI-HQ/docker-compose.yml`, 헌장 §Docker규칙): `web`(Next.js, 상시)·`erp`(Python ERP/Media, 온디맨드) 2서비스. Dockerfile은 각 서비스 폴더 유지, 오케스트레이션만 AI-HQ/ 소유(구조결정 근거 3안 비교 → AI-HQ-ARCHITECTURE.md).
+- **실행 검증(실제 빌드·기동, 추측 없음)**: `docker compose build web/erp` 둘 다 exit 0 → 이미지 생성. `docker compose run erp`가 **실제 실행**되어 ERP 대시보드 JSON을 로컬 실행과 동일하게 출력. `docker compose run -p 3011:3000 web` 기동 → `curl` **HTTP 200**, "DesignFOBEE"·"공간을 넘어" 마커 확인. 검증 후 컨테이너 정리 완료.
+- **사고 발견·즉시 시정**: 검증 중 `docker compose config`가 `.env.local`의 실제 시크릿(Gemini/Supabase 키)을 표준출력에 노출 → 즉시 로그파일 삭제(git/원격 노출 없음, 로컬 한정 확인) → 이후 `config --services`로 절차 변경, INSTALL.md에 경고 명시.
+- **신규 문서**(§문서규칙): INSTALL.md·AI-HQ-ARCHITECTURE.md 신설. CLAUDE.md §16 보고형식·§16-A 승인규칙 새 헌장에 정합.
+- `.dockerignore`·`content-automation-agent/requirements.txt` 추가. `npm run qa` 회귀 없음(재확인 exit 0).
+
 ### CEO Delegation Charter + QA/Audit 시스템 구축 (2026-07-21)
 - **CEO-CHARTER.md 채택**: 최상위 명령. 승인 규칙 5항목(정책변경·삭제·비용발생·외부공개·데이터구조변경)으로 축소, 그 외는 연속 자율실행. CLAUDE.md §16/16-A 갱신 반영.
 - **QA 확장 시스템** (`npm run qa:extended`, §9): Accessibility(jsx-a11y)·SEO(metadata 상속 추적)·Broken Link(라우트 매칭)·Image(disable주석 인지)·Performance(번들 예산) 5종 실제 검사, QA-REPORT.md 자동 생성. **검증 실행 결과(2026-07-21)**: 실제조치 9건(a11y — label 미연결 7·키보드접근성 2), SEO공백 0, 깨진링크 0, 미검토이미지 0, 예산초과 0.

@@ -1,11 +1,17 @@
 # TODO — DesignFOBEE · GBRICK AI HQ
 
-> CEO-CHARTER.md 승인규칙 적용(2026-07-21): 5항목(정책변경·삭제·비용발생·외부공개·데이터구조변경)만 CEO 승인 대상. 그 외는 자율 진행. `[x]`=완료·검증, `[ ]`=대기.
+> CEO-CHARTER.md v1.0 승인규칙 적용(2026-07-21 갱신): 데이터삭제·비용발생·외부서비스가입·GitHub공개변경·정책변경 5항목만 CEO 승인 대상. 그 외는 자율 진행. `[x]`=완료·검증, `[ ]`=대기.
 
 ## CEO 승인 대상 (5항목 규칙 해당)
-- [ ] **Dead Code 삭제**: `components/{Header,Footer,Hero,Faq,HowItWorks,StyleGallery,StyleCards}.tsx` 7개 — `npm run audit`로 재확인됨(transitive closure 포함). 삭제=CEO 승인 대상.
-- [ ] **저장소 Private 전환** — 외부공개 정책. CEO GitHub 계정 작업.
-- [ ] **`prompts/pricing.ts` 실제 단가 교체** — 데이터/정책 사안. 디자인포비 실제 단가 필요.
+- [ ] **저장소 Private 전환**(GitHub 공개여부 변경) — CEO GitHub 계정 작업.
+- [ ] **`prompts/pricing.ts` 실제 단가 교체**(정책/데이터) — 디자인포비 실제 단가 필요.
+- [ ] **Dead Code 삭제 여부 확인**: `components/{Header,Footer,Hero,Faq,HowItWorks,StyleGallery,StyleCards}.tsx` 7개, `npm run audit` 재확인됨. 새 헌장 문언상 "데이터 삭제"에는 미해당(소스코드)이라 자율진행 가능해 보이나, 직전 지시와 충돌 소지가 있어 CTO 판단으로 **보류**(근거: AI-HQ-ARCHITECTURE.md/CEO-CHARTER.md 해석메모). CEO 확인 시 다음 사이클 자동 삭제 예정.
+
+## Docker / 인프라 (신규, 완료·검증됨)
+- [x] `AI-HQ/docker-compose.yml` + `Dockerfile`(web)·`content-automation-agent/Dockerfile`(erp) — 빌드·기동·HTTP 200 실증.
+- [x] `.dockerignore`·`requirements.txt` 추가.
+- [x] INSTALL.md·AI-HQ-ARCHITECTURE.md 신설.
+- [ ] `output: standalone` 전환 검토(이미지 경량화, 승인 불요·자율진행 가능).
 
 ## 자율 진행 중 (승인 불요, QA/Audit로 검증된 실제 항목)
 - [x] QA 확장 시스템(`npm run qa:extended`) — a11y/SEO/링크/이미지/성능 실검증 완료.

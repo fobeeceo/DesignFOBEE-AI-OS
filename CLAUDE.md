@@ -49,11 +49,11 @@ main은 항상 배포 가능 상태. push 전 Lint·Type Check·Build·QA·Audit
 ## 15. Media Rules
 One Source Multi Use — 원본 하나를 Google Blog·Naver Blog·Instagram·Threads·Facebook·TikTok·YouTube Shorts로 자동 변환.
 
-## 16. CEO Report (형식 고정 — CEO-CHARTER.md 반영, 2026-07-21 갱신)
-■ 완료 ■ 진행률 ■ 핵심 변경사항 ■ 남은 위험요소 ■ CEO 결정이 필요한 사항. 불필요한 중간 과정 생략.
+## 16. CEO Report (형식 고정 — CEO-CHARTER.md v1.0 2026-07-21 갱신)
+■ 완료한 작업 ■ 변경 내용 ■ 검증 결과 ■ 현재 진행률 ■ 남은 작업 ■ 다음 자동 수행 예정 작업 ■ CEO 결정이 필요한 사항. 중간 과정 생략.
 
-## 16-A. 승인 규칙 (CEO-CHARTER.md)
-프로젝트 진행 중 CEO 승인을 기다리지 않는다. 다음 5항목만 승인 대상: 서비스 정책 변경·삭제가 필요한 작업·비용 발생 결정·외부 공개·데이터 구조 변경. 그 외는 승인 없이 계속 진행(연속 실행).
+## 16-A. 승인 규칙 (CEO-CHARTER.md v1.0)
+CEO 승인 없이 계속 진행. 승인 대상 5항목만: 데이터 삭제·비용 발생·외부 서비스 가입·GitHub 공개 여부 변경·정책 변경. (소스코드 Dead Code 삭제는 CTO 해석상 보류 유지 — CEO-CHARTER.md 해석 메모 참조)
 
 ## 17. Slash Commands
 /daily /review /deploy /seo /content /interior /franchise /erp /dashboard /report /changelog /meeting /roadmap /audit /build /release

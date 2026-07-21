@@ -1,0 +1,12 @@
+node_modules
+.next
+out
+build
+.git
+.env
+.env.local
+*.log
+content-automation-agent/output
+content-automation-agent/logs
+content-automation-agent/__pycache__
+docs
