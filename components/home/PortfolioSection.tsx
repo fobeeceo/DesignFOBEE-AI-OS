@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import Image from "next/image";
 import { SectionHeading } from "@/components/ui/section-heading";
 
@@ -113,7 +116,12 @@ function ProjectCard({ project, featured }: { project: Project; featured?: boole
   );
 }
 
+const CATEGORIES = ["전체", ...Array.from(new Set(PROJECTS.map((p) => p.category.split(" ")[0])))];
+
 export function PortfolioSection() {
+  const [cat, setCat] = useState("전체");
+  const filtered = cat === "전체" ? PROJECTS : PROJECTS.filter((p) => p.category.startsWith(cat));
+
   return (
     <section id="portfolio" className="py-20 sm:py-28">
       <div className="container-px mx-auto max-w-6xl">
@@ -123,9 +131,26 @@ export function PortfolioSection() {
           description="GBRICK Coffee 브랜드 매장을 비롯해 상업공간·오피스 등 다양한 공간을 직접 설계·시공해왔습니다."
         />
 
-        <div className="mt-14 grid auto-rows-[1fr] grid-cols-1 gap-4 sm:grid-cols-3">
-          {PROJECTS.map((project, i) => (
-            <ProjectCard key={project.name} project={project} featured={i === 0} />
+        {/* 카테고리 필터 */}
+        <div className="mt-8 flex flex-wrap justify-center gap-2">
+          {CATEGORIES.map((c) => (
+            <button
+              key={c}
+              onClick={() => setCat(c)}
+              className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+                cat === c
+                  ? "bg-primary text-primary-foreground"
+                  : "border border-border text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {c}
+            </button>
+          ))}
+        </div>
+
+        <div className="mt-8 grid auto-rows-[1fr] grid-cols-1 gap-4 sm:grid-cols-3">
+          {filtered.map((project, i) => (
+            <ProjectCard key={project.name} project={project} featured={cat === "전체" && i === 0} />
           ))}
         </div>
 

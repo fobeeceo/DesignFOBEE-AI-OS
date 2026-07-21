@@ -18,9 +18,9 @@ export default function HomePage() {
       <Header />
       <main>
         <Hero />
+        <PortfolioSection />
         <ServicesSection />
         <ProcessSection />
-        <PortfolioSection />
         <GBrickSection />
         <TrustSection />
         <CTASection />
