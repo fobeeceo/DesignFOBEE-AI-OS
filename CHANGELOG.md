@@ -4,6 +4,11 @@
 
 ## [Unreleased]
 
+### Creative Director — 홈 리디자인 (2026-07-21, CEO 승인)
+- **Hero 재구성**: 다크 텍스트 → **공간사진 풀블리드 + 브랜드 먼저**("공간을 넘어, 경험을 디자인 · 26년") + **CTA 2트랙**(상담·견적 문의 / AI로 미리보기). 데스크톱·모바일 Preview 검증.
+- **포트폴리오 승격**: 홈 2번째 섹션으로 이동 + **카테고리 필터**(전체/카페/오피스). 전 이미지 로드 확인(network 200).
+- QA(lint+tsc+build) 통과 × 각 증분. (남은 승인 항목: 스크롤 인터랙션·에디토리얼 팔레트 홈 확장)
+
 ### AI HQ 헌장 채택 + Hardening (2026-07-21)
 - **CLAUDE.md 헌장 v1.0** 확정 + 문서 6종(README·CHANGELOG·ROADMAP·TODO·SYSTEM·API) 완비 + `npm run qa` 스크립트.
 - **/hq 인증 게이트**(§13): 미들웨어에서 env 있을 때 비로그인 → `/login?redirect=/hq`, env 없으면 데모 렌더(빌드 안전). `npm run qa`(lint+tsc+build) 통과.
