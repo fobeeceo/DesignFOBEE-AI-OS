@@ -52,6 +52,18 @@ export const ERP_SNAPSHOT = {
     ],
   },
   masters: { ingredientGroups: 57, options: 8, menus: 63 },
+  dessert: {
+    count: 28,
+    avgPrice: 4411,
+    avgRatio: 49.9,
+    highRatio: [
+      { name: "가나슈초코케이크", price: 7000, ratio: 62 },
+      { name: "티라미수케이크", price: 6000, ratio: 59 },
+      { name: "쿠키생크림케이크", price: 6000, ratio: 59 },
+      { name: "크로아상", price: 2900, ratio: 57 },
+      { name: "당근케익", price: 6000, ratio: 50 },
+    ],
+  },
 } as const;
 
 /** AI 직원 조직 (SSOT: Notion AI Prompt Library + AI Media Workforce). */

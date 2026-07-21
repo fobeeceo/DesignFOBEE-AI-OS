@@ -30,12 +30,12 @@ INGREDIENT_GROUPS = {  # 01_INGREDIENT_MASTER v1.0 코드체계 (품목 수)  �
     "원두": 3, "우유": 4, "시럽": 5, "파우더": 9, "과일청": 7, "프라페과일": 5, "티": 5,
     "디저트": 9, "탄산": 1, "컵": 4, "빨대": 5,
 }
-DESSERT_COST = {  # 실제 매입 개당단가(원) — 제원인터내쇼날 단가표(생지/디저트 xlsx) SSOT
-    "플레인베이글": 500, "어니언베이글": 550, "아지아고치즈베이글": 650,
-    "크로아상": 630, "초콜릿헤즐넛크로아상": 1400, "미니크로아상": 310,
-    "블루베리머핀": 900, "초콜릿머핀": 790, "초코칩머핀": 750,
-    "마들렌": 550, "쁘띠버터마들렌": 300, "쁘띠초코마들렌": 350,
-}
+def _dessert_menu() -> dict:
+    """디저트 단가표(dessert_import 산출물)를 읽어 원가·판매가·원가율 반영. SSOT: 지브릭커피 디저트단가표."""
+    p = OUT / "dessert_menu.json"
+    if not p.exists():
+        return {"count": 0, "avgPrice": 0, "avgRatio": 0, "items": []}
+    return json.loads(p.read_text(encoding="utf-8"))
 INVENTORY = [  # (품목, 현재수량, 적정수량)  ← 재고관리 DB 2026-07-05 실측
     ("디카페인원두", 3, 4), ("우유", 1, 10), ("오트밀크", 1.5, 4), ("일반두유", 0.5, 10),
     ("무당두유", 3.5, 10), ("탄산수", 2, 10), ("자몽에이드소분", 4, 6), ("딸기라떼소분", 0, 6),
@@ -65,6 +65,18 @@ def menu_costs() -> list[dict]:
     return sorted(out, key=lambda m: m["원가율"], reverse=True)
 
 
+def _dessert_summary() -> dict:
+    d = _dessert_menu()
+    items = d.get("items", [])
+    high = sorted((i for i in items if i.get("ratio")), key=lambda x: x["ratio"], reverse=True)[:5]
+    return {
+        "품목수": d.get("count", 0),
+        "평균판매가": d.get("avgPrice", 0),
+        "평균원가율": d.get("avgRatio", 0),
+        "고원가_TOP": [{"메뉴": i["name"], "판매가": i["price"], "원가율": i["ratio"]} for i in high],
+    }
+
+
 def daily_report() -> dict:
     recs = reorder_recommendations()
     costs = menu_costs()
@@ -80,8 +92,7 @@ def daily_report() -> dict:
         "메뉴원가": costs,
         "옵션단가": OPTIONS,
         "원재료그룹수": sum(INGREDIENT_GROUPS.values()),
-        "디저트매입원가": DESSERT_COST,
-        "디저트평균매입원가": round(sum(DESSERT_COST.values()) / len(DESSERT_COST)),
+        "디저트": _dessert_summary(),
     }
     (OUT / "erp_daily_report.json").write_text(
         json.dumps(report, ensure_ascii=True, indent=2), encoding="utf-8")

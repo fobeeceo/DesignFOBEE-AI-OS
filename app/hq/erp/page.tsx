@@ -48,6 +48,31 @@ export default function HqErp() {
       </section>
 
       <section className="rounded-2xl border border-border p-5">
+        <h2 className="mb-3 text-sm font-bold">🍰 디저트 원가 ({E.dessert.count}종 · 평균 원가율 {E.dessert.avgRatio}%)</h2>
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-border text-left text-xs text-muted-foreground">
+              <th className="py-2">메뉴</th><th>판매가</th><th>원가율</th><th>마진</th>
+            </tr>
+          </thead>
+          <tbody>
+            {E.dessert.highRatio.map((m) => {
+              const cost = Math.round(m.price * (m.ratio / 100));
+              return (
+                <tr key={m.name} className="border-b border-border/50">
+                  <td className="py-2">{m.name}</td>
+                  <td>{won(m.price)}</td>
+                  <td className="font-semibold text-red-500">{m.ratio}%</td>
+                  <td>{won(m.price - cost)}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+        <p className="mt-2 text-xs text-muted-foreground">SSOT: 지브릭커피 디저트단가표(28종). 음료 평균 22.6% 대비 디저트 평균 {E.dessert.avgRatio}% — 원가 관리 우선순위.</p>
+      </section>
+
+      <section className="rounded-2xl border border-border p-5">
         <h2 className="mb-3 text-sm font-bold">📦 발주 추천 (안전재고 미달 {E.inventory.shortageCount}건)</h2>
         <table className="w-full text-sm">
           <thead>
