@@ -1,3 +1,13 @@
+# DesignFOBEE · GBRICK AI HQ
+
+AI가 운영하는 본사 운영체제 — DesignFOBEE(공간디자인)·GBRICK Coffee(프랜차이즈)·AI ERP·AI HQ·Media OS 통합.
+
+**거버넌스**: [CLAUDE.md](CLAUDE.md) (헌장 v1.0) · **아키텍처** [SYSTEM.md](SYSTEM.md) · **API** [API.md](API.md) · **계획** [ROADMAP.md](ROADMAP.md) / [TODO.md](TODO.md) / [CHANGELOG.md](CHANGELOG.md)
+
+**주요 화면**: `/` 홈 · `/design` 무로그인 AI 스튜디오 · `/hq` AI 본사 대시보드(8메뉴). **배포 전**: `npm run qa` (lint+type-check+build).
+
+---
+
 # DesignFOBEE-AI — STEP 1~10 완료: 홈페이지 · 회원가입 · 업로드 · AI분석 · AI생성 · AI설명 · AI견적 · 상담신청 · CRM저장 · 관리자페이지
 
 DesignFOBEE AI Sales OS. STEP 1 홈페이지 · STEP 2 회원가입 · STEP 3 사진 업로드 ·
