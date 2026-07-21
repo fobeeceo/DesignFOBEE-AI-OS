@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### AI HQ 헌장 채택 + Hardening (2026-07-21)
+- **CLAUDE.md 헌장 v1.0** 확정 + 문서 6종(README·CHANGELOG·ROADMAP·TODO·SYSTEM·API) 완비 + `npm run qa` 스크립트.
+- **/hq 인증 게이트**(§13): 미들웨어에서 env 있을 때 비로그인 → `/login?redirect=/hq`, env 없으면 데모 렌더(빌드 안전). `npm run qa`(lint+tsc+build) 통과.
+
 ### GBRICK AI SYSTEM Master Command (2026-07-21 이어서)
 - **디저트 원가율 100% 완성** ✅: `src/dessert_import.py` — 지브릭커피 디저트단가표(xlsx) 파싱 → 28품목 원가·판매가·원가율(output/dessert_menu.json). erp_engine 이 읽어 디저트 요약 반영(평균 판매가 4,411원·**평균 원가율 49.9%**, 고원가 가나슈초코케이크 62%). /hq/erp 웹에 디저트 원가 테이블 표시. 음료 22.6% vs 디저트 49.9% 대비 노출.
 - **디저트 정밀원가** ✅: 제원 단가표(생지/디저트 xlsx)에서 실 매입 개당단가 12품목(베이글 500~650·크로아상 630·머핀 750~900·마들렌 300~550) → erp_engine 연결. 평균 매입 640원.

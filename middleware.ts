@@ -39,7 +39,16 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  // 인증 게이트: /hq(AI Headquarters)는 로그인 후에만 접근 (헌장 §13 보안).
+  // env 미설정 시에는 위에서 이미 스킵되므로 빌드/데모 렌더는 안전.
+  if (!user && request.nextUrl.pathname.startsWith("/hq")) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    url.searchParams.set("redirect", request.nextUrl.pathname);
+    return NextResponse.redirect(url);
+  }
 
   return response;
 }

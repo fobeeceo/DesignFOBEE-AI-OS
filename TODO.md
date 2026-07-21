@@ -8,7 +8,8 @@
 - [x] 문서 6종: README·CHANGELOG·ROADMAP·TODO·API·SYSTEM
 - [ ] **QA 스크립트** `npm run qa` (lint && tsc --noEmit && build)
 - [ ] **저장소 Private 전환** (보안 §14) — CEO 계정 작업
-- [ ] **/hq 인증 게이트** (로그인 후만; 현재 공개)
+- [x] **/hq 인증 게이트** (미들웨어: env 있을 때 로그인 필수 → /login, env 없으면 데모 렌더). QA 통과.
+- [ ] **QA 스크립트** `npm run qa` (lint && tsc --noEmit && build) ✅ 추가·검증됨
 
 ## P1 — 다음 (Live Data / Automation)
 - [ ] ERP 실시간화: `/api/hq/erp`가 저장소에서 최신 POS/재고 조회
