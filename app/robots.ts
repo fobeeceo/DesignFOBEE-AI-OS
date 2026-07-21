@@ -7,6 +7,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
+      disallow: ["/hq", "/admin", "/api/"], // 내부 운영·API 크롤링 차단
     },
     sitemap: `${SITE_URL}/sitemap.xml`,
   };
