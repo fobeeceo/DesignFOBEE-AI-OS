@@ -11,7 +11,7 @@
   --primary-foreground: 40 20% 98%;
   --muted: 40 10% 94%;
   --muted-foreground: 20 8% 40%;
-  --accent: 28 45% 42%;
+  --accent: 18 58% 44%; /* 브랜드 clay(#b0562f) — /design 스튜디오와 통일 */
   --accent-foreground: 40 20% 98%;
   --border: 30 12% 88%;
   --radius: 0.5rem;

@@ -1,5 +1,6 @@
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import Reveal from "@/components/Reveal";
 import { Hero } from "@/components/home/Hero";
 import { ServicesSection } from "@/components/home/ServicesSection";
 import { ProcessSection } from "@/components/home/ProcessSection";
@@ -18,12 +19,12 @@ export default function HomePage() {
       <Header />
       <main>
         <Hero />
-        <PortfolioSection />
-        <ServicesSection />
-        <ProcessSection />
-        <GBrickSection />
-        <TrustSection />
-        <CTASection />
+        <Reveal><PortfolioSection /></Reveal>
+        <Reveal><ServicesSection /></Reveal>
+        <Reveal><ProcessSection /></Reveal>
+        <Reveal><GBrickSection /></Reveal>
+        <Reveal><TrustSection /></Reveal>
+        <Reveal><CTASection /></Reveal>
       </main>
       <Footer />
     </>
