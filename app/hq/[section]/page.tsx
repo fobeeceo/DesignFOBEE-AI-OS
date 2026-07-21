@@ -79,6 +79,29 @@ export default function HqSection({ params }: { params: { section: string } }) {
         </div>
       )}
 
+      {params.section === "academy" && (
+        <div className="rounded-2xl border border-border p-5 text-sm">
+          <h2 className="mb-2 text-sm font-bold">교육 체계 (정보공개서 Ⅶ)</h2>
+          <ul className="flex flex-col gap-1 text-muted-foreground">
+            <li>· 신규교육 5일 (계약 후 1개월 내 필수, 집단강의+실습)</li>
+            <li>· 보수교육 매년 · 수시교육 3일 · 교육비 실비</li>
+            <li>· 교육 과정: 회사소개 · 음료제조 · POS · 위생 · 매장운영</li>
+          </ul>
+          <p className="mt-2 text-xs">SOP·매뉴얼은 Notion 운영시스템(오픈/마감/고객응대/음료제조/청소)에 구축됨.</p>
+        </div>
+      )}
+
+      {params.section === "settings" && (
+        <div className="rounded-2xl border border-border p-5 text-sm">
+          <h2 className="mb-2 text-sm font-bold">SSOT / 시스템</h2>
+          <ul className="flex flex-col gap-1 text-muted-foreground">
+            <li>· 정본: Master DB(Notion) + Google Drive = SSOT. 변경은 Change Report 경유.</li>
+            <li>· 메뉴 {E.masters.menus}종 · 원재료 {E.masters.ingredientGroups}품목 · 옵션 {E.masters.options}종.</li>
+            <li>· 배포: git push → Vercel 자동배포 (design-fobee-ai-os.vercel.app).</li>
+          </ul>
+        </div>
+      )}
+
       {params.section === "staff" && (
         <div className="flex flex-col gap-4">
           <div className="rounded-2xl border border-border p-5">
