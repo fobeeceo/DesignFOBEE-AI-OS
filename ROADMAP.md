@@ -11,16 +11,18 @@
 - **배포**: git push → Vercel 자동. env 없이 빌드 OK.
 - **Living Document**: Drive 감지→제안→CEO 승인→반영(수동 트리거).
 
-## Phase B — Hardening 🚧 재실사 결과 (§8~§14)
+## Phase B — Hardening 🚧 3차 실사 결과 (2026-07-21, CEO-CHARTER 승인규칙 적용)
 | 항목 | 상태 | 근거 |
 |---|---|---|
-| 문서 6종 | ✅ | README/CHANGELOG/ROADMAP/TODO/API/SYSTEM 존재 |
-| QA 스크립트 | ✅ | `npm run qa` exit 0 실행 확인 |
-| `/hq` 인증 게이트 | ✅ | middleware.ts 코드 확인 |
-| **저장소 Private** | ❌ | GitHub API 재조회: `"private": false` (여전히 PUBLIC) |
-| **견적 단가 실값 교체** | ❌ | `prompts/pricing.ts` 플레이스홀더 확인, 신뢰 리스크 |
-| **Dead code 정리** | ⏸ 승인대기 | 7개 orphan 컴포넌트 grep 검증(무사용), §18에 따라 CEO 승인 필요 |
-| A11y/SEO/Image/Link/Perf 자동 QA | ❌ | §9 요구 항목 중 미커버, lint+tsc+build만 자동화됨 |
+| 문서 6종 + CEO-CHARTER | ✅ | 존재 확인 |
+| QA 스크립트(`npm run qa`) | ✅ | exit 0 |
+| **QA 확장**(a11y/SEO/링크/이미지/성능) | ✅ | `npm run qa:extended` exit 0, QA-REPORT.md 생성. 실조치 필요 9건(a11y만, 나머지 0) |
+| **Audit 시스템**(8항목) | ✅ | `npm run audit` exit 0, audit-report.md 생성. 자체 버그 2건 발견·수정 |
+| `/hq` 인증 게이트 | ✅ | middleware.ts 확인 |
+| **저장소 Private**(외부공개 정책) | ⏸ CEO 승인대상 | GitHub API: `private: false` |
+| **견적 단가 실값**(데이터/정책) | ⏸ CEO 승인대상 | `prompts/pricing.ts` 플레이스홀더 |
+| **Dead code 삭제**(삭제 행위) | ⏸ CEO 승인대상 | 7건 재확인(transitive) — 삭제 자체만 승인 대상, 발견·보고는 완료 |
+| AI 조직 QA/Audit/Security/Documentation | ✅ | Notion AI Prompt Library 등록, 실 시스템 연결 |
 
 ## Phase C — Live Data
 - ERP 실시간화(스냅샷→저장소 조회) · 전국 집계(타 매장 POS) · Living Document 상시 러너.

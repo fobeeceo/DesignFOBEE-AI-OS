@@ -1,40 +1,37 @@
 # TODO — DesignFOBEE · GBRICK AI HQ
 
-> 헌장 §19 재실사 (2026-07-21, 2차). `[x]`=완료·검증, `[ ]`=대기. 우선순위: P0(즉시)→P1→P2.
+> CEO-CHARTER.md 승인규칙 적용(2026-07-21): 5항목(정책변경·삭제·비용발생·외부공개·데이터구조변경)만 CEO 승인 대상. 그 외는 자율 진행. `[x]`=완료·검증, `[ ]`=대기.
 
-## P0 — 즉시 (보안·신뢰 리스크)
-- [ ] **저장소 Private 전환** (§14 보안 우선) — CEO GitHub 계정 작업. **현재도 PUBLIC 확인됨(재검증)**.
-- [ ] **`prompts/pricing.ts` 실제 단가 교체** — 현재 전부 플레이스홀더. 실고객에게 AI 예상견적 노출 시 신뢰 리스크(§8 증거원칙 위반 소지). 배포 전 필수.
-- [ ] **관리자 `isAdmin` 수동 DB 플래그** — 자동화 안 됨(§2 자동화 원칙 갭). 최소 SQL 스니펫→운영 SOP 문서화 필요.
+## CEO 승인 대상 (5항목 규칙 해당)
+- [ ] **Dead Code 삭제**: `components/{Header,Footer,Hero,Faq,HowItWorks,StyleGallery,StyleCards}.tsx` 7개 — `npm run audit`로 재확인됨(transitive closure 포함). 삭제=CEO 승인 대상.
+- [ ] **저장소 Private 전환** — 외부공개 정책. CEO GitHub 계정 작업.
+- [ ] **`prompts/pricing.ts` 실제 단가 교체** — 데이터/정책 사안. 디자인포비 실제 단가 필요.
 
-## P1 — 기술부채 (구조/중복, §14)
-- [ ] **Dead code 정리 승인 요청**: `components/{Header,Footer,Hero,Faq,HowItWorks,StyleGallery,StyleCards}.tsx` 7개 파일 — grep 검증 결과 **어디서도 import 안 됨**(ReRoom 레거시 잔재). §18 "CEO 승인 없이 기존 기능 삭제 금지" → **CEO 승인 필요**, 승인 시 즉시 삭제(코드 자체는 이미 무영향).
-- [ ] **CompareSlider 중복 제거**: `components/CompareSlider.tsx`(dead) vs `components/design/CompareSlider.tsx`(live, `/design`·`/analyze` 사용) — 위 승인과 함께 정리.
-- [x] QA 스크립트 `npm run qa` (lint && tsc --noEmit && build) — 추가·검증 완료, 중복 라인 정리.
-- [x] 문서 6종 완비(README·CHANGELOG·ROADMAP·TODO·API·SYSTEM).
-- [x] `/hq` 인증 게이트 (env 있을 때 로그인 필수).
+## 자율 진행 중 (승인 불요, QA/Audit로 검증된 실제 항목)
+- [x] QA 확장 시스템(`npm run qa:extended`) — a11y/SEO/링크/이미지/성능 실검증 완료.
+- [x] Audit 시스템(`npm run audit`) — 8항목 실검증 완료, 2개 자체 버그 발견·수정.
+- [ ] **접근성 실수정 9건**: `components/design/DesignStudio.tsx`(197/216/235행)·`components/Studio.tsx`(264/346/371행) — 섹션제목용 `<label>`을 `<p>`/heading으로 교체(폼과 무관, 오분류). `components/upload/PhotoUploader.tsx:89` 키보드 접근성(click-events-have-key-events, no-static-element-interactions).
+- [ ] **중복 컴포넌트 정리 검토**: CompareSlider/Footer/Header/Hero 4쌍(동명이경로). Dead Code 승인과 함께 처리 예정 — 삭제 자체는 여전히 승인 대상이나 "정리 계획 수립"은 자율 진행 가능.
+- [ ] Unused Import 8건 실수정(경미, `npm run audit` 리포트 참조).
+- [ ] env 문서 정합: `.env.example`에 `NODE_ENV` 추가, 미사용 4건(DATABASE_URL/DIRECT_URL/GA/Clarity) 실제 코드 참조 여부 재확인 후 정리.
+- [ ] npm audit 취약점(high 1·moderate 1) 확인 후 패치 가능하면 자율 적용.
 
-## P2 — QA 커버리지 확장 (§9 미검사 항목)
-- [ ] **Accessibility** 자동 검사 (현재 lint만, a11y 규칙 없음).
-- [ ] **SEO** 자동 검사 (메타/OG 존재하나 자동화된 체크 없음).
-- [ ] **Image** 최적화 검사 (next/image 사용 중이나 alt·용량 감사 없음).
-- [ ] **Link** 유효성 검사(dead link) 자동화 없음.
-- [ ] **Performance**(Lighthouse) 자동화 없음.
+## AI 조직 갭 (CEO-CHARTER §AI Headquarters 구축, 실체 없이 조작하지 않음)
+- [x] **신설(실체 있음)**: AI QA·AI Audit·AI Security·AI Documentation (scripts/ 실제 시스템 연결).
+- [ ] **미충족 역할**(Notion에 실체 있는 프롬프트 없음, 향후 실제 자동화 붙을 때 추가 예정): MASTER AI(현재 CTO와 미분리)·COO·PM·Research(범용)·Knowledge·Interior(전담)·UX(전담)·Frontend/Backend(전담)·Automation(전담)·Dashboard(전담)·Customer Success·Finance(AI회계는 ERP 원가 한정).
 
-## P3 — Live Data / Automation
-- [ ] ERP 실시간화: `/api/hq/erp`가 저장소에서 최신 POS/재고 조회 (현재 정적 스냅샷).
-- [ ] 타 매장 POS 엑셀 → 전국 집계 (본사 대시보드, 현재 본점만).
-- [ ] Media 실업로드: YouTube OAuth 연결·테스트 (자격증명 필요).
+## P1 — Live Data / Automation
+- [ ] ERP 실시간화: `/api/hq/erp`가 저장소에서 최신 POS/재고 조회(현재 정적 스냅샷).
+- [ ] 타 매장 POS 엑셀 → 전국 집계.
+- [ ] Media 실업로드: YouTube OAuth (자격증명 대기).
 - [ ] 디저트 판매가 → 홈 메뉴 화면 연결.
 
-## P4 — 확장 (Scale)
-- [ ] Franchise 포털: 가맹점 로그인 뷰(멀티테넌트).
-- [ ] Living Document 상시 러너(무인 자동 — 현재 세션 종속, 진짜 24/7 아님).
-- [ ] MASTER AI 오케스트레이션(§4~5 부서 AI 실동작화 — 현재는 CTO 1인이 전 역할 수행).
-- [ ] 다국어 i18n · 글로벌 배포.
+## P2 — 확장 (Scale)
+- [ ] Franchise 포털(가맹점 로그인).
+- [ ] Living Document 상시 러너(현재 세션 종속).
+- [ ] 다국어 i18n.
 
-## 자격증명/입력 대기 (Blocked — 코드로 해결 불가)
-- OAuth 키: YouTube/Meta/TikTok/Naver (실업로드)
-- 타 매장 POS 데이터 (전국 집계)
-- 저장소 Private 권한 (CEO GitHub 계정)
-- 디자인포비 실제 인테리어 시공 단가 (pricing.ts 교체용)
+## 자격증명/입력 대기 (Blocked)
+- OAuth 키: YouTube/Meta/TikTok/Naver
+- 타 매장 POS 데이터
+- 디자인포비 실제 인테리어 시공 단가

@@ -4,6 +4,13 @@
 
 ## [Unreleased]
 
+### CEO Delegation Charter + QA/Audit 시스템 구축 (2026-07-21)
+- **CEO-CHARTER.md 채택**: 최상위 명령. 승인 규칙 5항목(정책변경·삭제·비용발생·외부공개·데이터구조변경)으로 축소, 그 외는 연속 자율실행. CLAUDE.md §16/16-A 갱신 반영.
+- **QA 확장 시스템** (`npm run qa:extended`, §9): Accessibility(jsx-a11y)·SEO(metadata 상속 추적)·Broken Link(라우트 매칭)·Image(disable주석 인지)·Performance(번들 예산) 5종 실제 검사, QA-REPORT.md 자동 생성. **검증 실행 결과(2026-07-21)**: 실제조치 9건(a11y — label 미연결 7·키보드접근성 2), SEO공백 0, 깨진링크 0, 미검토이미지 0, 예산초과 0.
+- **Audit 시스템** (`npm run audit`, §10): Dead Code(연쇄전파 포함)·중복컴포넌트·Unused Import·Broken Route·독립 Build·Security(시크릿+npm audit)·Env Var·Git Status 8종, audit-report.md 자동 생성. **검증 실행 결과**: Dead Code 7건(components/{Header,Footer,Hero,Faq,HowItWorks,StyleGallery,StyleCards}.tsx, 전부 CEO 승인 대기·미삭제)·중복 4쌍·Unused Import 8건·Broken Route 0·Build PASS·하드코딩시크릿 0·npm audit(high 1, moderate 1)·env 문서화갭 1(NODE_ENV)·env 미사용선언 4건.
+- **자기검증으로 스크립트 버그 2건 직접 발견·수정**(§10 다른 AI를 믿지 않는다): ① Dead Code 체커가 basename 접미사만 비교해 동명이경로 파일(Header.tsx 등)을 오판정 → 정확한 import-specifier 경로해석으로 수정, 재실행 검증. ② SEO/Image 체커가 상속 metadata·disable주석을 몰라 오탐 다수 발생 → 상위 layout 상속 추적 + disable주석 인지 추가, 재실행 검증(9건 오탐 → 0건).
+- **AI 조직 4개 역할 신설**(실체 있는 시스템 뒷받침, Notion AI Prompt Library): AI QA·AI Audit·AI Security·AI Documentation. 나머지(COO·PM·Research·Interior·UX 등)는 실체 없이 조작하지 않고 TODO에 갭으로 정직 기록.
+
 ### Creative Director — 홈 리디자인 (2026-07-21, CEO 승인)
 - **Hero 재구성**: 다크 텍스트 → **공간사진 풀블리드 + 브랜드 먼저**("공간을 넘어, 경험을 디자인 · 26년") + **CTA 2트랙**(상담·견적 문의 / AI로 미리보기). 데스크톱·모바일 Preview 검증.
 - **포트폴리오 승격**: 홈 2번째 섹션으로 이동 + **카테고리 필터**(전체/카페/오피스). 전 이미지 로드 확인(network 200).

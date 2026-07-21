@@ -9,6 +9,8 @@
     "start": "next start",
     "lint": "next lint",
     "qa": "next lint && tsc --noEmit && next build",
+    "qa:extended": "node scripts/qa-extended.js",
+    "audit": "node scripts/audit.js",
     "postinstall": "prisma generate",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev"
