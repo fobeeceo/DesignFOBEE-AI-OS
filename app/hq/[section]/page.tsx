@@ -1,4 +1,4 @@
-import { HQ_MENU, ERP_SNAPSHOT as E, STORES, won } from "@/lib/hq/erpSnapshot";
+import { HQ_MENU, ERP_SNAPSHOT as E, STORES, AI_STAFF, won } from "@/lib/hq/erpSnapshot";
 
 const SECTION: Record<string, { title: string; desc: string; note: string }> = {
   franchise: { title: "가맹점", desc: "가맹점 로그인 · 오늘 매출 · 재고 · 발주 · 교육 · 공지 · 매뉴얼 · 본사 문의", note: "가맹점별 뷰(멀티테넌트)는 HQ 셸 위에 역할별로 연결 예정. 현재 본점 데이터 기준." },
@@ -76,6 +76,31 @@ export default function HqSection({ params }: { params: { section: string } }) {
         <div className="rounded-2xl border border-border p-5 text-sm">
           <p className="font-semibold">콘텐츠센터 요약</p>
           <p className="mt-2 text-muted-foreground">AI 직원 13 Media Worker · OSMU 산출: blog/shorts/instagram/youtube/tiktok/naver.</p>
+        </div>
+      )}
+
+      {params.section === "staff" && (
+        <div className="flex flex-col gap-4">
+          <div className="rounded-2xl border border-border p-5">
+            <h2 className="mb-3 text-sm font-bold">역할 AI ({AI_STAFF.roles.length})</h2>
+            <ul className="flex flex-col gap-2 text-sm">
+              {AI_STAFF.roles.map((r) => (
+                <li key={r.name} className="flex items-baseline justify-between gap-4">
+                  <span className="font-medium">{r.name}</span>
+                  <span className="text-right text-muted-foreground">{r.mission}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="rounded-2xl border border-border p-5">
+            <h2 className="mb-3 text-sm font-bold">Media Workforce ({AI_STAFF.media.length})</h2>
+            <div className="flex flex-wrap gap-2">
+              {AI_STAFF.media.map((m) => (
+                <span key={m} className="rounded-full border border-border px-3 py-1 text-xs">{m}</span>
+              ))}
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">각 Worker는 Mission·SOP·KPI·Prompt 보유(Notion AI Prompt Library / Media Workforce). 실업로드는 OAuth 키 후.</p>
         </div>
       )}
     </div>

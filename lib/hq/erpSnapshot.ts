@@ -54,6 +54,24 @@ export const ERP_SNAPSHOT = {
   masters: { ingredientGroups: 57, options: 8, menus: 63 },
 } as const;
 
+/** AI 직원 조직 (SSOT: Notion AI Prompt Library + AI Media Workforce). */
+export const AI_STAFF = {
+  roles: [
+    { name: "AI CEO", mission: "전략·리스크·대안 제시(공동 의사결정)" },
+    { name: "AI 디자이너", mission: "공간 사진 → AI 리디자인" },
+    { name: "AI 마케터", mission: "GBRICK 창업/브랜드 마케팅" },
+    { name: "AI 견적", mission: "예상 견적 산정" },
+    { name: "AI CRM", mission: "리드 응대·상담 관리" },
+    { name: "AI 콘텐츠", mission: "SNS/블로그/쇼츠 기획" },
+  ],
+  media: [
+    "Media Director", "Trend Researcher", "Blog Writer", "Shorts Producer",
+    "Voice Producer", "Video Editor", "Thumbnail Designer", "SEO Manager",
+    "Instagram Manager", "YouTube Manager", "TikTok Manager", "Naver Blog Manager",
+    "Content Analyst",
+  ],
+} as const;
+
 /** 가맹/직영점 로스터 (SSOT: Franchise KB 정보공개서 2024-07-18). 본점만 POS 실데이터 연결됨. */
 export const STORES = [
   { name: "은평본점", type: "직영", region: "서울 은평구", open: "2013-11-11", live: true },
