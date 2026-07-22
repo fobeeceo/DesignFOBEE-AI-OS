@@ -79,6 +79,8 @@
 ## Index (본 문서군)
 - [PROJECT-INDEX.md](PROJECT-INDEX.md) — 10개 영역별 프로젝트 색인
 - DOCUMENT-INDEX.md — 본 문서
+- [DOCUMENT-POLICY.md](DOCUMENT-POLICY.md) — 문서 관리 3단계 정책(Git/Git제외/Drive)
+- [DOCUMENT-STANDARD.md](DOCUMENT-STANDARD.md) — 문서 표준 구조 v1.0(배치·명명·중복처리 규칙)
 
 ---
 ## 문서 중복 분석 결과 (CEO 지시 §3-5)

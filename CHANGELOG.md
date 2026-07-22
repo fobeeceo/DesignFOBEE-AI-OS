@@ -4,6 +4,13 @@
 
 ## [Unreleased]
 
+### 문서 관리 정책 확정 (DOCUMENT-POLICY·DOCUMENT-STANDARD v1.0) (2026-07-22)
+- **docs/ 미추적 원인 확정**(`git blame` 직접 확인): 커밋 `5f0fbd61`(2026-07-20)에서 의도적 보안 결정으로 추가됨(정보공개서 재무·창업비용 등 민감정보를 당시 PUBLIC 저장소 노출로부터 보호). 실수 아님. **저장소가 지금도 여전히 PUBLIC**(GitHub API 재확인, CEO의 Private 유지 결정은 승인됐으나 CTO에게 GitHub 관리자 자격증명이 없어 미실행) → 이 보호는 현재도 유효·필요.
+- **DOCUMENT-POLICY.md** 신설: 문서 3단계 분류 — ①Git 관리(루트, 비민감) ②Git 제외(`docs/`, 민감+저장소 공개 상태) ③Google Drive 관리(원본 SSOT, 로컬 미복제).
+- **DOCUMENT-STANDARD.md v1.0** 신설: PROJECT-INDEX/DOCUMENT-INDEX 기준 표준 구조 — 신규문서 배치규칙(민감→docs/, Drive원본복제금지, 그외→루트)·명명규칙·중복처리(삭제보다 정본지정 우선)·버전관리·상호참조·색인유지 규칙. MASTER INITIALIZATION 신규문서는 전부 루트에 생성하기로 확정(기존 frozen docs/ 비접촉).
+- PROJECT-INDEX.md·DOCUMENT-INDEX.md에 신규 문서 2건 상호등록(자기 규칙 즉시 적용).
+- env 없이 `npm run qa` exit 0.
+
 ### 문서 체계 정리: PROJECT-INDEX·DOCUMENT-INDEX 신설 (2026-07-22)
 - **전수 조사**: `find -name "*.md"` 직접 실행 → **60개** 문서 확인(루트 15·content-automation-agent 6·docs/ 39). docs/ 전체가 `.gitignore`(`docs/`)로 **Git 미추적** 확인(`git ls-files docs/` = 0건).
 - **안전 원칙 발견**: CEO 지시("삭제는 Git 복구 가능한 경우만") 적용 시, docs/는 Git 이력이 없어 삭제하면 **복구 불가**. docs/ 내용은 **삭제하지 않기로 결정**(중복이어도), 색인으로 정본/구버전만 표시.
