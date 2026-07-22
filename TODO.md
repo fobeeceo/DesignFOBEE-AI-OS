@@ -1,11 +1,14 @@
 # TODO — DesignFOBEE · GBRICK AI HQ
 
-> CEO-CHARTER.md v1.0 승인규칙 적용(2026-07-21 갱신): 데이터삭제·비용발생·외부서비스가입·GitHub공개변경·정책변경 5항목만 CEO 승인 대상. 그 외는 자율 진행. `[x]`=완료·검증, `[ ]`=대기.
+> CEO-CHARTER.md §16-B 승인규칙 적용(2026-07-21 최종 갱신): 실제데이터삭제·비용발생·외부서비스가입·GitHub공개변경·운영서버파괴적변경·법률/라이선스변경 6항목만 CEO 승인 대상. 그 외(Dead Code 삭제 포함)는 자율 진행. `[x]`=완료·검증, `[ ]`=대기.
 
-## CEO 승인 대상 (5항목 규칙 해당)
+## CEO 승인 대상 (6항목 규칙 해당)
 - [ ] **저장소 Private 전환**(GitHub 공개여부 변경) — CEO GitHub 계정 작업.
 - [ ] **`prompts/pricing.ts` 실제 단가 교체**(정책/데이터) — 디자인포비 실제 단가 필요.
-- [ ] **Dead Code 삭제 여부 확인**: `components/{Header,Footer,Hero,Faq,HowItWorks,StyleGallery,StyleCards}.tsx` 7개, `npm run audit` 재확인됨. 새 헌장 문언상 "데이터 삭제"에는 미해당(소스코드)이라 자율진행 가능해 보이나, 직전 지시와 충돌 소지가 있어 CTO 판단으로 **보류**(근거: AI-HQ-ARCHITECTURE.md/CEO-CHARTER.md 해석메모). CEO 확인 시 다음 사이클 자동 삭제 예정.
+
+## 완료 (2026-07-22)
+- [x] **Dead Code 7건 삭제**: `components/{Header,Footer,Hero,Faq,HowItWorks,StyleGallery,StyleCards}.tsx` — CEO-CHARTER §16-B③ 승인 조건 충족(참조 재확인→삭제→build exit 0) 확인 후 실행·커밋.
+- [x] **`/hq/erp` 라이브 API 연결**: `/hq`에 이어 `/hq/erp`도 `/api/hq/erp` client fetch로 전환.
 
 ## Docker / 인프라 (신규, 완료·검증됨)
 - [x] `AI-HQ/docker-compose.yml` + `Dockerfile`(web)·`content-automation-agent/Dockerfile`(erp) — 빌드·기동·HTTP 200 실증.
@@ -17,7 +20,7 @@
 - [x] QA 확장 시스템(`npm run qa:extended`) — a11y/SEO/링크/이미지/성능 실검증 완료.
 - [x] Audit 시스템(`npm run audit`) — 8항목 실검증 완료, 2개 자체 버그 발견·수정.
 - [ ] **접근성 실수정 9건**: `components/design/DesignStudio.tsx`(197/216/235행)·`components/Studio.tsx`(264/346/371행) — 섹션제목용 `<label>`을 `<p>`/heading으로 교체(폼과 무관, 오분류). `components/upload/PhotoUploader.tsx:89` 키보드 접근성(click-events-have-key-events, no-static-element-interactions).
-- [ ] **중복 컴포넌트 정리 검토**: CompareSlider/Footer/Header/Hero 4쌍(동명이경로). Dead Code 승인과 함께 처리 예정 — 삭제 자체는 여전히 승인 대상이나 "정리 계획 수립"은 자율 진행 가능.
+- [ ] **중복 컴포넌트 정리 검토**: CompareSlider/Footer/Header/Hero 4쌍(동명이경로) 중 dead 쪽은 삭제됨(위 참조) — 남은 live 쪽 중복(예: `components/design/` vs 다른 경로) 통합 여부 재검토.
 - [ ] Unused Import 8건 실수정(경미, `npm run audit` 리포트 참조).
 - [ ] env 문서 정합: `.env.example`에 `NODE_ENV` 추가, 미사용 4건(DATABASE_URL/DIRECT_URL/GA/Clarity) 실제 코드 참조 여부 재확인 후 정리.
 - [ ] npm audit 취약점(high 1·moderate 1) 확인 후 패치 가능하면 자율 적용.
@@ -27,7 +30,9 @@
 - [ ] **미충족 역할**(Notion에 실체 있는 프롬프트 없음, 향후 실제 자동화 붙을 때 추가 예정): MASTER AI(현재 CTO와 미분리)·COO·PM·Research(범용)·Knowledge·Interior(전담)·UX(전담)·Frontend/Backend(전담)·Automation(전담)·Dashboard(전담)·Customer Success·Finance(AI회계는 ERP 원가 한정).
 
 ## P1 — Live Data / Automation
-- [ ] ERP 실시간화: `/api/hq/erp`가 저장소에서 최신 POS/재고 조회(현재 정적 스냅샷).
+- [x] `/hq`·`/hq/erp` 프론트가 `/api/hq/erp` client fetch로 연결됨(2026-07-22).
+- [ ] ERP 백엔드 실시간화: `/api/hq/erp`가 여전히 코드 내 스냅샷(`lib/hq/erpSnapshot.ts`)을 반환 — 저장소(DB/파일)에서 최신 POS/재고를 직접 읽도록 다음 단계 필요.
+- [ ] `app/hq/[section]/page.tsx`(가맹점/물류/교육/콘텐츠/직원/설정)도 `/api/hq/erp` 라이브 연결.
 - [ ] 타 매장 POS 엑셀 → 전국 집계.
 - [ ] Media 실업로드: YouTube OAuth (자격증명 대기).
 - [ ] 디저트 판매가 → 홈 메뉴 화면 연결.

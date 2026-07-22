@@ -4,6 +4,19 @@
 
 ## [Unreleased]
 
+### Dead Code 삭제 실행 + ERP 상세 페이지 라이브 연결 (2026-07-22)
+- **Dead Code 7건 삭제**: CEO-CHARTER §16-B③ 승인 조건(참조 재확인→삭제→Build/Test 통과→문제 시 즉시 복구) 충족 확인 후 `components/{Faq,Footer,Header,Hero,HowItWorks,StyleCards,StyleGallery}.tsx` 삭제. 삭제 전 grep으로 전체 코드베이스 참조 0건 재확인, 삭제 후 env 없이 `npm run build` **재실행 exit 0** 확인.
+- **`/hq/erp` 라이브 API 연결**: `app/hq/erp/page.tsx`가 정적 `ERP_SNAPSHOT` import 대신 `/hq`(CEO Dashboard)와 동일한 패턴으로 `/api/hq/erp`를 client fetch하도록 전환(초기 렌더는 스냅샷으로 즉시 표시 후 라이브 데이터로 갱신, 무깜빡임). 이제 `/hq`·`/hq/erp` 둘 다 라이브 API 연결 완료. `app/hq/[section]/page.tsx`(가맹점/물류/교육/콘텐츠/직원/설정)는 아직 정적 — 다음 증분 대상.
+- **디저트 정밀원가 재확인**: `content-automation-agent/src/dessert_import.py` → `erp_engine.py` `_dessert_menu()`/`_dessert_summary()` 연결 기존 완료 상태 확인(2026-07-20 커밋에 이미 존재), 이번 실행에서 추가 작업 불필요.
+- **P7 가맹점 뷰**: `app/hq/[section]/page.tsx`(franchise 섹션)에 7개 매장 로스터 + 본점 실적 이미 구현됨(기존). **P8 본사 뷰**: `/hq`(CEO Dashboard)가 매출·원가·재고·발주 통합 실데이터 뷰로 이미 그 역할 수행 중 — 별도 "PROJECT 8" 문서/코드에 명시적 정의를 찾지 못했으며, 전용 화면이 필요하면 다음 사이클에 요구사항 구체화 필요(CEO 확인 권장).
+- env 없이 `npm run build` 2회(삭제 전/후) 모두 exit 0, `npm run lint` clean.
+
+### 재검증: CEO가 C:\AI-HQ에서 파일 없음 보고 → 원인 확인 + 재실행 (2026-07-22)
+- **원인**: CEO가 확인한 `C:\AI-HQ`(드라이브 루트)는 **이 프로젝트와 무관한 별도 폴더**(backup/compose/dashboard/data/docker/knowledge/logs/projects/scripts/workspace 하위 전부 비어있음, `Google Docs.lnk` 바로가기만 존재). 이 세션은 처음부터 끝까지 `D:\Project\ReRoomAI\`에서만 작업했으며 `C:\`에는 아무 파일도 생성한 적 없음(직접 확인).
+- **실제 위치 재확인**(경로+크기+수정시각+git 추적 여부 모두 확인): `D:\Project\ReRoomAI\AI-HQ\docker-compose.yml`(1410바이트)·`Dockerfile`(671바이트)·`content-automation-agent\Dockerfile`(368바이트)·`.env.example`(양쪽)·`INSTALL.md`·`README.md` 전부 존재, `git ls-files`로 추적 확인, 커밋 `cb85763`에 포함되어 이미 GitHub `main`에 푸시됨.
+- **`docker compose up -d` 실제 실행**(이전엔 `run`만 검증, `up -d` 미검증이었음 — 지적 타당): 컨테이너 `ai-hq-web-1` **기동 후 3분 이상 생존 확인**, `docker ps`로 직접 확인, `curl http://localhost:3011` **HTTP 200**, 콘텐츠 마커(DesignFOBEE/공간을넘어) 확인. 포트 3000 호스트 충돌(기존 dev 프로세스, 안 건드림) → `WEB_PORT` 환경변수로 오버라이드 가능하도록 compose 개선.
+- **보고 절차 수정**(재발 방지): 이후 "구축/기동 완료" 보고 시 반드시 ①절대경로 명시 ②`git ls-files` 추적 확인 ③실행 중인 컨테이너를 `docker ps`로 직접 확인 ④HTTP 응답 확인을 **같은 보고에 함께** 제시한다. INSTALL.md에 프로젝트 루트 경로를 명시해 향후 경로 혼동을 방지.
+
 ### CEO Operating Charter v1.0 갱신 + Docker Compose 인프라 구축 (2026-07-21)
 - **CEO-CHARTER.md 갱신**: 승인 대상 5항목(데이터삭제·비용발생·외부서비스가입·GitHub공개변경·정책변경)으로 재정의. Dead Code(소스코드) 삭제는 CTO 해석상 보류 유지 — 직전 명시적 지시와의 충돌 가능성을 문서화하고 신중을 택함(§문제해결규칙).
 - **Docker Compose 인프라**(`AI-HQ/docker-compose.yml`, 헌장 §Docker규칙): `web`(Next.js, 상시)·`erp`(Python ERP/Media, 온디맨드) 2서비스. Dockerfile은 각 서비스 폴더 유지, 오케스트레이션만 AI-HQ/ 소유(구조결정 근거 3안 비교 → AI-HQ-ARCHITECTURE.md).
