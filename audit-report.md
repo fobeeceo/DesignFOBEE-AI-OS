@@ -1,39 +1,23 @@
-> **요약**: 총 20건 발견 (Git 미커밋 변경 제외). §6에 따라 이 스크립트는 아무것도 삭제/수정하지 않았다.
+> **요약**: 총 10건 발견 (Git 미커밋 변경 제외). §6에 따라 이 스크립트는 아무것도 삭제/수정하지 않았다.
 
 # Audit Report
 
-생성: 2026-07-21T23:20:53.313Z
+생성: 2026-07-22T08:47:18.195Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
-- 스캔: 39개 컴포넌트
-- 미사용(어디서도 import 안 됨): 7건
-  - components/Faq.tsx
-  - components/Footer.tsx
-  - components/Header.tsx
-  - components/Hero.tsx
-  - components/HowItWorks.tsx
-  - components/StyleCards.tsx
-  - components/StyleGallery.tsx
+- 스캔: 32개 컴포넌트
+- 미사용(어디서도 import 안 됨): 0건
 - ⚠️ §6 규정: 삭제는 CEO 승인 후에만 수행.
 
 ## 2. Duplicate Component
-- 중복 파일명: 4건
+- 중복 파일명: 1건
   - **CompareSlider.tsx**
     - components/CompareSlider.tsx
     - components/design/CompareSlider.tsx
-  - **Footer.tsx**
-    - components/Footer.tsx
-    - components/layout/Footer.tsx
-  - **Header.tsx**
-    - components/Header.tsx
-    - components/layout/Header.tsx
-  - **Hero.tsx**
-    - components/Hero.tsx
-    - components/home/Hero.tsx
 
 ## 3. Unused Import
-- 스캔: 73개 파일
+- 스캔: 66개 파일
 - 이슈: 8건
   - app/(admin)/admin/leads/[leadId]/page.tsx:83 — Definition for rule '@next/next/no-img-element' was not found.
   - app/api/auth/naver/route.ts:1 — 'NextRequest' is defined but never used. Allowed unused vars must match /^_/u.
@@ -45,7 +29,7 @@
   - components/upload/PhotoUploader.tsx:128 — Definition for rule '@next/next/no-img-element' was not found.
 
 ## 4. Broken Route (nav 컴포넌트)
-- nav 파일 스캔: 7
+- nav 파일 스캔: 5
 - 깨진 링크: 0건
 
 ## 5. Build Error (독립 실행)
@@ -69,10 +53,12 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: cb8576397007ff04b0a62f34c641acae1f961547 feat(ai-hq): CEO Operating Charter v1.0 + Docker Compose infrastructure
-- 미커밋 변경: 2건
+- 최근 커밋: 90c1fdfd927b463b3eb1d70ab953d0f826d785ce feat(hq): connect /hq/erp to live /api/hq/erp (matches /hq dashboard pattern)
+- 미커밋 변경: 4건
 
 ```
-M CEO-CHARTER.md
- M CLAUDE.md
+M CHANGELOG.md
+ M TODO.md
+?? DOCUMENT-INDEX.md
+?? PROJECT-INDEX.md
 ```

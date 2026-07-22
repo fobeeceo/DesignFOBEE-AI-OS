@@ -4,6 +4,15 @@
 
 ## [Unreleased]
 
+### 문서 체계 정리: PROJECT-INDEX·DOCUMENT-INDEX 신설 (2026-07-22)
+- **전수 조사**: `find -name "*.md"` 직접 실행 → **60개** 문서 확인(루트 15·content-automation-agent 6·docs/ 39). docs/ 전체가 `.gitignore`(`docs/`)로 **Git 미추적** 확인(`git ls-files docs/` = 0건).
+- **안전 원칙 발견**: CEO 지시("삭제는 Git 복구 가능한 경우만") 적용 시, docs/는 Git 이력이 없어 삭제하면 **복구 불가**. docs/ 내용은 **삭제하지 않기로 결정**(중복이어도), 색인으로 정본/구버전만 표시.
+- **실제 중복 2건 확인**(파일명 대조, 크기·타임스탬프 비교): `AI_ORGANIZATION_MASTER.md`·`BACKLOG.md`가 `docs/organization/`(구버전)·`docs/master/`(같은 날 40분 뒤 작성, 정본)에 중복 존재. `overview.md`는 폴더가 달라(api/·architecture/) 실제 중복 아님(오탐 배제).
+- **PROJECT-INDEX.md** 신설: 프로젝트를 10개 영역(AI Headquarters·Homepage·ERP·Automation·Dashboard·Infrastructure·Documentation·Knowledge·Media·Archive)으로 분류, 각 목적·담당·폴더·문서 연결. 활성(루트, Git추적) vs frozen(docs/, 미추적) 구분 명시.
+- **DOCUMENT-INDEX.md** 신설: 60개 문서 전체를 카테고리별 자동 분류, 중복 분석 결과 표 포함.
+- **통합/삭제 제안**: 통합 대상 없음(루트 문서는 목적이 서로 달라 통합 불필요). 삭제 후보 없음(docs/는 미추적이라 삭제 원칙 미적용).
+- env 없이 `npm run qa` exit 0 재확인.
+
 ### Dead Code 삭제 실행 + ERP 상세 페이지 라이브 연결 (2026-07-22)
 - **Dead Code 7건 삭제**: CEO-CHARTER §16-B③ 승인 조건(참조 재확인→삭제→Build/Test 통과→문제 시 즉시 복구) 충족 확인 후 `components/{Faq,Footer,Header,Hero,HowItWorks,StyleCards,StyleGallery}.tsx` 삭제. 삭제 전 grep으로 전체 코드베이스 참조 0건 재확인, 삭제 후 env 없이 `npm run build` **재실행 exit 0** 확인.
 - **`/hq/erp` 라이브 API 연결**: `app/hq/erp/page.tsx`가 정적 `ERP_SNAPSHOT` import 대신 `/hq`(CEO Dashboard)와 동일한 패턴으로 `/api/hq/erp`를 client fetch하도록 전환(초기 렌더는 스냅샷으로 즉시 표시 후 라이브 데이터로 갱신, 무깜빡임). 이제 `/hq`·`/hq/erp` 둘 다 라이브 API 연결 완료. `app/hq/[section]/page.tsx`(가맹점/물류/교육/콘텐츠/직원/설정)는 아직 정적 — 다음 증분 대상.

@@ -8,6 +8,11 @@
 
 ## 완료 (2026-07-22)
 - [x] **Dead Code 7건 삭제**: `components/{Header,Footer,Hero,Faq,HowItWorks,StyleGallery,StyleCards}.tsx` — CEO-CHARTER §16-B③ 승인 조건 충족(참조 재확인→삭제→build exit 0) 확인 후 실행·커밋.
+- [x] **문서 체계 정리**: PROJECT-INDEX.md·DOCUMENT-INDEX.md 신설(60개 문서 전수조사). 중복 2건 확인(AI_ORGANIZATION_MASTER.md·BACKLOG.md, docs/master가 정본). docs/는 Git 미추적이라 삭제하지 않음(색인으로 정본만 표시).
+- [x] `docker compose up -d` 실제 검증(장시간 가동 확인) — MASTER INITIALIZATION 이전 재검증 완료.
+
+## 다음 (문서 구조 확정 → MASTER INITIALIZATION 착수)
+- [ ] `docs/` 폴더는 확정 방침(frozen, 미추적, 신규 문서 추가 안 함)에 따라 그대로 유지. MASTER INITIALIZATION의 신규 `docs/` 요청(AI-HQ-MASTER.md 등)은 기존 `docs/`와 충돌하므로 **루트에 직접 생성**(기존 docs/ 미접촉).
 - [x] **`/hq/erp` 라이브 API 연결**: `/hq`에 이어 `/hq/erp`도 `/api/hq/erp` client fetch로 전환.
 
 ## Docker / 인프라 (신규, 완료·검증됨)
