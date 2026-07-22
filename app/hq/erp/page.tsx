@@ -1,7 +1,17 @@
-import { ERP_SNAPSHOT as E, won } from "@/lib/hq/erpSnapshot";
+"use client";
 
-/** ERP 상세 — POS 판매·원가·재고 발주 (실데이터, SSOT: erp_engine/pos_import). */
+import { useEffect, useState } from "react";
+import { ERP_SNAPSHOT, won } from "@/lib/hq/erpSnapshot";
+
+/** ERP 상세 — POS 판매·원가·재고 발주 (실데이터, SSOT: erp_engine/pos_import, 라이브: /api/hq/erp). */
 export default function HqErp() {
+  const [E, setE] = useState(ERP_SNAPSHOT);
+  useEffect(() => {
+    fetch("/api/hq/erp")
+      .then((r) => r.json())
+      .then((d) => { if (d?.data) setE(d.data); })
+      .catch(() => {});
+  }, []);
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -95,7 +105,7 @@ export default function HqErp() {
       </section>
 
       <p className="text-xs text-muted-foreground">
-        데이터: `content-automation-agent/src` (pos_import·erp_engine) 실행 산출물 스냅샷 · 라이브 API 연결 예정.
+        데이터: `content-automation-agent/src` (pos_import·erp_engine) 실행 산출물 · `/api/hq/erp` 라이브 연결.
       </p>
     </div>
   );

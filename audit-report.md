@@ -2,7 +2,7 @@
 
 # Audit Report
 
-생성: 2026-07-21T11:22:50.467Z
+생성: 2026-07-21T23:20:53.313Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
@@ -69,15 +69,10 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: d8373057daf7bccb0093f2294fd74292d50fcc35 docs: re-audit vs CLAUDE.md constitution - update ROADMAP/TODO with verified findings (repo public, dead code, pricing placeholder, QA gaps)
-- 미커밋 변경: 7건
+- 최근 커밋: cb8576397007ff04b0a62f34c641acae1f961547 feat(ai-hq): CEO Operating Charter v1.0 + Docker Compose infrastructure
+- 미커밋 변경: 2건
 
 ```
-M CLAUDE.md
- M package.json
-?? CEO-CHARTER.md
-?? audit-report.md
-?? eslint.a11y.config.mjs
-?? eslint.unused.config.mjs
-?? scripts/
+M CEO-CHARTER.md
+ M CLAUDE.md
 ```

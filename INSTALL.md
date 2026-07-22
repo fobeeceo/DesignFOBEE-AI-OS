@@ -1,5 +1,7 @@
 # INSTALL — DesignFOBEE · GBRICK AI HQ
 
+> **프로젝트 루트 = `D:\Project\ReRoomAI`** (Git 저장소 루트). 모든 상대 경로(`AI-HQ/`, `Dockerfile` 등)는 이 폴더 기준이다. `C:\AI-HQ`처럼 드라이브 루트의 동명 폴더와 혼동하지 않는다(2026-07-22 실제 발생한 혼동 — 무관한 폴더였음).
+
 ## 1. 로컬 개발 (Docker 없이)
 ```bash
 npm install
@@ -16,7 +18,10 @@ env 없이도 홈·`/design`·`/hq`(공개 데모 모드)는 렌더된다.
 docker compose -f AI-HQ/docker-compose.yml build
 
 # 웹 앱 기동 (http://localhost:3000)
-docker compose -f AI-HQ/docker-compose.yml up web
+docker compose -f AI-HQ/docker-compose.yml up -d web
+
+# 호스트 3000번이 이미 사용 중이면 포트 오버라이드
+WEB_PORT=3011 docker compose -f AI-HQ/docker-compose.yml up -d web
 
 # ERP CLI 온디맨드 실행 (예: POS 분석)
 docker compose -f AI-HQ/docker-compose.yml run --rm erp python src/pos_import.py /app/output/<파일>.xlsx

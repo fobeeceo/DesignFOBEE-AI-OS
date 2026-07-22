@@ -15,7 +15,7 @@ services:
       context: ..
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      - "${WEB_PORT:-3000}:3000" # 호스트 포트 충돌 시 WEB_PORT=3011 docker compose ... up 처럼 오버라이드
     env_file:
       - path: ../.env.local
         required: false # 없어도 기동(미들웨어가 env 없으면 인증 스킵 — 무파괴 원칙)
