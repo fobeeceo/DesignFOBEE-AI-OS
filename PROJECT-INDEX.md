@@ -43,7 +43,7 @@
 - **목적**: 프로젝트 전체 문서 체계 유지·동기화.
 - **담당**: AI Documentation(Notion, 실체 있음).
 - **관련 폴더**: 루트(운영 문서, Git 추적) · `docs/`(과거 설계 단계 문서, **Git 미추적·frozen**).
-- **관련 문서**: 본 파일 + [DOCUMENT-INDEX.md](DOCUMENT-INDEX.md) + [DOCUMENT-POLICY.md](DOCUMENT-POLICY.md) + [DOCUMENT-STANDARD.md](DOCUMENT-STANDARD.md).
+- **관련 문서**: 본 파일 + [DOCUMENT-INDEX.md](DOCUMENT-INDEX.md) + [DOCUMENT-POLICY.md](DOCUMENT-POLICY.md) + [DOCUMENT-STANDARD.md](DOCUMENT-STANDARD.md) + [PROJECT-STRUCTURE.md](PROJECT-STRUCTURE.md)(폴더 트리) + [SYSTEM-ARCHITECTURE.md](SYSTEM-ARCHITECTURE.md)(Mermaid) + [DECISION-LOG.md](DECISION-LOG.md)(결정기록) + [AI-HQ-MASTER.md](AI-HQ-MASTER.md)(운영원칙 요약) + [CEO-REPORT.md](CEO-REPORT.md)(보고형식 정본).
 
 ## 8. Knowledge (SSOT)
 - **목적**: Google Drive(원본) + Notion Master DB(정본) — Franchise/Portfolio/메뉴/원가 등.

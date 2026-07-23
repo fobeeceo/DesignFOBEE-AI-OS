@@ -1,6 +1,6 @@
 # DOCUMENT-INDEX — 전체 문서 카테고리 분류
 
-> 프로젝트 내 모든 `.md` 문서(60개, `find -name "*.md"` 직접 카운트 검증)를 자동 분류. `docs/`는 Git 미추적(frozen, 삭제 불가/비권장).
+> 프로젝트 내 모든 `.md` 문서(67개, `find -name "*.md"` 재카운트 검증, MASTER INITIALIZATION 신규 5건 포함)를 자동 분류. `docs/`는 Git 미추적(frozen, 삭제 불가/비권장).
 
 ## README
 - [README.md](README.md) — 프로젝트 개요 + STEP 1-10 설치가이드
@@ -81,6 +81,13 @@
 - DOCUMENT-INDEX.md — 본 문서
 - [DOCUMENT-POLICY.md](DOCUMENT-POLICY.md) — 문서 관리 3단계 정책(Git/Git제외/Drive)
 - [DOCUMENT-STANDARD.md](DOCUMENT-STANDARD.md) — 문서 표준 구조 v1.0(배치·명명·중복처리 규칙)
+- [PROJECT-STRUCTURE.md](PROJECT-STRUCTURE.md) — 폴더 트리(경량 참조)
+
+## AI Headquarters (MASTER INITIALIZATION 신규, 2026-07-22)
+- [AI-HQ-MASTER.md](AI-HQ-MASTER.md) — AI 직원 현황·보고규칙·QA/Audit·자동화현황·Priority
+- [SYSTEM-ARCHITECTURE.md](SYSTEM-ARCHITECTURE.md) — Mermaid 아키텍처 다이어그램
+- [DECISION-LOG.md](DECISION-LOG.md) — 주요 기술 결정 소급기록
+- [CEO-REPORT.md](CEO-REPORT.md) — CEO 보고 형식(정본, v2 최신)
 
 ---
 ## 문서 중복 분석 결과 (CEO 지시 §3-5)
