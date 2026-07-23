@@ -1,5 +1,23 @@
 import { HQ_MENU, ERP_SNAPSHOT as E, STORES, AI_STAFF, won } from "@/lib/hq/erpSnapshot";
 
+const STATUS_STYLE: Record<string, string> = {
+  정규직: "bg-accent/15 text-accent",
+  개선중: "bg-amber-500/15 text-amber-600",
+  수습: "bg-blue-500/15 text-blue-600",
+  개발중: "bg-blue-500/15 text-blue-600",
+  설계: "bg-muted text-muted-foreground",
+  은퇴: "bg-muted text-muted-foreground line-through",
+};
+
+/** 인사 상태 배지(CEO MASTER 업무지시서 §9 6단계: 설계/개발중/수습/정규직/개선중/은퇴). */
+function StatusBadge({ status }: { status: string }) {
+  return (
+    <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${STATUS_STYLE[status] ?? "bg-muted text-muted-foreground"}`}>
+      {status}
+    </span>
+  );
+}
+
 const SECTION: Record<string, { title: string; desc: string; note: string }> = {
   franchise: { title: "가맹점", desc: "가맹점 로그인 · 오늘 매출 · 재고 · 발주 · 교육 · 공지 · 매뉴얼 · 본사 문의", note: "가맹점별 뷰(멀티테넌트)는 HQ 셸 위에 역할별로 연결 예정. 현재 본점 데이터 기준." },
   logistics: { title: "물류", desc: "전국 발주 취합 · 재고 배송 · 거래처(SUPPLIER_MASTER) · 입고 관리", note: "발주추천은 ERP에서 산출됨. 물류 라우팅은 SUPPLIER_MASTER 연결 후." },
@@ -108,9 +126,12 @@ export default function HqSection({ params }: { params: { section: string } }) {
             <h2 className="mb-3 text-sm font-bold">역할 AI ({AI_STAFF.roles.length})</h2>
             <ul className="flex flex-col gap-2 text-sm">
               {AI_STAFF.roles.map((r) => (
-                <li key={r.name} className="flex items-baseline justify-between gap-4">
-                  <span className="font-medium">{r.name}</span>
-                  <span className="text-right text-muted-foreground">{r.mission}</span>
+                <li key={r.name} className="flex items-center justify-between gap-4">
+                  <span className="flex items-center gap-2">
+                    <span className="font-medium">{r.name}</span>
+                    <StatusBadge status={r.status} />
+                  </span>
+                  <span className="text-right text-xs text-muted-foreground">{r.mission}</span>
                 </li>
               ))}
             </ul>
@@ -119,11 +140,16 @@ export default function HqSection({ params }: { params: { section: string } }) {
             <h2 className="mb-3 text-sm font-bold">Media Workforce ({AI_STAFF.media.length})</h2>
             <div className="flex flex-wrap gap-2">
               {AI_STAFF.media.map((m) => (
-                <span key={m} className="rounded-full border border-border px-3 py-1 text-xs">{m}</span>
+                <span key={m.name} className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-xs">
+                  {m.name}
+                  <StatusBadge status={m.status} />
+                </span>
               ))}
             </div>
           </div>
-          <p className="text-xs text-muted-foreground">각 Worker는 Mission·SOP·KPI·Prompt 보유(Notion AI Prompt Library / Media Workforce). 실업로드는 OAuth 키 후.</p>
+          <p className="text-xs text-muted-foreground">
+            인사 상태 6단계(CEO MASTER 업무지시서 §9): 설계→개발중→수습→정규직→개선중→은퇴. 상세 인증조건 11개는 <a href="https://github.com/fobeeceo/DesignFOBEE-AI-OS/blob/main/AI-STAFF-POLICY.md" className="underline" target="_blank" rel="noreferrer">AI-STAFF-POLICY.md</a> §2 참조.
+          </p>
         </div>
       )}
     </div>

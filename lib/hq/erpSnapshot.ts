@@ -88,21 +88,35 @@ export const ERP_SNAPSHOT = {
   },
 } as const;
 
-/** AI 직원 조직 (SSOT: Notion AI Prompt Library + AI Media Workforce). */
+/**
+ * AI 직원 조직 (SSOT: Notion AI Prompt Library + AI Media Workforce + AI-STAFF-POLICY.md §7).
+ * status: 설계/개발중/수습/정규직/개선중/은퇴(CEO MASTER 업무지시서 §9 6단계 인사제도).
+ */
 export const AI_STAFF = {
   roles: [
-    { name: "AI CEO", mission: "전략·리스크·대안 제시(공동 의사결정)" },
-    { name: "AI 디자이너", mission: "공간 사진 → AI 리디자인" },
-    { name: "AI 마케터", mission: "GBRICK 창업/브랜드 마케팅" },
-    { name: "AI 견적", mission: "예상 견적 산정" },
-    { name: "AI CRM", mission: "리드 응대·상담 관리" },
-    { name: "AI 콘텐츠", mission: "SNS/블로그/쇼츠 기획" },
+    { name: "AI CEO(전략)", mission: "전략·리스크·대안 제시(공동 의사결정)", status: "개선중" },
+    { name: "AI 디자이너", mission: "공간 사진 → AI 리디자인", status: "정규직" },
+    { name: "AI 마케터", mission: "GBRICK 창업/브랜드 마케팅", status: "개선중" },
+    { name: "AI 견적", mission: "예상 견적 산정", status: "개선중" },
+    { name: "AI CRM", mission: "리드 응대·상담 관리", status: "수습" },
+    { name: "AI 콘텐츠", mission: "SNS/블로그/쇼츠 기획", status: "개선중" },
+    { name: "AI 웹디자인전략가", mission: "경쟁사 분석·트렌드 반영 홈페이지 개선안", status: "정규직" },
+    { name: "AI 메뉴전략가", mission: "판매량×마진 매트릭스로 단종·프로모션 후보 산출", status: "정규직" },
   ],
   media: [
-    "Media Director", "Trend Researcher", "Blog Writer", "Shorts Producer",
-    "Voice Producer", "Video Editor", "Thumbnail Designer", "SEO Manager",
-    "Instagram Manager", "YouTube Manager", "TikTok Manager", "Naver Blog Manager",
-    "Content Analyst",
+    { name: "Media Director", status: "정규직" },
+    { name: "Trend Researcher", status: "정규직" },
+    { name: "Blog Writer", status: "정규직" },
+    { name: "Shorts Producer", status: "정규직" },
+    { name: "SEO Manager", status: "정규직" },
+    { name: "Content Analyst", status: "수습" },
+    { name: "Voice Producer", status: "설계" },
+    { name: "Video Editor", status: "설계" },
+    { name: "Thumbnail Designer", status: "설계" },
+    { name: "Instagram Manager", status: "설계" },
+    { name: "YouTube Manager", status: "설계" },
+    { name: "TikTok Manager", status: "설계" },
+    { name: "Naver Blog Manager", status: "설계" },
   ],
 } as const;
 

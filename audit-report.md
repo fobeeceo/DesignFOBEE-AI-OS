@@ -2,7 +2,7 @@
 
 # Audit Report
 
-생성: 2026-07-23T10:50:24.127Z
+생성: 2026-07-23T11:41:00.081Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
@@ -40,17 +40,13 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: 582e455deb2390f862d12964fc44796cf1b81479 feat(home): 디자인포비 회사소개(About) 섹션 신설
-- 미커밋 변경: 9건
+- 최근 커밋: 6f41df3ffb2a78a786b0e784ae0ca0fe629a2f40 fix: audit 백로그 정리 - 접근성 9건/unused import 8건/env 정합/npm audit 확인
+- 미커밋 변경: 5건
 
 ```
-M .env.example
- M QA-REPORT.md
- M app/api/auth/naver/route.ts
- M audit-report.md
- M components/Studio.tsx
- M components/design/DesignStudio.tsx
- M components/upload/PhotoUploader.tsx
- M eslint.unused.config.mjs
- M scripts/audit.js
+M AI-HQ-MASTER.md
+ M AI-STAFF-POLICY.md
+ M CEO-REPORT.md
+ M app/hq/[section]/page.tsx
+ M lib/hq/erpSnapshot.ts
 ```
