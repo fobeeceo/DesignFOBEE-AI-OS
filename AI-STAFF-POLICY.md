@@ -59,14 +59,16 @@ AI 직원은 제안까지만 한다. 실제 실행(코드 반영·메뉴 변경�
 | **AI QA** | ✅ | N/A | ✅ | ✅ | ✅ | N/A | N/A(npm 스크립트) | ❌ 미등록(도구성 역할이라 Notion 대상 아님) | ✅ | ✅ | ✅(통과) | **정규직** |
 | **AI Audit** | ✅ | N/A | ✅ | ✅ | N/A | ✅ | N/A | ❌ 상동 | ✅ | ✅ | ✅(통과) | **정규직** |
 | **AI 디자이너** | ✅ | ✅ Gemini | ✅ | ✅ | ✅ | ✅ | ✅ web 이미지 포함 | ✅ | ✅ | ✅ | ✅(측정전 — 에러율 로그 미구축) | **정규직** |
-| AI CEO(전략)·AI 마케터·AI 콘텐츠 | ❌ **코드 없음(순수 Notion 프롬프트)** | N/A | ✅ SSOT | ✅(수동실행) | N/A | N/A | N/A | ✅ | ❌ | ❌ | ❌ | **개선중**(코드화 전까지 정규직 불가 — 신기준 1번 조건 미충족, §9 참고) |
-| AI Documentation | ✅(본세션절차, 전용스크립트 없음) | N/A | ✅ | ✅ | N/A | N/A | N/A | ❌ | ❌ | ❌ | ❌ | **개선중** |
+| **AI CEO(전략)** | ✅ `agents/ceoStrategyAgent.ts` | ✅ Gemini | ✅ 실맥락 입력 | ✅ | ✅ | ✅ | ✅ web 이미지 재빌드·기동 확인 | ✅ | ✅ | ✅ | ✅(통과) | **정규직** |
+| **AI 마케터** | ✅ `agents/marketerAgent.ts` | ✅ Gemini | ✅ Franchise SSOT | ✅ | ✅ | ✅ | ✅ 상동 | ✅ | ✅ | ✅ | ✅(통과) | **정규직** |
+| AI 콘텐츠 | ❌ | N/A | N/A | N/A | N/A | N/A | N/A | ✅(초안으로 조정) | N/A | N/A | N/A | **은퇴 대상 아님, 초안 유지** — `generate_osmu.py`(Media Director 정규직)와 산출물 중복 확인, 정본을 Media Director로 지정(삭제 대신 표준지정, DECISION-LOG 참조) |
+| **AI Documentation** | ✅ `scripts/check-docs-sync.js`(신규 코드화) | N/A | ✅ | ✅ | N/A | N/A | N/A(npm 스크립트) | ❌(도구성 역할, QA/Audit과 동일 사유) | ✅ | ✅ | ✅(통과) | **정규직** |
 | AI 견적 | ✅ | N/A | ❌ **가격 placeholder**(TODO.md — 실단가 CEO승인 대기) | ✅(실사용중) | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | **개선중** |
 | AI Content Analyst | ✅ | ✅(미검증) | ❌ 실토큰없음 | ❌ | - | - | - | ✅ | ❌ | ❌ | ❌ | **수습** |
 | AI CRM | ❌ 분류로직없음 | - | ❌ 테스트데이터뿐 | ❌ | - | - | - | ✅ | ❌ | ❌ | ❌ | **수습** |
 | Instagram·YouTube·TikTok·Naver Blog·Thumbnail·Voice·Video | ❌ | ❌ | ❌ | ❌ | - | - | - | ✅(대기) | ❌ | ❌ | ❌ | **설계** |
 
-**중요한 발견**: 신기준 1번 조건("실제 코드 존재")을 문자 그대로 적용하면, 순수 Notion 프롬프트 역할(AI CEO 전략·AI 마케터·AI 콘텐츠·AI Documentation)은 **아무리 SSOT를 정확히 인용해도 정규직이 될 수 없다** — 코드가 없기 때문이다. 이는 v1.0 기준(실데이터 종단검증만 있으면 정규직)보다 훨씬 엄격하다. CTO 판단: 이 역할들을 정규직으로 만들려면 프롬프트를 실행하는 최소한의 코드 래퍼(예: Gemini API 호출 스크립트)가 필요 — 다음 순번 후보로 TODO.md에 기록.
+**중요한 발견(6차에서 해소)**: 신기준 1번 조건("실제 코드 존재")을 문자 그대로 적용하면, 순수 Notion 프롬프트 역할은 아무리 SSOT를 정확히 인용해도 정규직이 될 수 없었다. 6차 사이클에서 AI CEO(전략)·AI 마케터·AI Documentation 3건을 실제 코드로 전환해 이 문제를 해소했다(AI 콘텐츠는 코드화 대신 기존 정규직 파이프라인과의 중복을 확인해 정본지정으로 처리).
 
 ## 8. 이번 사이클 실행 로그 — CEO MASTER 업무지시서 반영
 ### 2026-07-23 5차 (CEO MASTER 업무지시서, "승인 없이 순차적으로 끝까지 수행")
@@ -74,4 +76,12 @@ AI 직원은 제안까지만 한다. 실제 실행(코드 반영·메뉴 변경�
 - **AI-HQ 조직도**: `lib/hq/erpSnapshot.ts`의 `AI_STAFF`에 `status` 필드 추가(6단계), `/hq/staff`(`app/hq/[section]/page.tsx`)에 상태 배지 UI 신설.
 - **Training Center + 평가기준**: Notion에 신규 데이터소스 2건(`AI Training Center`, `AI 평가기준`) 생성, 정규직 후보 10개 역할 전부 등록·실측치 기록(메뉴전략가는 5/9 매칭으로 "경고" 정직 기록, AI디자이너·AI견적은 에러율 로그 미구축으로 "측정전" 정직 기록).
 - **Docker 운영검증**: `AI-HQ/docker-compose.yml`의 web·erp 이미지를 최신 코드로 재빌드·기동. `erp_engine.py`(메뉴전략가)·`generate_osmu.py`(Blog Writer/Shorts Producer/Media Director)·`trend_research.py`(Trend Researcher)를 **실제 Docker 컨테이너 안에서** 실행해 정상 동작 확인(`available:true` 등).
-- **재평가 결과**: 위 §7 표와 같이 10개 역할이 11조건을 전부 충족해 **정규직** 확정. 코드 없는 프롬프트 전용 역할(AI CEO전략·마케터·콘텐츠·Documentation)은 신기준상 구조적으로 정규직 불가함을 발견 — 정직 기록.
+- **재평가 결과(5차)**: 위 §7 표와 같이 10개 역할이 11조건을 전부 충족해 **정규직** 확정. 코드 없는 프롬프트 전용 역할(AI CEO전략·마케터·콘텐츠·Documentation)은 신기준상 구조적으로 정규직 불가함을 발견 — 정직 기록.
+
+### 2026-07-23 6차 ("계속진행" — 코드 없는 프롬프트 역할 코드화)
+- **AI CEO(전략)**: `agents/ceoStrategyAgent.ts` 신설(결정사안+배경→복수대안+반대의견→"CEO없이도작동하는가" 기준 판단→권고, 제안까지만). 실제 안건(API키 dev/prod 분리)으로 테스트 → 대안3개·반대의견2개·구체적 권고(변수명 분리 대신 CI검증스크립트 제안) 생성 확인.
+- **AI 마케터**: `agents/marketerAgent.ts` 신설(Franchise SSOT 하드코딩+법정고지 강제). 실제 실행 → `legalNoticeIncluded:true`, SSOT 수치만 정확히 인용 확인.
+- **AI 콘텐츠**: `generate_osmu.py`(Media Director, 이미 정규직)와 산출물(SNS/블로그/쇼츠 기획, SSOT인용, 브랜드톤유지) 실질적 중복 확인 → Notion 프롬프트 페이지에 CTO 노트 추가, 상태를 "초안"으로 조정, 정본은 Media Director로 지정(코드 중복 생성 안 함).
+- **AI Documentation**: `scripts/check-docs-sync.js` 신설(LLM 미사용 — 루트 .md 파일 vs DOCUMENT-INDEX.md 대조, CHANGELOG 최신성 검사). 실행 → 루트 .md 23개 검사, 불일치 0건.
+- **Docker 재검증 + Notion 등록**: web 이미지 재빌드(marketing-copy·strategy-analysis 라우트 포함 확인), Training Center·평가기준에 3건 추가 등록.
+- **최종 결과**: AI CEO(전략)·AI 마케터·AI Documentation 3건 추가 정규직 확정(총 13명 정규직). AI 콘텐츠는 정본지정으로 처리 완료(코드화 대상에서 제외, 삭제 아님).

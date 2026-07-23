@@ -60,6 +60,7 @@
 ## QA / Audit (생성 산출물)
 - [QA-REPORT.md](QA-REPORT.md) — `npm run qa:extended` 산출물(재실행 시 갱신)
 - [audit-report.md](audit-report.md) — `npm run audit` 산출물(재실행 시 갱신)
+- `docs-sync-report.json` — `npm run check-docs`(AI Documentation) 산출물(재실행 시 갱신, JSON이라 목록에 링크는 생략)
 
 ## Knowledge Base (도메인)
 - `docs/master/MASTER_INDEX.md` *(frozen)*

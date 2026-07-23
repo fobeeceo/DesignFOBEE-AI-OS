@@ -12,6 +12,7 @@
     "qa:extended": "node scripts/qa-extended.js",
     "audit": "node scripts/audit.js",
     "sync-images": "node scripts/sync-images.js",
+    "check-docs": "node scripts/check-docs-sync.js",
     "postinstall": "prisma generate",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev"

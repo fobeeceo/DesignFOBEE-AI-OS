@@ -94,12 +94,12 @@ export const ERP_SNAPSHOT = {
  */
 export const AI_STAFF = {
   roles: [
-    { name: "AI CEO(전략)", mission: "전략·리스크·대안 제시(공동 의사결정)", status: "개선중" },
+    { name: "AI CEO(전략)", mission: "전략·리스크·대안 제시(공동 의사결정)", status: "정규직" },
     { name: "AI 디자이너", mission: "공간 사진 → AI 리디자인", status: "정규직" },
-    { name: "AI 마케터", mission: "GBRICK 창업/브랜드 마케팅", status: "개선중" },
+    { name: "AI 마케터", mission: "GBRICK 창업/브랜드 마케팅", status: "정규직" },
     { name: "AI 견적", mission: "예상 견적 산정", status: "개선중" },
     { name: "AI CRM", mission: "리드 응대·상담 관리", status: "수습" },
-    { name: "AI 콘텐츠", mission: "SNS/블로그/쇼츠 기획", status: "개선중" },
+    { name: "AI 콘텐츠", mission: "SNS/블로그/쇼츠 기획(Media Director로 통합)", status: "설계" },
     { name: "AI 웹디자인전략가", mission: "경쟁사 분석·트렌드 반영 홈페이지 개선안", status: "정규직" },
     { name: "AI 메뉴전략가", mission: "판매량×마진 매트릭스로 단종·프로모션 후보 산출", status: "정규직" },
   ],

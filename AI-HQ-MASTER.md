@@ -10,9 +10,11 @@
 | **AI QA**(정규직) | Accessibility·SEO·Link·Image·Performance 검사 | `scripts/qa-extended.js` — Training Center·평가기준 등록 완료(§2 11조건 충족) |
 | **AI Audit**(정규직) | Dead Code·중복·Security·Env·Git 감사 | `scripts/audit.js` — 상동 |
 | AI Security | 시크릿·npm audit·저장소 가시성 | `scripts/audit.js`(checkSecurity), AI Audit에 통합된 하위기능 |
-| AI Documentation | 문서 동기화(CHANGELOG/ROADMAP/TODO) | 본 세션 절차뿐, 전용 코드 없음 — 신기준(코드 필수) 미충족, 개선중 |
+| **AI Documentation**(정규직) | 문서 색인·CHANGELOG 정합성 검사 | `scripts/check-docs-sync.js`(신규 코드화) — 루트 .md 23개 검사, 불일치 0건, 11조건 전부 충족 |
 | **AI 디자이너**(정규직) | 공간 사진 → AI 리디자인 | `agents/interiorDesignAgent.ts`(실서비스 연결), Docker 이미지 반영 확인 |
-| AI 마케터 / AI CEO(전략) / AI 콘텐츠 | 창업마케팅 / 의사결정파트너 / SNS·블로그 | Notion 프롬프트뿐, **전용 코드 없음** — CEO MASTER 업무지시서 §1 신기준(실제 코드 존재 필수) 미충족으로 개선중 재분류(2026-07-23, 정직 기록) |
+| **AI 마케터**(정규직) | 창업/브랜드 마케팅 카피 | `agents/marketerAgent.ts` + `POST /api/hq/marketing-copy`(신규 코드화) — Franchise SSOT+법정고지 강제, 11조건 전부 충족 |
+| **AI CEO(전략)**(정규직) | 의사결정 파트너(복수대안+반대의견) | `agents/ceoStrategyAgent.ts` + `POST /api/hq/strategy-analysis`(신규 코드화) — 제안까지만(실행 없음), 11조건 전부 충족 |
+| AI 콘텐츠 | SNS/블로그/쇼츠 기획(초안, 정본지정 완료) | `generate_osmu.py`(Media Director, 정규직)와 산출물 중복 확인 — 코드 중복 생성 대신 Media Director를 정본으로 지정(DECISION-LOG 참조) |
 | **AI SEO Manager**(정규직) | 구글/네이버 SEO 검증 | `scripts/qa-extended.js checkSeo()` — 11조건 전부 충족(2026-07-23) |
 | **AI 웹디자인전략가**(정규직) | 경쟁사 홈페이지 fetch+분석 → 트렌드 종합 → 우리 홈페이지 대비 P1/P2/P3 제안 | `agents/designTrendAgent.ts` + `POST /api/hq/design-trends`(관리자 인증) — Docker web 이미지 반영·11조건 전부 충족 |
 | **AI 메뉴전략가**(정규직) | 판매량×마진 매트릭스(Kasavana & Smith)로 메뉴 단종·프로모션 후보 자동 산출 | `content-automation-agent/src/erp_engine.py menu_engineering()` + `/hq/erp` UI — Docker erp 컨테이너 내 실행 검증, 11조건 전부 충족 |

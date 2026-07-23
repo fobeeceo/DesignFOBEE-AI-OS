@@ -4,6 +4,15 @@
 
 ## [Unreleased]
 
+### 프롬프트 전용 AI 역할 3건 코드화 → 정규직 승격 (CEO MASTER 업무지시서 §1, 2026-07-23)
+- **배경**: 신기준("실제 코드 존재" 필수) 재평가에서 AI CEO(전략)·AI 마케터·AI 콘텐츠·AI Documentation이 코드 없이 Notion 프롬프트뿐이라 정규직 불가 판정됨 — 이번 사이클에서 3건을 코드화해 해소.
+- `agents/ceoStrategyAgent.ts` + `POST /api/hq/strategy-analysis` 신설: 결정사안+배경 → 복수대안+반대의견+"CEO 없이도 작동하는가" 판단 → 권고(제안까지만, 실행 없음). 실제 안건(API 키 dev/prod 분리)으로 테스트 — 대안 3개·반대의견 2개·구체적 권고 생성 확인.
+- `agents/marketerAgent.ts` + `POST /api/hq/marketing-copy` 신설: Franchise SSOT(8,636만원 등) 하드코딩 + 법정고지 강제 포함. 실행 결과 `legalNoticeIncluded:true`, SSOT 밖 수치 없음 확인.
+- **AI 콘텐츠**: `generate_osmu.py`(Media Director, 기존 정규직)와 산출물이 실질적으로 중복됨을 확인 — 코드 중복 생성 대신 Media Director를 정본으로 지정, Notion 페이지에 CTO 노트 추가 후 "초안"으로 조정(삭제 아님).
+- `scripts/check-docs-sync.js` 신설(LLM 미사용): 루트 .md 파일과 DOCUMENT-INDEX.md 참조 대조, CHANGELOG 최신성 검사. 실행 결과 23개 파일 검사, 불일치 0건.
+- 4건 모두 Docker web 이미지 재빌드로 운영검증, Notion Training Center·평가기준에 등록 완료 — **AI CEO(전략)·AI 마케터·AI Documentation 정규직 확정**(총 정규직 13명).
+- `npm run qa`/`audit` 통과.
+
 ### 이미지 SSOT 파이프라인 + API 키 관리 감사 (CEO MASTER 업무지시서 §5·§6, 2026-07-23)
 - `scripts/sync-images.js` 신설: `sharp`로 WebP 변환(1920px 최적화)·400px 썸네일 생성, Gemini Vision으로 한국어 ALT 자동생성 → `public/images/` 배치 + `manifest.json` 기록. GBRICK 은평본점 실사진으로 종단 검증(1.7MB→158KB WebP, ALT "원목 가구와 카운터가 보이는 은평본점 카페 내부 모습." 정확 생성).
 - 정직한 범위 고지: "Drive→로컬" 절반은 Drive API 서비스계정 자격증명이 없어(외부서비스가입, CEO 승인 대상) 자동화 못함 — 현재는 세션이 Drive MCP로 다운로드 후 이 스크립트로 처리하는 반자동 방식.

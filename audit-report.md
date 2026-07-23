@@ -2,7 +2,7 @@
 
 # Audit Report
 
-생성: 2026-07-23T12:01:20.853Z
+생성: 2026-07-23T23:52:09.742Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
@@ -17,7 +17,7 @@
     - components/design/CompareSlider.tsx
 
 ## 3. Unused Import
-- 스캔: 68개 파일
+- 스캔: 70개 파일
 - 이슈: 0건
 
 ## 4. Broken Route (nav 컴포넌트)
@@ -30,7 +30,7 @@
 
 ## 6. Security
 - 하드코딩 시크릿 패턴: 0건
-- npm audit(production): critical 0, high 1, moderate 1, low 0
+- npm audit(production): critical 0, high 2, moderate 0, low 0
 
 ## 7. Environment Variable
 - 코드에서 참조: 10개
@@ -40,13 +40,20 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: 4bb55688f84bc05f72c16f64328cc7e4463aebea feat(hq): CEO MASTER 업무지시서 반영 - 11조건 인증기준+6단계 인사제도+Docker운영검증
-- 미커밋 변경: 5건
+- 최근 커밋: 43de672f9c950d891ea4faebc93dd7ad995e16ec feat(assets): 이미지 SSOT 파이프라인(sync-images.js) + API 키 관리 감사
+- 미커밋 변경: 12건
 
 ```
-M INSTALL.md
- M TODO.md
- M package-lock.json
+M AI-HQ-MASTER.md
+ M AI-STAFF-POLICY.md
+ M DOCUMENT-INDEX.md
+ M audit-report.md
+ M lib/hq/erpSnapshot.ts
  M package.json
-?? scripts/sync-images.js
+?? agents/ceoStrategyAgent.ts
+?? agents/marketerAgent.ts
+?? app/api/hq/marketing-copy/
+?? app/api/hq/strategy-analysis/
+?? docs-sync-report.json
+?? scripts/check-docs-sync.js
 ```
