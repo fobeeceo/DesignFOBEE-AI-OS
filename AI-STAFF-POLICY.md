@@ -50,7 +50,8 @@ AI 직원은 판단이 불확실하거나 데이터가 불충분할 때 **추측
 | AI 마케터·AI CEO(전략)·AI 콘텐츠 | 정규직(승격) | 2026-07-23 승인된 SSOT(정보공개서 8,636만원·은평본점 2013년 개점 등)로 각 1건씩 실행해 산출물 생성, 프롬프트 제약(법정고지·SSOT 인용·과장금지) 준수 확인(§8 로그) |
 | AI CRM | 인턴 유지 | 재검증 시도: DB에 실레코드 2건 존재하나(`prisma.lead.count()`) 발신자가 `ceo@fobee.co.kr`이고 메시지가 키보드 오타("rhdtk"·"tkdeks")인 테스트 데이터 — 진짜 고객 시나리오 아님. `services/crmService.ts`도 CRUD뿐 분류·제안 로직 자체가 없어 실행경로가 없음. 실고객 리드 발생 시 재시도 |
 | **AI Blog Writer·AI Shorts Producer·Media Director** | 정규직(재승격) | 2026-07-23 CEO 승인으로 `generate_osmu.py _llm()`에 실Gemini 연동(`google-genai`, `gemini-flash-latest`) — dry-run 스텁 제거. 실행 결과 `live:{blog:true,shorts:true,sns:true}`, 브랜드 SSOT(gbrick-style.md: 8,636만원·3년폐점0건·7개매장) 반영된 실제 블로그 본문·쇼츠 대본 생성 확인(§8 로그). Media Director는 이 전체 파이프라인(기획→블로그→쇼츠→SNS→리포트)을 오케스트레이션하는 역할이라 함께 재승격 |
-| AI Content Analyst·AI Trend Researcher | 수습 유지 | `analytics.py`는 LLM이 아니라 소셜 지표 API(Meta Graph/YouTube) 접근이 필요 — 이번 Gemini 연동과 무관한 별도 갭(외부서비스가입, CEO-CHARTER 승인 대상). Trend Researcher는 대응 코드 파일 자체가 없음(경쟁 콘텐츠 트렌드 리서치 기능 미구축) — 둘 다 이번 조치 범위 밖 |
+| **AI Trend Researcher** | 정규직(신규 구축) | 2026-07-23 CEO "착수지시"로 `content-automation-agent/src/trend_research.py` 신설 — 실 공개 소스(위키백과 "커피전문점"·"카페") fetch+Gemini 분석. 실행 결과 키워드 7개·경쟁콘텐츠요약 4건·기회 3건·추천소스(topic+keywords)를 실제로 생성해 `generate_osmu.generate()` 입력과 연결 확인(§8 로그) |
+| AI Content Analyst | 수습 유지(실행경로는 마련) | 2026-07-23 `analytics.py`에 `collect_manual()` 추가 — Meta/YouTube API 가입(외부서비스가입, CEO 승인 대상) 없이도 사람이 확인한 실측치를 입력하면 분석 가능해짐. 코드 동작은 예시값으로 확인했으나(§8 로그, "실데이터 아님" 명시), 실제 게시물의 진짜 지표가 아직 없어 §2 종단검증은 미충족 — 실측치 입력 시 즉시 재검증 가능 |
 | Instagram·YouTube·TikTok·Naver Blog·Thumbnail·Voice·Video 등 7명 | 대기 | 미가동(발행 인프라 없음 — 콘텐츠 생성은 되지만 계정 연결·업로드 파이프라인 없음) |
 
 ## 8. 재검증 로그
@@ -66,3 +67,7 @@ AI 직원은 판단이 불확실하거나 데이터가 불충분할 때 **추측
 - **범위 판단**: 1차에서 하향된 5명 중 Blog Writer·Shorts Producer(+오케스트레이션하는 Media Director)는 "비용만 있으면 실행 가능"이었으나, Content Analyst·Trend Researcher는 비용 문제가 아니라 애초에 필요한 기능(소셜 API 접근·트렌드 리서치)이 구축돼 있지 않아 이번 승인 범위(Gemini 연동)와 무관 — 승격 대상에서 제외.
 - **구현**: `content-automation-agent/requirements.txt`에 `google-genai` 추가·설치. `generate_osmu.py _llm()`을 실제 Gemini 호출로 교체(GEMINI_API_KEY 없거나 실패 시 dry-run 폴백 유지, 무파괴). 블로그/쇼츠 프롬프트에 브랜드 스타일 가이드(`content-automation-agent/guides/*.md`) 전문을 주입해 SSOT 밖 사실을 지어내지 않도록 제약.
 - **검증**: 실제 실행(`python generate_osmu.py`) → `report.json`에 `"live":{"blog":true,"shorts":true,"sns":true},"dry_run":false`. `blog.md`에 8,636만원·3년폐점0건·7개매장·법정고지("실제 창업 내용과 차이가 있을 수 있습니다") 모두 정확히 반영된 실제 생성 문장 확인.
+
+### 2026-07-23 3차 (CEO "착수지시" — Trend Researcher 신규 구축 + Content Analyst 실행경로 마련)
+- **AI Trend Researcher**: `trend_research.py` 신설. 최초 실행에서 Gemini가 마크다운 코드펜스(` ```json `)로 감싸 응답해 `json.loads` 실패 → `response_mime_type="application/json"` config로 강제해 해결(같은 문제를 `generate_osmu.py`의 쇼츠 프롬프트에도 소급 적용, `json_mode` 파라미터 추가). 실행 결과: 위키백과 2건 fetch(총 6000자) → 키워드 7개·경쟁콘텐츠요약 4건·기회 3건·추천소스("카베 카네부터 학림다방까지..." topic) 생성 확인, 텍스트 근거 밖 사실 없음.
+- **AI Content Analyst**: `analytics.py collect_manual()` 추가 — 소셜 API 자격증명 없이 사람이 입력한 실측치로 분석 가능. `_improvement()`가 미입력 지표를 "측정된 0"과 구분하도록 수정(허위 0 판단 방지). 코드 경로는 예시값(views:500, likes:20, ctr:0.02)으로 정상 동작 확인했으나 이는 "코드 테스트용, 실데이터 아님"으로 명시 — 진짜 게시물 지표가 없어 §2 종단검증 기준은 아직 미충족(정직 기록, 승격 보류).

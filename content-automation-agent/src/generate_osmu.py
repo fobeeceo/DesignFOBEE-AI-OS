@@ -33,8 +33,9 @@ def _style_guide(brand: str) -> str:
     return p.read_text(encoding="utf-8") if p.exists() else ""
 
 
-def _llm(role: str, prompt: str) -> tuple[str, bool]:
+def _llm(role: str, prompt: str, json_mode: bool = False) -> tuple[str, bool]:
     """LLM 호출 격리부. GEMINI_API_KEY 있으면 실제 호출, 없거나 실패하면 dry-run 스텁으로 폴백.
+    json_mode=True면 응답을 순수 JSON으로 강제(마크다운 코드펜스 방지, ```json 래핑 이슈 회피).
     반환: (텍스트, live 여부)."""
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
@@ -42,7 +43,11 @@ def _llm(role: str, prompt: str) -> tuple[str, bool]:
     try:
         from google import genai
         client = genai.Client(api_key=api_key)
-        res = client.models.generate_content(model=MODEL, contents=prompt)
+        config = None
+        if json_mode:
+            from google.genai import types
+            config = types.GenerateContentConfig(response_mime_type="application/json")
+        res = client.models.generate_content(model=MODEL, contents=prompt, config=config)
         text = (res.text or "").strip()
         if not text:
             return f"[DRY-RUN::{role}] {prompt[:80]}", False
@@ -84,7 +89,7 @@ def generate(source: dict) -> dict:
         '{"hook":"...","scenes":["...","..."]}\n\n'
         f"[본문]\n{body}"
     )
-    shorts_raw, shorts_live = _llm("AI Shorts Producer", shorts_prompt)
+    shorts_raw, shorts_live = _llm("AI Shorts Producer", shorts_prompt, json_mode=True)
     hook, scenes = shorts_raw, []
     if shorts_live:
         try:

@@ -4,6 +4,12 @@
 
 ## [Unreleased]
 
+### AI Trend Researcher 신규 구축 + AI Content Analyst 실행경로 마련 (2026-07-23)
+- **배경**: CEO "착수지시" — 직전 보고에서 P2로 남겨둔 두 역할(Content Analyst 외부API 블로커, Trend Researcher 신규구축)에 대한 실행.
+- **AI Trend Researcher**(신규): `content-automation-agent/src/trend_research.py` — `designTrendAgent.ts`와 동일 패턴(공개 소스 fetch+Gemini 분석)으로 키워드 수집→경쟁 콘텐츠 분석→기회 도출→`generate_osmu.generate()` 입력(topic/keywords) 산출까지 구현. 실행 중 Gemini가 마크다운 코드펜스로 JSON을 감싸 파싱 실패하는 문제를 발견해 `response_mime_type="application/json"` 강제로 해결(같은 수정을 `generate_osmu.py` 쇼츠 프롬프트에도 소급 적용). 위키백과 "커피전문점"·"카페" 2건 실fetch로 검증 — 키워드 7개·경쟁콘텐츠요약 4건·기회 3건·추천소스 생성 확인. 정규직 승격.
+- **AI Content Analyst**: `analytics.py`에 `collect_manual()` 추가 — Meta/YouTube API 가입(외부서비스가입, CEO 승인 대상이라 자율착수 불가) 없이도 사람이 확인한 실측치를 입력하면 분석 가능해짐. `_improvement()`가 "미입력"과 "측정된 0"을 구분하도록 수정. 코드 경로는 예시값으로 확인(실데이터 아님 명시) — 진짜 게시물 지표가 아직 없어 승격은 보류, 실측치 입력 시 즉시 재검증 가능.
+- [AI-STAFF-POLICY.md](AI-STAFF-POLICY.md) §7·§8, [AI-HQ-MASTER.md](AI-HQ-MASTER.md) 갱신.
+
 ### Media OSMU 파이프라인 실Gemini 연동 (2026-07-23)
 - **배경**: CEO가 직전 보고의 승인 필요 사항("Media 파이프라인 실LLM 연동, 비용 발생")에 "다음단계 진행"으로 명시 승인.
 - `content-automation-agent/requirements.txt`에 `google-genai` 추가·설치. `generate_osmu.py`의 `_llm()`을 dry-run 스텁에서 실제 Gemini 호출(`gemini-flash-latest`)로 교체 — GEMINI_API_KEY 없거나 호출 실패 시에는 여전히 dry-run으로 안전 폴백(무파괴).

@@ -30,6 +30,12 @@
 - **근거**: 기존 `docs/`는 frozen·미추적 상태로 이미 결정됨 — 그 안에 활성 신규 문서를 섞으면 정책 혼동. 루트는 이미 Git 추적 중인 활성 운영 문서 영역이라 일관성 유지.
 - **문서**: [DOCUMENT-STANDARD.md](DOCUMENT-STANDARD.md) §1.
 
+## 2026-07-23 — AI Trend Researcher 신규 구축 + AI Content Analyst 실행경로 마련 (CEO "착수지시")
+- **범위 판단**: Content Analyst의 진짜 블로커(Meta/YouTube API 자격증명)는 CEO의 실제 가입·OAuth 행위가 필요해 자율착수 불가(외부서비스가입, 승인 대상) — 대신 API 없이도 쓸 수 있는 수동입력 경로를 먼저 구축해 "착수".
+- **AI Trend Researcher**: `trend_research.py` 신설(designTrendAgent.ts와 동일 패턴 — fetch+Gemini). 최초 실행에서 Gemini가 ` ```json ` 코드펜스로 응답을 감싸 파싱 실패 → `response_mime_type="application/json"` config로 해결, 동일 이슈를 `generate_osmu.py` 쇼츠 프롬프트에도 소급 적용.
+- **AI Content Analyst**: `analytics.py collect_manual()` 추가 — 실측치를 사람이 입력하면 분석 가능. `_improvement()`가 "미입력"과 "측정된 0"을 구분하도록 수정(허위 0 판단 방지).
+- **검증**: Trend Researcher는 위키백과 2건 실fetch로 종단검증 완료(정규직 승격). Content Analyst는 예시값으로 코드 경로만 확인(실데이터 아님 명시) — 진짜 게시물 지표가 없어 정규직 승격은 보류(정직 기록).
+
 ## 2026-07-23 — Media OSMU 파이프라인 실Gemini 연동 (CEO "다음단계 진행" 승인)
 - **배경**: 직전 재검증에서 CEO 승인 필요 사항으로 보고한 항목("비용 발생 항목이라 범위 밖") — CEO가 "다음단계 진행"으로 명시 승인.
 - **범위 판단**: 하향됐던 5명 중 Blog Writer·Shorts Producer(+오케스트레이션 Media Director)는 "비용만 있으면 실행 가능"했으나, Content Analyst·Trend Researcher는 비용이 아니라 애초에 다른 기능(소셜 API·트렌드 리서치)이 없는 별개 갭이라 이번 승인 범위에서 제외.
