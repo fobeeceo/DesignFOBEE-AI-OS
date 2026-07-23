@@ -2,7 +2,7 @@
 
 # Audit Report
 
-생성: 2026-07-23T00:41:50.164Z
+생성: 2026-07-23T03:18:38.333Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
@@ -17,7 +17,7 @@
     - components/design/CompareSlider.tsx
 
 ## 3. Unused Import
-- 스캔: 66개 파일
+- 스캔: 67개 파일
 - 이슈: 8건
   - app/(admin)/admin/leads/[leadId]/page.tsx:83 — Definition for rule '@next/next/no-img-element' was not found.
   - app/api/auth/naver/route.ts:1 — 'NextRequest' is defined but never used. Allowed unused vars must match /^_/u.
@@ -53,9 +53,17 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: cbab33614c2c390cd15f3dbc6c6abf75e1dd458f docs: MASTER INITIALIZATION 완료 - AI-HQ-MASTER/SYSTEM-ARCHITECTURE/DECISION-LOG/CEO-REPORT/PROJECT-STRUCTURE 신설
-- 미커밋 변경: 1건
+- 최근 커밋: 19f502f1fad8d8a5e9640dc81f280f577070a7f4 feat(hq): /api/hq/erp 실엔진 산출물 라이브 연결(파일시스템 fallback)
+- 미커밋 변경: 9건
 
 ```
-M app/api/hq/erp/route.ts
+M AI-HQ-MASTER.md
+ M DECISION-LOG.md
+ M app/api/hq/erp/route.ts
+ M app/hq/erp/page.tsx
+ M content-automation-agent/src/erp_engine.py
+ M content-automation-agent/src/pos_import.py
+ M lib/hq/erpSnapshot.ts
+?? agents/designTrendAgent.ts
+?? app/api/hq/design-trends/
 ```

@@ -21,7 +21,23 @@ type DailyReport = {
     평균원가율: number;
     고원가_TOP: { 메뉴: string; 판매가: number; 원가율: number }[];
   };
+  메뉴엔지니어링: MenuEngineering;
 };
+
+type MenuEngineeringRow = {
+  메뉴: string; 판매량: number; 판매가: number; 마진: number; 원가율: number; 분류: string; 제안: string;
+};
+type MenuEngineering =
+  | { available: false; reason: string }
+  | {
+      available: true;
+      기준_평균판매량: number;
+      기준_평균마진: number;
+      인기도_임계값: number;
+      단종후보: MenuEngineeringRow[];
+      프로모션후보: MenuEngineeringRow[];
+      전체: MenuEngineeringRow[];
+    };
 
 type PosAnalysis = {
   period: string;
@@ -93,6 +109,7 @@ async function readLiveData() {
       avgRatio: report.디저트.평균원가율,
       highRatio: report.디저트.고원가_TOP.map((m) => ({ name: m.메뉴, price: m.판매가, ratio: m.원가율 })),
     },
+    menuEngineering: report.메뉴엔지니어링,
   };
 }
 

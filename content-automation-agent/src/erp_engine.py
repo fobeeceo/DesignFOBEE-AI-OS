@@ -65,6 +65,60 @@ def menu_costs() -> list[dict]:
     return sorted(out, key=lambda m: m["원가율"], reverse=True)
 
 
+def menu_engineering() -> dict:
+    """메뉴 엔지니어링 매트릭스(Kasavana & Smith, 카츠사바나 표준 기법) — 판매량(인기도) x 마진(수익성) 2x2 분류.
+    인기도 기준선 = 평균판매량의 70%("70% rule", 업계 표준). 수익성 기준선 = 평균 마진.
+    Star(인기+고마진 → 유지/홍보) · Plowhorse(인기+저마진 → 가격/원가 조정)
+    Puzzle(비인기+고마진 → 프로모션·이벤트로 노출 확대) · Dog(비인기+저마진 → 단종 후보).
+    POS(pos_import) × 원가(MENU) 결합 — 둘 중 하나라도 없으면 계산 불가를 명시(추측 금지)."""
+    p = OUT / "pos_analysis.json"
+    if not p.exists():
+        return {"available": False, "reason": "pos_analysis.json 없음 — POS 데이터 미입력"}
+    pos = json.loads(p.read_text(encoding="utf-8"))
+    sales = {x["메뉴"]: x["수량"] for x in pos.get("전체_판매", [])}
+    if not sales:
+        return {"available": False, "reason": "POS 전체_판매 데이터 없음(구버전 산출물 — pos_import 재실행 필요)"}
+
+    costs = menu_costs()
+    matched = [m for m in costs if m["메뉴"] in sales]
+    if not matched:
+        return {"available": False, "reason": "POS 상품명이 MENU 마스터(원가표)와 이름이 일치하지 않아 매칭 실패"}
+
+    n = len(matched)
+    avg_qty = sum(sales[m["메뉴"]] for m in matched) / n
+    avg_margin = sum(m["마진"] for m in matched) / n
+    pop_threshold = round(avg_qty * 0.7, 1)
+
+    rows = []
+    for m in matched:
+        qty = sales[m["메뉴"]]
+        popular = qty >= pop_threshold
+        profitable = m["마진"] >= avg_margin
+        if popular and profitable:
+            cls, action = "Star", "유지 · 적극 홍보"
+        elif popular and not profitable:
+            cls, action = "Plowhorse", "가격 인상 또는 원가 절감 검토"
+        elif not popular and profitable:
+            cls, action = "Puzzle", "프로모션 · 이벤트로 노출 확대"
+        else:
+            cls, action = "Dog", "단종 후보"
+        rows.append({"메뉴": m["메뉴"], "판매량": qty, "판매가": m["판매가"], "마진": m["마진"],
+                     "원가율": m["원가율"], "분류": cls, "제안": action})
+
+    order = {"Dog": 0, "Puzzle": 1, "Plowhorse": 2, "Star": 3}
+    rows.sort(key=lambda r: (order[r["분류"]], -r["판매량"]))
+
+    return {
+        "available": True,
+        "기준_평균판매량": round(avg_qty, 1),
+        "기준_평균마진": round(avg_margin),
+        "인기도_임계값": pop_threshold,
+        "단종후보": [r for r in rows if r["분류"] == "Dog"],
+        "프로모션후보": [r for r in rows if r["분류"] == "Puzzle"],
+        "전체": rows,
+    }
+
+
 def _dessert_summary() -> dict:
     d = _dessert_menu()
     items = d.get("items", [])
@@ -93,6 +147,7 @@ def daily_report() -> dict:
         "옵션단가": OPTIONS,
         "원재료그룹수": sum(INGREDIENT_GROUPS.values()),
         "디저트": _dessert_summary(),
+        "메뉴엔지니어링": menu_engineering(),
     }
     (OUT / "erp_daily_report.json").write_text(
         json.dumps(report, ensure_ascii=True, indent=2), encoding="utf-8")
@@ -126,6 +181,8 @@ def dashboard() -> dict:
         "평균원가율": f"{r['평균원가율']}%",
         "고원가_경고": [f"{m['메뉴']} {m['원가율']}%" for m in r["고원가_메뉴"][:3]],
         "메뉴수": len(r["메뉴원가"]),
+        "단종후보": [x["메뉴"] for x in r["메뉴엔지니어링"].get("단종후보", [])],
+        "프로모션후보": [x["메뉴"] for x in r["메뉴엔지니어링"].get("프로모션후보", [])],
     }
     (OUT / "erp_dashboard.json").write_text(
         json.dumps(dash, ensure_ascii=True, indent=2), encoding="utf-8")

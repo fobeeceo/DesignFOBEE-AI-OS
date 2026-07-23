@@ -30,6 +30,13 @@
 - **근거**: 기존 `docs/`는 frozen·미추적 상태로 이미 결정됨 — 그 안에 활성 신규 문서를 섞으면 정책 혼동. 루트는 이미 Git 추적 중인 활성 운영 문서 영역이라 일관성 유지.
 - **문서**: [DOCUMENT-STANDARD.md](DOCUMENT-STANDARD.md) §1.
 
+## 2026-07-23 — AI 웹디자인전략가·AI 메뉴전략가 신설(조직도 갭 분석 후 CEO 승인)
+- **배경**: CEO 요청으로 AI 조직도 완성도를 직접 조사(Notion AI Prompt Library 6역할 + Media Workforce 13명 SQL 조회) → 실체 작동 6/23(26%), 프롬프트만 10/23(43%), 미착수 7/23(30%) 확인. "경쟁사 분석+트렌드 기반 홈페이지 디자인"·"판매량+마진 기반 메뉴/이벤트 전략"은 기존 23개 역할 중 어디에도 해당하지 않음을 근거로 보고.
+- **CEO 결정**: 종합 판단에 찬성, 신설 진행 지시.
+- **구현**: ①`agents/designTrendAgent.ts`(Gemini 텍스트 모델, 경쟁사 fetch+분석) — 비용 발생 요소이므로 `requireAdmin()`으로 인증 게이트, `/api/hq/erp` 등 기존 무인증 `/api/hq/*` 패턴을 그대로 따르지 않고 신규 보호 결정. ②`erp_engine.py menu_engineering()`(LLM 미사용, Menu Engineering Matrix 표준 공식) — POS 전체 판매 데이터가 top10만 있어 저판매 메뉴(단종후보)를 못 찾는 기존 한계를 발견해 `pos_import.py`에 `전체_판매` 필드 추가.
+- **검증**: 둘 다 실제 데이터로 종단 테스트(더미 아님) — 웹디자인전략가는 스타벅스코리아 실사이트, 메뉴전략가는 실 POS(2026-07-01~20).
+- **문서**: Notion AI Prompt Library에 역할 카드 2건 등록(select 옵션 신규 추가), [AI-HQ-MASTER.md](AI-HQ-MASTER.md) 직원표 갱신.
+
 ## 2026-07-22 — AI-HQ-SYSTEM-RULES.md 별도 생성 안 함
 - **결정**: MASTER INITIALIZATION이 요청한 `AI-HQ-SYSTEM-RULES.md`를 별도 파일로 만들지 않음.
 - **근거**: [CLAUDE.md](CLAUDE.md)가 이미 QA/Audit/Docs/Git/Deploy/Dev/Media 규칙 전부를 포함하는 "AI Headquarters Constitution & Operating Manual" — 거의 동일한 목적의 문서를 새로 만들면 [DOCUMENT-STANDARD.md](DOCUMENT-STANDARD.md) §3(중복보다 정본 지정)를 스스로 위반. CLAUDE.md를 정본으로 지정.

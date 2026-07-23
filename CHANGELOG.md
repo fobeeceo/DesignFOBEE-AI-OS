@@ -4,6 +4,13 @@
 
 ## [Unreleased]
 
+### AI 웹디자인전략가 · AI 메뉴전략가 신설 (2026-07-23)
+- **배경**: CEO 요청으로 AI 조직도 완성도 실측(Notion AI Prompt Library+Media Workforce SQL 조회) → 23개 역할 중 실체 작동 6개(26%)뿐임을 확인해 보고. "경쟁사 분석+트렌드 기반 홈페이지 디자인"·"판매량+마진 기반 메뉴/이벤트 전략"이 조직도에 없는 갭으로 확인됨. CEO가 종합 판단에 찬성, 신설 지시.
+- **AI 메뉴전략가**: `content-automation-agent/src/pos_import.py`에 전체 판매 집계(`전체_판매`, 기존엔 TOP10만 있어 저판매 메뉴 탐지 불가했음) 추가. `erp_engine.py`에 `menu_engineering()` 신설 — Menu Engineering Matrix(Kasavana & Smith 표준기법, 인기도 임계값=평균판매량의 70%) 판매량×마진 2x2 분류로 단종후보(Dog)·프로모션후보(Puzzle) 자동 산출, LLM 미사용(비용 없음). `/api/hq/erp`·`/hq/erp` UI에 연결. 실POS(2026-07-01~20)로 검증: 카페모카·자바칩프라페·레몬에이드=단종후보, 망고빙수=프로모션후보, 팥빙수=Star.
+- **AI 웹디자인전략가**: `agents/designTrendAgent.ts` 신설 — 경쟁사 URL을 fetch해 텍스트 추출 후 Gemini로 강점/약점/트렌드요소 분석, 우리 홈페이지 대비 P1/P2/P3 실행 제안을 JSON으로 생성. `POST /api/hq/design-trends`로 노출하되 Gemini 호출이 비용을 발생시키므로 `requireAdmin()`(기존 `/api/admin/leads` 패턴 재사용)으로 인증 필수화 — 기존 `/api/hq/*`가 대부분 무인증이던 것과 달리 신규 보호 결정. 스타벅스코리아 실사이트로 실동작 검증(블루보틀코리아는 fetch 실패 사례로 정직하게 접근실패 보고 확인).
+- Notion AI Prompt Library에 신규 역할 2건 등록(select 옵션 "AI 웹디자인전략가"·"AI 메뉴전략가" 신규 추가). AI-HQ-MASTER.md 직원표 갱신(미충족 갭에서 제외).
+- env 없이 `npm run qa` exit 0(25 라우트 정상, `/api/hq/design-trends` 포함), `npm run audit` 신규 Dead Code/보안/깨진라우트 0건.
+
 ### `/api/hq/erp` 실엔진 산출물 라이브 연결 (2026-07-23)
 - **문제**: `/hq`·`/hq/erp`는 이미 `/api/hq/erp`를 client fetch하도록 되어 있었으나(2026-07-22 완료), 그 API 자체는 `lib/hq/erpSnapshot.ts`의 손으로 옮겨 적은 TS 상수만 반환 — `erp_engine.py`/`pos_import.py`를 다시 돌려도 화면에 반영되지 않는 구조였음.
 - **조치**: `app/api/hq/erp/route.ts`가 `content-automation-agent/output/erp_daily_report.json`·`pos_analysis.json`(엔진 실행 산출물)을 서버 파일시스템에서 직접 읽어, 기존 `ERP_SNAPSHOT`과 동일한 필드 형태(영문 키)로 변환해 반환하도록 변경(`source: "live"`). 산출물이 없는 환경(Vercel 등, `output/`는 `.gitignore`로 미추적)에서는 기존 스냅샷 상수로 안전 폴백(`source: "snapshot"`) — 무파괴.

@@ -65,6 +65,17 @@ def analyze(parsed: dict) -> dict:
     cat_sorted = sorted(({"category": k, "qty": round(v["qty"], 1), "net": round(v["net"])}
                          for k, v in cat.items()), key=lambda x: x["net"], reverse=True)
 
+    # 이름별 전체 판매 집계(TOP10 아닌 전체) — menu_engineering()이 저판매 메뉴(단종후보)를 찾으려면 필요
+    by_name: dict[str, dict] = {}
+    for i in items:
+        e = by_name.setdefault(i["name"], {"qty": 0.0, "net": 0})
+        e["qty"] += i["qty"]
+        e["net"] += round(i["net"])
+    all_sales = sorted(
+        ({"메뉴": k, "수량": round(v["qty"], 1), "매출": v["net"]} for k, v in by_name.items()),
+        key=lambda x: -x["수량"],
+    )
+
     report = {
         "source": "POS clsProd",
         "period": parsed["period"],
@@ -75,6 +86,7 @@ def analyze(parsed: dict) -> dict:
         "판매순위_수량": [{"메뉴": i["name"], "수량": i["qty"], "매출": round(i["net"])} for i in by_qty],
         "판매순위_매출": [{"메뉴": i["name"], "매출": round(i["net"]), "수량": i["qty"]} for i in by_rev],
         "카테고리별": cat_sorted,
+        "전체_판매": all_sales,
     }
     (OUT / "pos_analysis.json").write_text(
         json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
