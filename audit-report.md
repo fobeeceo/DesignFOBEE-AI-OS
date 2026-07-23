@@ -2,7 +2,7 @@
 
 # Audit Report
 
-생성: 2026-07-23T10:05:52.301Z
+생성: 2026-07-23T10:18:58.375Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
@@ -53,14 +53,11 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: 6218fea9785d87de5fc8750d2ff3d99a60ad0646 feat(media): AI Trend Researcher 신규 구축 + AI Content Analyst 실행경로 마련
-- 미커밋 변경: 6건
+- 최근 커밋: fdff9b4ac30946e1d3ac6cd61b360b02494a02ca feat(media): Meta/YouTube 실API 코드 구현 + CEO 발급 가이드
+- 미커밋 변경: 3건
 
 ```
-M AI-HQ-MASTER.md
- M AI-STAFF-POLICY.md
- M CHANGELOG.md
- M DECISION-LOG.md
- M INSTALL.md
- M content-automation-agent/src/analytics.py
+M components/home/Hero.tsx
+ M components/home/ProcessSection.tsx
+ M components/home/TrustSection.tsx
 ```

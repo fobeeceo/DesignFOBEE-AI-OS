@@ -10,13 +10,18 @@ const STATS = [
 export function TrustSection() {
   return (
     <section className="border-y border-border bg-muted/40 py-16">
-      <div className="container-px mx-auto grid max-w-6xl grid-cols-3 gap-6 text-center">
-        {STATS.map((s) => (
-          <div key={s.label}>
-            <p className="text-3xl font-bold text-accent sm:text-4xl">{s.value}</p>
-            <p className="mt-1 text-xs text-muted-foreground sm:text-sm">{s.label}</p>
-          </div>
-        ))}
+      <div className="container-px mx-auto max-w-6xl">
+        <div className="grid grid-cols-3 gap-6 text-center">
+          {STATS.map((s) => (
+            <div key={s.label}>
+              <p className="text-3xl font-bold text-accent sm:text-4xl">{s.value}</p>
+              <p className="mt-1 text-xs text-muted-foreground sm:text-sm">{s.label}</p>
+            </div>
+          ))}
+        </div>
+        <p className="mt-8 text-center text-sm text-muted-foreground">
+          중개가 아닙니다 — 설계부터 시공까지, 26년째 저희가 직접 책임집니다.
+        </p>
       </div>
     </section>
   );

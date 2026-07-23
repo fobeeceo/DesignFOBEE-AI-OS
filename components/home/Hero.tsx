@@ -78,6 +78,15 @@ export function Hero() {
             AI로 공간 미리보기
           </a>
         </motion.div>
+
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.7, delay: 0.4 }}
+          className="mt-3 text-xs text-white/60"
+        >
+          로그인 없이, 30초 만에 무료로 확인할 수 있습니다.
+        </motion.p>
       </div>
     </section>
   );

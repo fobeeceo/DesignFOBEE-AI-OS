@@ -1,4 +1,5 @@
 import { SectionHeading } from "@/components/ui/section-heading";
+import { buttonVariants } from "@/components/ui/button";
 import { Camera, ScanSearch, Palette, Calculator, MessageCircle } from "lucide-react";
 
 const STEPS = [
@@ -10,8 +11,7 @@ const STEPS = [
 ];
 
 /**
- * 홈페이지에서 미리 보여주는 AI Sales OS 플로우.
- * STEP 3~8 개발 완료 후 실제 기능으로 연결된다.
+ * 홈페이지에서 미리 보여주는 AI Sales OS 플로우. 1~4단계는 /design에서 바로 체험 가능.
  */
 export function ProcessSection() {
   return (
@@ -32,6 +32,12 @@ export function ProcessSection() {
               <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
             </div>
           ))}
+        </div>
+
+        <div className="mt-12 flex justify-center">
+          <a href="/design" className={buttonVariants({ size: "lg", className: "font-semibold" })}>
+            지금 무료로 AI 공간 분석 시작하기
+          </a>
         </div>
       </div>
     </section>

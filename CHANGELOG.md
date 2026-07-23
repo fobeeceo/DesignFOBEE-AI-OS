@@ -4,6 +4,12 @@
 
 ## [Unreleased]
 
+### 홈페이지 완성도 개선 P1+P3 (AI 웹디자인전략가 실행 결과 반영, 2026-07-23)
+- **배경**: CEO "홈페이지를 만들다가 말았다" 지적 → AI 웹디자인전략가(`designTrendAgent.ts`)를 실제 투입해 오늘의집(성공)·한샘(JS 렌더링으로 fetch 실패, 정직 보고) 대비 분석, P1/P2/P3 제안 도출 → CEO가 P1+P3 즉시 착수 승인(P2 실시간채팅은 채널 미정으로 보류).
+- **P1(AI 스튜디오 진입 강화)**: `Hero.tsx`에 "로그인 없이, 30초 만에 무료로 확인할 수 있습니다" 마이크로카피 추가(체험 진입장벽 인지 낮춤). `ProcessSection.tsx`(How it works 5단계) 하단에 "지금 무료로 AI 공간 분석 시작하기" CTA 신설 — 기존엔 5단계를 보여주기만 하고 끊겨 있었음(주석에 "STEP 3~8 개발 완료 후 연결" 미완 상태로 남아있던 것 확인, 이번에 연결).
+- **P3(직접시공 차별화)**: `TrustSection.tsx`에 "중개가 아닙니다 — 설계부터 시공까지, 26년째 저희가 직접 책임집니다" 문구 추가 — 경쟁사(중개 플랫폼)의 명시적 책임 한계 대비 차별화.
+- **검증**: Desktop/Mobile 스크린샷으로 3곳 모두 렌더 확인, `npm run qa` exit 0, `npm run audit` 신규 이슈 0건.
+
 ### Meta/YouTube 실API 코드 구현 + CEO 발급 가이드 (2026-07-23)
 - **배경**: CEO가 "AI Content Analyst·발행 인력 승격을 위해 CEO가 직접 API 가입 후 자격증명 전달"을 선택(제가 대신 가입할 수 없는 절차이므로).
 - `content-automation-agent/src/analytics.py`에 Meta Graph API(Instagram/Facebook/Threads 인사이트)·YouTube Data API v3(OAuth refresh token 교환 포함) 실호출 코드를 공식 문서 기준으로 구현. 자격증명 없으면 여전히 dry-run 안전 폴백(무파괴 확인).
