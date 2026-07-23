@@ -2,11 +2,11 @@
 
 # Audit Report
 
-생성: 2026-07-23T10:29:59.956Z
+생성: 2026-07-23T10:37:35.713Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
-- 스캔: 32개 컴포넌트
+- 스캔: 33개 컴포넌트
 - 미사용(어디서도 import 안 됨): 0건
 - ⚠️ §6 규정: 삭제는 CEO 승인 후에만 수행.
 
@@ -17,7 +17,7 @@
     - components/design/CompareSlider.tsx
 
 ## 3. Unused Import
-- 스캔: 67개 파일
+- 스캔: 68개 파일
 - 이슈: 8건
   - app/(admin)/admin/leads/[leadId]/page.tsx:83 — Definition for rule '@next/next/no-img-element' was not found.
   - app/api/auth/naver/route.ts:1 — 'NextRequest' is defined but never used. Allowed unused vars must match /^_/u.
@@ -53,10 +53,10 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: 769201c98555a805d732c1da339d1f00cb4b33dc feat(home): 홈페이지 완성도 개선 P1+P3 - AI 웹디자인전략가 실행 결과 반영
+- 최근 커밋: ba168b670c73c13439d569d0084d02d864ed8914 feat(home): 홈페이지 P2 완료 - 전화/이메일 연락 채널 추가
 - 미커밋 변경: 2건
 
 ```
-M components/home/CTASection.tsx
- M components/layout/Footer.tsx
+M app/page.tsx
+?? components/home/AboutSection.tsx
 ```
