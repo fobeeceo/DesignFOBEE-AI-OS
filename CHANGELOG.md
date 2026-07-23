@@ -4,6 +4,12 @@
 
 ## [Unreleased]
 
+### `/api/hq/erp` 실엔진 산출물 라이브 연결 (2026-07-23)
+- **문제**: `/hq`·`/hq/erp`는 이미 `/api/hq/erp`를 client fetch하도록 되어 있었으나(2026-07-22 완료), 그 API 자체는 `lib/hq/erpSnapshot.ts`의 손으로 옮겨 적은 TS 상수만 반환 — `erp_engine.py`/`pos_import.py`를 다시 돌려도 화면에 반영되지 않는 구조였음.
+- **조치**: `app/api/hq/erp/route.ts`가 `content-automation-agent/output/erp_daily_report.json`·`pos_analysis.json`(엔진 실행 산출물)을 서버 파일시스템에서 직접 읽어, 기존 `ERP_SNAPSHOT`과 동일한 필드 형태(영문 키)로 변환해 반환하도록 변경(`source: "live"`). 산출물이 없는 환경(Vercel 등, `output/`는 `.gitignore`로 미추적)에서는 기존 스냅샷 상수로 안전 폴백(`source: "snapshot"`) — 무파괴.
+- **검증**: `python erp_engine.py` 재실행 → 산출물 갱신 → env 없이 `npm run build` exit 0(24 라우트 정상) → Preview에서 `fetch('/api/hq/erp')` 직접 호출해 `source:"live"`·매출 16,627,700원·디저트 28종·메뉴원가 9종 실데이터 확인. `/hq/erp` 페이지 자체는 이 세션 dev 서버에 실 Supabase env가 로드되어 있어 `/login` 인증 게이트로 리다이렉트됨(기존 §13 동작, 정상) — API 레벨에서 직접 검증.
+- **다음 우선순위**: (1) 엔진의 `menu_costs()`가 데모용 9개 메뉴만 계산 — Drive 01_MENU_MASTER 63종 전체로 확장 시 `masters.menus`도 실집계 가능. (2) 가맹점(P7) POS는 아직 본점만 연결 — 타 매장 POS 업로드 파이프라인 필요(자격증명/합의 필요, 다음 사이클). (3) PROJECT 8(본사 전용 뷰) 요구사항 미구체화 — CEO 확인 필요.
+
 ### MASTER INITIALIZATION 완료 (2026-07-22)
 - CEO 4단계 지시(①docs/미추적원인분석 ②문서관리정책3단계 ③문서표준v1.0 ④확정후 MASTER INITIALIZATION) 완료. ①②③은 DOCUMENT-POLICY.md·DOCUMENT-STANDARD.md로 선행 완료(아래 섹션).
 - **신규 문서 5건**(DOCUMENT-STANDARD §1 원칙에 따라 전부 루트에 생성, 기존 `docs/` frozen 영역 비접촉):
