@@ -4,6 +4,12 @@
 
 ## [Unreleased]
 
+### 이미지 SSOT 파이프라인 + API 키 관리 감사 (CEO MASTER 업무지시서 §5·§6, 2026-07-23)
+- `scripts/sync-images.js` 신설: `sharp`로 WebP 변환(1920px 최적화)·400px 썸네일 생성, Gemini Vision으로 한국어 ALT 자동생성 → `public/images/` 배치 + `manifest.json` 기록. GBRICK 은평본점 실사진으로 종단 검증(1.7MB→158KB WebP, ALT "원목 가구와 카운터가 보이는 은평본점 카페 내부 모습." 정확 생성).
+- 정직한 범위 고지: "Drive→로컬" 절반은 Drive API 서비스계정 자격증명이 없어(외부서비스가입, CEO 승인 대상) 자동화 못함 — 현재는 세션이 Drive MCP로 다운로드 후 이 스크립트로 처리하는 반자동 방식.
+- API 키 관리 원칙(§6) 감사: 채팅전달금지·`.env`전용·Git미커밋·로그미출력 4개 원칙 준수 확인. 운영/개발 키 분리는 미비(Vercel 환경별 값 분리에 의존) — TODO.md 기록. 부수로 `.env.local` 주석의 평문 DB비밀번호 제거(로컬전용, 유출 없었음).
+- `npm run qa`/`audit` 통과, 신규 취약점 없음(`sharp` 설치 후 production 취약점 여전히 기존 2건뿐).
+
 ### Audit 백로그 정리 — 접근성 9건·Unused Import 8건·env 정합·npm audit 확인 (2026-07-23)
 - **접근성 9건**: 실제 버그 8건 수정(섹션제목용 `<label>`을 `<p>`로 교체 6건, `PhotoUploader.tsx` 키보드접근성 2건). `components/ui/label.tsx`는 제네릭 컴포넌트 오탐으로 확인, 미수정.
 - **Unused Import 8건**: 실제 미사용 1건(`NextRequest`) 수정. 나머지 7건은 audit 툴링 버그(`eslint.unused.config.mjs`에 `@next/next`·`react-hooks` 플러그인 미등록으로 인한 오탐) — 플러그인 등록으로 근본 수정.

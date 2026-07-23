@@ -64,3 +64,24 @@ AI Content Analyst·Instagram/YouTube Manager 등의 정규직 승격에 필요.
 
 ### 완료 후
 `.env` 채운 뒤 `python content-automation-agent/src/analytics.py`로 재실행하면 `dry_run:false`와 함께 실제 지표가 나온다 — 이 실행 결과를 CTO에게 전달하면 AI Content Analyst를 정규직으로 재검증한다([AI-STAFF-POLICY.md](AI-STAFF-POLICY.md) §2).
+
+## 7. API 키 관리 원칙 (CEO MASTER 업무지시서 §6, 2026-07-23 감사)
+| 원칙 | 상태 | 근거 |
+|---|---|---|
+| 채팅창으로 키 전달받지 않는다 | ✅ 준수 | 이번 세션 포함 항상 `.env` 직접 입력 방식으로 안내(§6 가이드) |
+| `.env`/Secret Manager에서만 관리 | ✅ 준수 | 전 서비스 `.env`/`.env.local` 기반, 코드 내 하드코딩 시크릿 0건(`npm run audit` checkSecurity) |
+| Git 커밋 금지 | ✅ 준수 | `.env`·`.env.local`·`content-automation-agent/.env` 전부 `.gitignore` 등록, `git ls-files`로 미추적 확인. `.env.example`(값 없는 템플릿)만 추적 |
+| 로그 미출력 | ✅ 준수 | 소스 전체에서 API 키 관련 `console.log`/`print` 패턴 0건 확인 |
+| **운영/개발 키 분리** | ❌ **미비** | 현재 `GEMINI_API_KEY` 등 단일 변수명을 로컬(`.env.local`)과 운영(Vercel 환경변수)에 값만 다르게 넣는 방식 — Vercel의 Production/Preview/Development 환경별 값 분리 기능에 의존. CEO 원칙(Gemini Dev/Prod처럼 이름 자체를 분리)과는 다른 방식. 별도 결정 필요(TODO.md 기록) |
+
+**2026-07-23 부수 조치**: 로컬 `.env.local` 주석에 평문 DB 비밀번호가 남아있던 것을 발견해 제거(파일 자체는 Git 미추적이라 외부 유출은 없었음, 로컬 위생 차원 정리).
+
+## 8. 이미지 SSOT 동기화 (CEO MASTER 업무지시서 §5)
+Google Drive(`GBRICK_AI_SYSTEM/MASTER-ASSETS/{LOGO,BRAND,MENU,STORE/<매장명>,PORTFOLIO/{BEFORE_AFTER,SNS,WEBSITE}}`)가 이미지 원본(SSOT), `public/images/`는 캐시(복사본)다.
+
+```bash
+npm run sync-images -- --source <스테이징폴더>
+```
+스테이징 폴더는 Drive와 동일한 하위구조를 로컬에 미러링한 것이다. 실행하면 각 이미지를 **WebP 변환·1920px 최적화·400px 썸네일 생성·Gemini Vision 기반 한국어 ALT 자동생성**까지 수행해 `public/images/`에 배치하고 `public/images/manifest.json`에 출처·경로·ALT·동기화일시를 기록한다.
+
+⚠️ **정직한 범위 고지**: "Drive → 로컬 스테이징 폴더"는 자동화되어 있지 않다. Drive API 서비스 계정 자격증명이 없어(외부서비스가입, CEO 승인 대상) 완전 무인 동기화는 아직 불가능 — 현재는 Claude Code 세션이 Drive MCP로 직접 다운로드해 스테이징 폴더를 채운 뒤 이 스크립트를 실행하는 반자동 방식이다. `npm run sync-images` 자체(WebP/최적화/썸네일/ALT/배치)는 완전 자동화되어 있고 실제 이미지로 종단 검증 완료([DECISION-LOG.md](DECISION-LOG.md) 참조).

@@ -2,7 +2,7 @@
 
 # Audit Report
 
-생성: 2026-07-23T11:41:00.081Z
+생성: 2026-07-23T12:01:20.853Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
@@ -40,13 +40,13 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: 6f41df3ffb2a78a786b0e784ae0ca0fe629a2f40 fix: audit 백로그 정리 - 접근성 9건/unused import 8건/env 정합/npm audit 확인
+- 최근 커밋: 4bb55688f84bc05f72c16f64328cc7e4463aebea feat(hq): CEO MASTER 업무지시서 반영 - 11조건 인증기준+6단계 인사제도+Docker운영검증
 - 미커밋 변경: 5건
 
 ```
-M AI-HQ-MASTER.md
- M AI-STAFF-POLICY.md
- M CEO-REPORT.md
- M app/hq/[section]/page.tsx
- M lib/hq/erpSnapshot.ts
+M INSTALL.md
+ M TODO.md
+ M package-lock.json
+ M package.json
+?? scripts/sync-images.js
 ```

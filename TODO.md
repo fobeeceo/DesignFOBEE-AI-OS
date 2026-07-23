@@ -5,6 +5,8 @@
 ## CEO 승인 대상 (6항목 규칙 해당)
 - [ ] **저장소 Private 전환**(GitHub 공개여부 변경) — CEO GitHub 계정 작업.
 - [ ] **`prompts/pricing.ts` 실제 단가 교체**(정책/데이터) — 디자인포비 실제 단가 필요.
+- [ ] **API 키 운영/개발 분리**: CEO MASTER 업무지시서 §6 원칙(예: Gemini Dev/Prod 별도 키)과 현재 방식(Vercel 환경별 값 분리, 변수명은 동일)이 다름 — 어느 쪽을 표준으로 할지 결정 필요([INSTALL.md](INSTALL.md) §7).
+- [ ] **코드 없는 프롬프트 전용 AI 역할 코드화**: AI CEO(전략)·AI 마케터·AI 콘텐츠·AI Documentation — CEO MASTER 업무지시서 §1 신기준("실제 코드 존재")을 충족 못해 정규직 불가(현재 개선중). 최소 실행 래퍼(Gemini API 호출 스크립트) 구축이 다음 단계.
 
 ## 완료 (2026-07-22)
 - [x] **Dead Code 7건 삭제**: `components/{Header,Footer,Hero,Faq,HowItWorks,StyleGallery,StyleCards}.tsx` — CEO-CHARTER §16-B③ 승인 조건 충족(참조 재확인→삭제→build exit 0) 확인 후 실행·커밋.

@@ -11,6 +11,7 @@
     "qa": "next lint && tsc --noEmit && next build",
     "qa:extended": "node scripts/qa-extended.js",
     "audit": "node scripts/audit.js",
+    "sync-images": "node scripts/sync-images.js",
     "postinstall": "prisma generate",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev"
@@ -32,6 +33,7 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.53.0",
+    "sharp": "^0.35.3",
     "tailwind-merge": "^2.5.2",
     "zod": "^3.23.8"
   },
