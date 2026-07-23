@@ -88,6 +88,7 @@
 - [SYSTEM-ARCHITECTURE.md](SYSTEM-ARCHITECTURE.md) — Mermaid 아키텍처 다이어그램
 - [DECISION-LOG.md](DECISION-LOG.md) — 주요 기술 결정 소급기록
 - [CEO-REPORT.md](CEO-REPORT.md) — CEO 보고 형식(정본, v2 최신)
+- [AI-STAFF-POLICY.md](AI-STAFF-POLICY.md) — AI 직원 운영지침 v1.0(직급·승격기준·실행권한·보고주기·에스컬레이션·퇴출기준, 2026-07-23 신설)
 
 ---
 ## 문서 중복 분석 결과 (CEO 지시 §3-5)

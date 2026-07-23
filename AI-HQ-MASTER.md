@@ -1,8 +1,8 @@
 # AI-HQ-MASTER — AI Headquarters 운영 원칙
 
-> CEO MASTER INITIALIZATION MISSION §8 산출물. 상위 규범은 [CEO-CHARTER.md](CEO-CHARTER.md)(최상위 명령)·[CLAUDE.md](CLAUDE.md)(운영 매뉴얼, = **AI-HQ-SYSTEM-RULES 역할 겸함**, DOCUMENT-STANDARD §3 "정본 지정" 원칙에 따라 별도 문서로 중복 생성하지 않음). 본 문서는 그 요약·실행 관점 정리다.
+> CEO MASTER INITIALIZATION MISSION §8 산출물. 상위 규범은 [CEO-CHARTER.md](CEO-CHARTER.md)(최상위 명령)·[CLAUDE.md](CLAUDE.md)(운영 매뉴얼, = **AI-HQ-SYSTEM-RULES 역할 겸함**, DOCUMENT-STANDARD §3 "정본 지정" 원칙에 따라 별도 문서로 중복 생성하지 않음). 본 문서는 그 요약·실행 관점 정리다. **직급(등급)·승격·퇴출·실행권한 규칙은 [AI-STAFF-POLICY.md](AI-STAFF-POLICY.md) 참조.**
 
-## AI 직원 (현재 실체 있는 것만, [PROJECT-INDEX.md](PROJECT-INDEX.md) §1 연동)
+## AI 직원 (현재 실체 있는 것만, [PROJECT-INDEX.md](PROJECT-INDEX.md) §1 연동, 등급은 [AI-STAFF-POLICY.md](AI-STAFF-POLICY.md) §7 참조)
 | AI | 역할 | 실체 |
 |---|---|---|
 | AI CEO | 비전·전략(사람, ChatGPT 겸용 가능) | 사람 |

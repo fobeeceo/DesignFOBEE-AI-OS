@@ -7,7 +7,7 @@
 - **목적**: CEO 위임 운영체계 — 승인규칙·헌장·AI 조직·보고형식.
 - **담당**: MASTER AI(CTO 겸임, 미분리 — 갭 기록됨) / AI CEO(Notion) / AI CTO(Claude Code).
 - **관련 폴더**: 없음(문서 중심).
-- **관련 문서**: [CEO-CHARTER.md](CEO-CHARTER.md)(최상위 명령) · [CLAUDE.md](CLAUDE.md)(운영 매뉴얼) · [AGENTS.md](AGENTS.md)(레거시 STEP 규칙).
+- **관련 문서**: [CEO-CHARTER.md](CEO-CHARTER.md)(최상위 명령) · [CLAUDE.md](CLAUDE.md)(운영 매뉴얼) · [AGENTS.md](AGENTS.md)(레거시 STEP 규칙) · [AI-STAFF-POLICY.md](AI-STAFF-POLICY.md)(AI 직원 직급·승격·실행권한·퇴출 규칙).
 
 ## 2. Homepage
 - **목적**: DesignFOBEE 브랜드 홈페이지 + 무로그인 AI 스튜디오(`/design`) + 인증 퍼널.
