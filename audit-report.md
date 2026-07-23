@@ -2,7 +2,7 @@
 
 # Audit Report
 
-생성: 2026-07-23T03:18:38.333Z
+생성: 2026-07-23T04:38:03.225Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
@@ -53,17 +53,13 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: 19f502f1fad8d8a5e9640dc81f280f577070a7f4 feat(hq): /api/hq/erp 실엔진 산출물 라이브 연결(파일시스템 fallback)
-- 미커밋 변경: 9건
+- 최근 커밋: ae10bfcb2bf0051de26245a57f223440f43d1e99 docs: AI-STAFF-POLICY.md v1.0 - AI 직원 직급/승격/실행권한/퇴출 지침 신설
+- 미커밋 변경: 5건
 
 ```
 M AI-HQ-MASTER.md
+ M AI-STAFF-POLICY.md
+ M CHANGELOG.md
  M DECISION-LOG.md
- M app/api/hq/erp/route.ts
- M app/hq/erp/page.tsx
- M content-automation-agent/src/erp_engine.py
- M content-automation-agent/src/pos_import.py
- M lib/hq/erpSnapshot.ts
-?? agents/designTrendAgent.ts
-?? app/api/hq/design-trends/
+ M QA-REPORT.md
 ```

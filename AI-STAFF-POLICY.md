@@ -46,8 +46,16 @@ AI 직원은 판단이 불확실하거나 데이터가 불충분할 때 **추측
 | AI QA / Audit / Security / Documentation | 정규직 | `scripts/qa-extended.js`·`scripts/audit.js` 반복 실행·검증됨 |
 | **AI 메뉴전략가**(신규) | 정규직 | 2026-07-23 실 POS 데이터(2026-07-01~20) 종단 검증 |
 | **AI 웹디자인전략가**(신규) | 정규직 | 2026-07-23 스타벅스코리아 실사이트 종단 검증(블루보틀코리아 fetch 실패도 정직 보고 확인) |
-| AI 마케터·AI CEO·AI 콘텐츠·AI CRM | 인턴 | 프롬프트는 활성 라벨이었으나 실데이터 종단 검증 기록 없음 — §2 기준 재적용 필요(다음 Audit 대상) |
-| Media Director·Content Analyst·Trend Researcher·SEO Manager·Blog Writer·Shorts Producer | 인턴 | MVP/활성 라벨이었으나 반복검증 기록 없음 — 상동 |
+| **AI SEO Manager** | 정규직(승격) | `scripts/qa-extended.js checkSeo()` — 2026-07-23 재실행, 16페이지 스캔·진짜 공백 0건 확인. 기존에 Media Workforce "인턴"으로 뭉뚱그려졌으나 실제로는 이미 실코드로 반복검증되던 역할이었음(재검증 중 발견) |
+| AI 마케터·AI CEO(전략)·AI 콘텐츠 | 정규직(승격) | 2026-07-23 승인된 SSOT(정보공개서 8,636만원·은평본점 2013년 개점 등)로 각 1건씩 실행해 산출물 생성, 프롬프트 제약(법정고지·SSOT 인용·과장금지) 준수 확인(§8 로그) |
+| AI CRM | 인턴 유지 | 재검증 시도: DB에 실레코드 2건 존재하나(`prisma.lead.count()`) 발신자가 `ceo@fobee.co.kr`이고 메시지가 키보드 오타("rhdtk"·"tkdeks")인 테스트 데이터 — 진짜 고객 시나리오 아님. `services/crmService.ts`도 CRUD뿐 분류·제안 로직 자체가 없어 실행경로가 없음. 실고객 리드 발생 시 재시도 |
+| Media Director·Content Analyst·Trend Researcher·Blog Writer·Shorts Producer | **수습으로 하향** | 재검증 중 `generate_osmu.py`/`analytics.py`를 직접 열어 확인 — `_llm()`이 `"[DRY-RUN::역할]"` 문자열만 반환하는 스텁이고 기존 output도 전부 `"dry_run": true`. Trend Researcher는 대응 코드 파일조차 없음. "인턴(MVP)"이라는 기존 라벨 자체가 근거 없었음(정직 기록) |
 | Instagram·YouTube·TikTok·Naver Blog·Thumbnail·Voice·Video 등 7명 | 대기 | 미가동 |
 
-**정직한 기록**: 이 표 작성 과정에서 기존에 "활성"으로 표시됐던 AI 마케터 등 4개 역할 + Media Workforce 6명이 §2의 "실데이터 종단 검증" 기준을 충족한 근거를 찾지 못해 "인턴"으로 재분류했다(라벨 강등이 아니라 최초부터 기준 미달이었음을 이번에 발견). 다음 감사 주기에 이 역할들의 재검증을 진행한다.
+## 8. 재검증 로그 (2026-07-23, CEO "승인" 지시에 따른 실행)
+- **방법**: §2 승격기준을 각 역할에 실제로 적용 — 코드가 있으면 재실행, 프롬프트뿐이면 승인된 SSOT로 직접 1회 실행, 근거 없으면 정직하게 하향.
+- **승격 3건**: AI SEO Manager(기존 코드 재발견), AI 마케터·AI CEO(전략)·AI 콘텐츠(프롬프트 실행 성공).
+- **유지 1건**: AI CRM(실데이터는 있으나 테스트 데이터라 검증 불가).
+- **하향 5건**: Media Director·Content Analyst·Trend Researcher·Blog Writer·Shorts Producer(코드가 dry-run 스텁뿐임을 이번에 처음 확인).
+- **전략적 결론(AI CEO 역할로 직접 판단)**: Media OSMU 파이프라인에 실LLM(Gemini)을 연동하면 이 5명을 정규직으로 만들 수 있으나, 이는 비용 발생 항목이라 이번 재검증 범위를 벗어남 — 별도 CEO 지시 필요.
+- **정직한 기록**: 재검증 전 "인턴"으로 일괄 분류했던 것 자체가 부정확했다 — 실제로는 정규직 승격 대상(SEO Manager 등)과 실행경로가 아예 없는 것(Trend Researcher 등)이 섞여 있었다. §2 기준을 일괄 적용이 아니라 역할별로 직접 실행해봐야 정확한 등급이 나온다는 교훈.

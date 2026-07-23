@@ -30,6 +30,14 @@
 - **근거**: 기존 `docs/`는 frozen·미추적 상태로 이미 결정됨 — 그 안에 활성 신규 문서를 섞으면 정책 혼동. 루트는 이미 Git 추적 중인 활성 운영 문서 영역이라 일관성 유지.
 - **문서**: [DOCUMENT-STANDARD.md](DOCUMENT-STANDARD.md) §1.
 
+## 2026-07-23 — 인턴 10개 역할 재검증 (CEO "승인" 지시 실행)
+- **방법**: AI-STAFF-POLICY §2 기준을 역할별로 실제 적용 — 코드 있으면 재실행, 프롬프트뿐이면 승인SSOT로 직접 1회 실행, 근거 없으면 정직 하향.
+- **승격 3건**: AI SEO Manager(`scripts/qa-extended.js checkSeo()`가 이미 실코드였음을 재검증 중 발견), AI 마케터·AI CEO(전략)·AI 콘텐츠(정보공개서 8,636만원·은평본점 2013년 개점 등 승인SSOT로 직접 실행 성공).
+- **유지 1건**: AI CRM — DB 실레코드 2건 확인했으나 발신자가 `ceo@fobee.co.kr`+키보드오타 메시지로 테스트데이터임을 확인, 검증 보류.
+- **하향 5건**: Media Director·Content Analyst·Trend Researcher·Blog Writer·Shorts Producer — `generate_osmu.py`/`analytics.py`의 `_llm()`이 dry-run 스텁만 반환함을 코드로 확인(`"dry_run": true`), Trend Researcher는 코드 파일 자체가 없음. 기존 "인턴(MVP)" 라벨 자체가 근거 없었음.
+- **Notion 데이터 오류 수정**: "AI Documentation — 문서 동기화" 프롬프트가 AI역할="AI CEO"로 잘못 태그돼 있던 것을 "AI Documentation"(신규 select 옵션 추가) 로 수정.
+- **전략 판단**: Media OSMU 파이프라인에 실LLM(Gemini) 연동을 지금 추가할지 AI CEO 역할로 직접 검토 → 비용 발생 항목이라 이번 재검증 범위 밖, 별도 CEO 지시 필요로 결론(보류).
+
 ## 2026-07-23 — AI 직원 실행권한 원칙: "제안만, 실행은 항상 사람 승인"
 - **배경**: CEO 질문 "AI 직원을 정규직으로 채용한다면 뭘 해야 하는가" → 직급/승격/실행권한/보고/에스컬레이션/퇴출 5개 항목이 미정임을 발견해 보고, 실행권한 항목만 CEO 결정 필요로 판단.
 - **CEO 결정**: 제안만, 실행은 항상 사람(CEO/CTO) 승인 — AI 직원이 코드/메뉴/발행 등을 스스로 실행하는 자동화는 채택하지 않음.

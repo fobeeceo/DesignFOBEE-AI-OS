@@ -2,11 +2,11 @@
 
 # QA Extended Report
 
-생성: 2026-07-21T11:52:11.967Z
+생성: 2026-07-23T04:34:01.480Z
 기준: CLAUDE.md §9
 
 ## 1. Accessibility (jsx-a11y)
-- 스캔 파일: 55
+- 스캔 파일: 48
 - 이슈: 9건
 | 파일 | 라인 | 규칙 | 메시지 |
 |---|---|---|---|
@@ -53,7 +53,7 @@
 - alt 누락 <Image>: 0건
 
 ## 5. Performance (빌드 번들 예산 200kB)
-- 파싱된 라우트: 31
+- 파싱된 라우트: 32
 - 예산 초과 라우트: 0건
 
 > 참고: 이 지표는 First Load JS 번들 크기 기준(빌드 정적 분석)이다. LCP/TBT/CLS 등 런타임 지표는 Lighthouse가 필요하며(서버 구동 필요), 수동 실행: `npx lighthouse http://localhost:3000 --view`.

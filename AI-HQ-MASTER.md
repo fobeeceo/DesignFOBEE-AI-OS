@@ -11,10 +11,13 @@
 | AI Audit | Dead Code·중복·Security·Env·Git 감사 | `scripts/audit.js` |
 | AI Security | 시크릿·npm audit·저장소 가시성 | `scripts/audit.js`(checkSecurity) |
 | AI Documentation | 문서 동기화(CHANGELOG/ROADMAP/TODO) | 본 세션 절차 |
-| AI 디자이너/마케터/견적/CRM/콘텐츠 | 각 도메인 | Notion AI Prompt Library(6종) |
+| AI 디자이너 | 공간 사진 → AI 리디자인 | `agents/interiorDesignAgent.ts`(실서비스 연결) |
+| AI 마케터 / AI CEO(전략) / AI 콘텐츠 | 창업마케팅 / 의사결정파트너 / SNS·블로그 | Notion 프롬프트 — 2026-07-23 승인SSOT로 종단 실행 검증, 정규직 승격 |
+| AI SEO Manager | 구글/네이버 SEO 검증 | `scripts/qa-extended.js checkSeo()` — 2026-07-23 재검증(16페이지, 공백 0건), 정규직 승격 |
 | AI 웹디자인전략가 | 경쟁사 홈페이지 fetch+분석 → 트렌드 종합 → 우리 홈페이지 대비 P1/P2/P3 제안 | `agents/designTrendAgent.ts` + `POST /api/hq/design-trends`(관리자 인증) — 2026-07-23 CEO 승인 신설, 스타벅스코리아 실사이트 실동작 검증 완료 |
 | AI 메뉴전략가 | 판매량×마진 매트릭스(Kasavana & Smith)로 메뉴 단종·프로모션 후보 자동 산출 | `content-automation-agent/src/erp_engine.py menu_engineering()` + `/hq/erp` UI — 2026-07-23 CEO 승인 신설, 실 POS 데이터로 검증(카페모카 등 3종 단종후보, 망고빙수 프로모션후보) |
-| Media Director + 13 Worker | OSMU 콘텐츠 파이프라인 | Notion AI Media Workforce |
+| AI CRM | 리드 응대·분류(인턴, 검증 미완) | Notion 프롬프트뿐 — 코드는 CRUD만, 실고객 리드 없어 검증 대기 |
+| Media Director/Content Analyst/Trend Researcher/Blog Writer/Shorts Producer | OSMU 콘텐츠 파이프라인(수습으로 하향) | `generate_osmu.py`/`analytics.py` — 2026-07-23 재검증 중 전부 dry-run 스텁뿐임을 확인(`"dry_run": true`), 실LLM 미연동 |
 | **미충족**(실체 없음, 정직 기록) | MASTER(CTO와 미분리)·COO·PM·Research(범용)·Interior(전담)·UX·Frontend/Backend(전담)·Automation(전담)·Dashboard(전담)·Customer Success·Finance(전담) | — |
 
 ## CEO 보고 규칙

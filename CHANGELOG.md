@@ -4,6 +4,15 @@
 
 ## [Unreleased]
 
+### 인턴 10개 역할 재검증 — 승격 3건·유지 1건·하향 5건 (2026-07-23)
+- **AI SEO Manager → 정규직**: `scripts/qa-extended.js checkSeo()`가 이미 실코드로 반복검증되고 있었음을 재검증 중 발견(16페이지 스캔, 진짜 공백 0건). 기존에 Media Workforce "인턴"으로 뭉뚱그려져 있었으나 실제로는 이미 실증된 역할이었음.
+- **AI 마케터·AI CEO(전략)·AI 콘텐츠 → 정규직**: 승인된 SSOT(정보공개서 8,636만원·은평본점 2013년 개점)로 각 역할의 Notion 프롬프트를 직접 1회씩 실행, 산출물이 제약(법정고지·SSOT인용·과장금지)을 지킴을 확인.
+- **AI CRM → 인턴 유지**: DB 실레코드 2건 확인했으나 발신자 `ceo@fobee.co.kr`+키보드 오타 메시지로 테스트데이터임을 확인, 코드도 CRUD뿐이라 검증 보류.
+- **Media Director·Content Analyst·Trend Researcher·Blog Writer·Shorts Producer → 수습 하향**: `generate_osmu.py`/`analytics.py`를 직접 열어 `_llm()`이 `"[DRY-RUN::역할]"` 스텁만 반환함을 확인, 기존 output 파일도 전부 `"dry_run": true`. Trend Researcher는 코드 파일조차 없음 — "인턴(MVP)" 라벨 자체가 근거 없었음이 드러남.
+- **AI CEO 역할로 직접 전략판단**: Media 파이프라인에 지금 실Gemini 연동을 넣을지 검토 → 비용 발생 항목이라 이번 재검증 범위 밖으로 결론, 보류.
+- Notion 데이터 오류 수정: "AI Documentation" 프롬프트가 AI역할="AI CEO"로 잘못 태그돼 있던 것을 바로잡음.
+- [AI-STAFF-POLICY.md](AI-STAFF-POLICY.md) §7·§8, [AI-HQ-MASTER.md](AI-HQ-MASTER.md) 직원표 갱신.
+
 ### AI-STAFF-POLICY.md v1.0 신설 — AI 직원 운영지침 (2026-07-23)
 - **배경**: CEO 질문 "AI 직원을 정규직으로 채용한다면 뭘 해야 하는가"에 대한 후속 조치.
 - **직급 4단계 공식화**: 대기(미가동)/수습(초안)/인턴(MVP·1회 이하 검증)/정규직(활성·§2 승격기준 충족) — 기존 Notion "상태" 라벨을 고용 유비로 재정의.
