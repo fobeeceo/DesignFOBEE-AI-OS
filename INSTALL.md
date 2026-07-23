@@ -47,3 +47,20 @@ python erp_engine.py
 
 ## 5. 배포
 `git push origin main` → Vercel 자동 배포(`design-fobee-ai-os.vercel.app`). main은 항상 배포 가능 상태 유지(§12).
+
+## 6. Media 발행 API 자격증명 발급 (CEO 전용 수동 절차)
+AI Content Analyst·Instagram/YouTube Manager 등의 정규직 승격에 필요. **신원확인·비즈니스 인증이 들어가는 절차라 CTO가 대신 실행할 수 없음**(CEO-CHARTER §승인규칙 "외부서비스가입"). 아래를 CEO가 직접 완료한 뒤 값을 `content-automation-agent/.env`에 채우면, `analytics.py`가 자동으로 실제 API를 호출한다(코드는 이미 구현·대기 중).
+
+### Meta(Instagram/Facebook/Threads) — `META_GRAPH_ACCESS_TOKEN`, `META_IG_BUSINESS_ID`
+1. [developers.facebook.com](https://developers.facebook.com) → 앱 만들기(비즈니스 유형) → 본인 Facebook 계정으로 로그인.
+2. 앱에 "Instagram Graph API" 제품 추가 → 페이지-Instagram 비즈니스 계정 연결(개인 계정은 불가, 비즈니스/크리에이터 전환 필요).
+3. Graph API Explorer에서 `instagram_basic`·`instagram_manage_insights` 권한으로 Access Token 발급(장기토큰 권장, 60일).
+4. Instagram 비즈니스 계정 ID(`META_IG_BUSINESS_ID`)와 토큰(`META_GRAPH_ACCESS_TOKEN`)을 `.env`에 입력.
+
+### YouTube — `YOUTUBE_CLIENT_ID`, `YOUTUBE_CLIENT_SECRET`, `YOUTUBE_REFRESH_TOKEN`
+1. [console.cloud.google.com](https://console.cloud.google.com) → 프로젝트 생성 → "YouTube Data API v3" 활성화.
+2. OAuth 동의화면 구성(외부/테스트 모드로 충분) → OAuth 클라이언트 ID 발급(`YOUTUBE_CLIENT_ID`/`YOUTUBE_CLIENT_SECRET`).
+3. [OAuth 2.0 Playground](https://developers.google.com/oauthplayground)에서 본인 클라이언트ID/Secret 입력 → `youtube.readonly` 스코프로 인증 → Refresh Token 발급받아 `YOUTUBE_REFRESH_TOKEN`에 입력.
+
+### 완료 후
+`.env` 채운 뒤 `python content-automation-agent/src/analytics.py`로 재실행하면 `dry_run:false`와 함께 실제 지표가 나온다 — 이 실행 결과를 CTO에게 전달하면 AI Content Analyst를 정규직으로 재검증한다([AI-STAFF-POLICY.md](AI-STAFF-POLICY.md) §2).

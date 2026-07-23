@@ -19,7 +19,7 @@
 | AI CRM | 리드 응대·분류(인턴, 검증 미완) | Notion 프롬프트뿐 — 코드는 CRUD만, 실고객 리드 없어 검증 대기 |
 | AI Blog Writer / AI Shorts Producer / Media Director | SEO 블로그·쇼츠 대본 생성, OSMU 오케스트레이션 | `content-automation-agent/src/generate_osmu.py`(실Gemini 연동) — 2026-07-23 CEO 승인으로 `_llm()`을 dry-run 스텁에서 실호출로 교체, 브랜드 SSOT(gbrick-style.md) 반영 실콘텐츠 생성 검증(`live:true`), 정규직 |
 | AI Trend Researcher | 키워드 수집·경쟁콘텐츠 분석·기회 도출 | `content-automation-agent/src/trend_research.py`(신규) — 2026-07-23 CEO 착수지시로 구축, 위키백과 실소스 fetch+Gemini 분석으로 키워드7·기회3·추천소스 생성 검증, 정규직 |
-| AI Content Analyst | 성과분석(수습, 실행경로만 마련) | `analytics.py collect_manual()`(신규) — 소셜 API 가입 없이 사람이 실측치 입력 시 분석 가능해짐. 진짜 게시물 지표가 아직 없어 종단검증은 미완(실측치 입력 시 즉시 재검증) |
+| AI Content Analyst | 성과분석(수습, 코드는 실API 대기 완료) | `analytics.py` — Meta Graph/YouTube Data API v3 실호출 코드 구현 완료(자격증명 없어 미검증). CEO가 [INSTALL.md](INSTALL.md) §6으로 직접 가입·자격증명 전달 시 즉시 재검증 |
 | **미충족**(실체 없음, 정직 기록) | MASTER(CTO와 미분리)·COO·PM·Research(범용)·Interior(전담)·UX·Frontend/Backend(전담)·Automation(전담)·Dashboard(전담)·Customer Success·Finance(전담) | — |
 
 ## CEO 보고 규칙

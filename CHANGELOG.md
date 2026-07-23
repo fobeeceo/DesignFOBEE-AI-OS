@@ -4,6 +4,12 @@
 
 ## [Unreleased]
 
+### Meta/YouTube 실API 코드 구현 + CEO 발급 가이드 (2026-07-23)
+- **배경**: CEO가 "AI Content Analyst·발행 인력 승격을 위해 CEO가 직접 API 가입 후 자격증명 전달"을 선택(제가 대신 가입할 수 없는 절차이므로).
+- `content-automation-agent/src/analytics.py`에 Meta Graph API(Instagram/Facebook/Threads 인사이트)·YouTube Data API v3(OAuth refresh token 교환 포함) 실호출 코드를 공식 문서 기준으로 구현. 자격증명 없으면 여전히 dry-run 안전 폴백(무파괴 확인).
+- `INSTALL.md` §6 신설 — Meta Developer 앱 생성·Instagram 비즈니스 계정 연결·Access Token 발급, Google Cloud Console YouTube Data API v3 활성화·OAuth Refresh Token 발급까지 CEO가 따라할 수 있는 단계별 절차.
+- **정직한 기록**: 코드는 완성됐으나 실토큰으로 검증되지 않아 AI Content Analyst는 여전히 수습 등급 — CEO가 `.env`를 채우고 실행 결과를 전달하면 즉시 재검증.
+
 ### AI Trend Researcher 신규 구축 + AI Content Analyst 실행경로 마련 (2026-07-23)
 - **배경**: CEO "착수지시" — 직전 보고에서 P2로 남겨둔 두 역할(Content Analyst 외부API 블로커, Trend Researcher 신규구축)에 대한 실행.
 - **AI Trend Researcher**(신규): `content-automation-agent/src/trend_research.py` — `designTrendAgent.ts`와 동일 패턴(공개 소스 fetch+Gemini 분석)으로 키워드 수집→경쟁 콘텐츠 분석→기회 도출→`generate_osmu.generate()` 입력(topic/keywords) 산출까지 구현. 실행 중 Gemini가 마크다운 코드펜스로 JSON을 감싸 파싱 실패하는 문제를 발견해 `response_mime_type="application/json"` 강제로 해결(같은 수정을 `generate_osmu.py` 쇼츠 프롬프트에도 소급 적용). 위키백과 "커피전문점"·"카페" 2건 실fetch로 검증 — 키워드 7개·경쟁콘텐츠요약 4건·기회 3건·추천소스 생성 확인. 정규직 승격.

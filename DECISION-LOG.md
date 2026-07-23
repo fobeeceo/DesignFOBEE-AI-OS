@@ -30,6 +30,13 @@
 - **근거**: 기존 `docs/`는 frozen·미추적 상태로 이미 결정됨 — 그 안에 활성 신규 문서를 섞으면 정책 혼동. 루트는 이미 Git 추적 중인 활성 운영 문서 영역이라 일관성 유지.
 - **문서**: [DOCUMENT-STANDARD.md](DOCUMENT-STANDARD.md) §1.
 
+## 2026-07-23 — Meta/YouTube 실API 코드 구현 + CEO 발급 가이드 (CEO "진행" — 직접 가입 선택)
+- **CEO 결정**: AI Content Analyst·발행 인력(Instagram/YouTube Manager 등) 승격을 위해 "CEO가 직접 API 가입 후 자격증명 전달" 경로 선택(대안: CEO가 실게시물을 올리고 실측치 제공 / 보류하고 다른 우선순위 — 둘 다 미선택).
+- **근거**: Meta Developer 앱·YouTube OAuth는 신원확인·비즈니스 인증이 필요한 절차라 CTO(Claude Code)가 대신 실행할 수 없음. CEO-CHARTER §승인규칙 "외부서비스가입"과도 일치.
+- **CTO 준비**: `analytics.py collect()`에 Meta Graph API·YouTube Data API v3(OAuth refresh 교환 포함) 실호출 코드를 공식 문서 기준으로 미리 구현 — 자격증명 도착 즉시 동작하도록. 무자격증명·오류 시 dry-run으로 안전 폴백 확인.
+- **문서**: [INSTALL.md](INSTALL.md) §6 신설(Meta/YouTube 발급 단계별 가이드). [AI-STAFF-POLICY.md](AI-STAFF-POLICY.md) §8 4차 로그.
+- **정직한 기록**: 코드는 완성됐으나 실토큰 미검증 상태 — §2 기준상 정규직 승격은 보류.
+
 ## 2026-07-23 — AI Trend Researcher 신규 구축 + AI Content Analyst 실행경로 마련 (CEO "착수지시")
 - **범위 판단**: Content Analyst의 진짜 블로커(Meta/YouTube API 자격증명)는 CEO의 실제 가입·OAuth 행위가 필요해 자율착수 불가(외부서비스가입, 승인 대상) — 대신 API 없이도 쓸 수 있는 수동입력 경로를 먼저 구축해 "착수".
 - **AI Trend Researcher**: `trend_research.py` 신설(designTrendAgent.ts와 동일 패턴 — fetch+Gemini). 최초 실행에서 Gemini가 ` ```json ` 코드펜스로 응답을 감싸 파싱 실패 → `response_mime_type="application/json"` config로 해결, 동일 이슈를 `generate_osmu.py` 쇼츠 프롬프트에도 소급 적용.

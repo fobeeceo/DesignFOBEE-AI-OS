@@ -51,8 +51,8 @@ AI 직원은 판단이 불확실하거나 데이터가 불충분할 때 **추측
 | AI CRM | 인턴 유지 | 재검증 시도: DB에 실레코드 2건 존재하나(`prisma.lead.count()`) 발신자가 `ceo@fobee.co.kr`이고 메시지가 키보드 오타("rhdtk"·"tkdeks")인 테스트 데이터 — 진짜 고객 시나리오 아님. `services/crmService.ts`도 CRUD뿐 분류·제안 로직 자체가 없어 실행경로가 없음. 실고객 리드 발생 시 재시도 |
 | **AI Blog Writer·AI Shorts Producer·Media Director** | 정규직(재승격) | 2026-07-23 CEO 승인으로 `generate_osmu.py _llm()`에 실Gemini 연동(`google-genai`, `gemini-flash-latest`) — dry-run 스텁 제거. 실행 결과 `live:{blog:true,shorts:true,sns:true}`, 브랜드 SSOT(gbrick-style.md: 8,636만원·3년폐점0건·7개매장) 반영된 실제 블로그 본문·쇼츠 대본 생성 확인(§8 로그). Media Director는 이 전체 파이프라인(기획→블로그→쇼츠→SNS→리포트)을 오케스트레이션하는 역할이라 함께 재승격 |
 | **AI Trend Researcher** | 정규직(신규 구축) | 2026-07-23 CEO "착수지시"로 `content-automation-agent/src/trend_research.py` 신설 — 실 공개 소스(위키백과 "커피전문점"·"카페") fetch+Gemini 분석. 실행 결과 키워드 7개·경쟁콘텐츠요약 4건·기회 3건·추천소스(topic+keywords)를 실제로 생성해 `generate_osmu.generate()` 입력과 연결 확인(§8 로그) |
-| AI Content Analyst | 수습 유지(실행경로는 마련) | 2026-07-23 `analytics.py`에 `collect_manual()` 추가 — Meta/YouTube API 가입(외부서비스가입, CEO 승인 대상) 없이도 사람이 확인한 실측치를 입력하면 분석 가능해짐. 코드 동작은 예시값으로 확인했으나(§8 로그, "실데이터 아님" 명시), 실제 게시물의 진짜 지표가 아직 없어 §2 종단검증은 미충족 — 실측치 입력 시 즉시 재검증 가능 |
-| Instagram·YouTube·TikTok·Naver Blog·Thumbnail·Voice·Video 등 7명 | 대기 | 미가동(발행 인프라 없음 — 콘텐츠 생성은 되지만 계정 연결·업로드 파이프라인 없음) |
+| AI Content Analyst | 수습 유지(코드는 실API 대기 완료) | 2026-07-23 `analytics.py`에 Meta Graph API(`_fetch_meta_insights`)·YouTube Data API v3(`_fetch_youtube_stats`, OAuth refresh 교환 포함) 실호출 코드를 공식 문서 기준으로 구현 완료. **자격증명이 없어 실토큰으로 검증되지 않음** — CEO가 [INSTALL.md](INSTALL.md) §6 절차로 직접 API 가입 후 `.env`에 값을 넣으면 자동으로 실동작 전환. 그 전까지는 §2 종단검증 미충족으로 정규직 승격하지 않음(정직 기록) |
+| Instagram·YouTube·TikTok·Naver Blog·Thumbnail·Voice·Video 등 7명 | 대기 | 미가동(발행 인프라 없음 — 콘텐츠 생성은 되지만 계정 연결·업로드 파이프라인 없음, 상동 §6 절차 필요) |
 
 ## 8. 재검증 로그
 ### 2026-07-23 1차 (인턴 10개 역할 재검증)
@@ -71,3 +71,9 @@ AI 직원은 판단이 불확실하거나 데이터가 불충분할 때 **추측
 ### 2026-07-23 3차 (CEO "착수지시" — Trend Researcher 신규 구축 + Content Analyst 실행경로 마련)
 - **AI Trend Researcher**: `trend_research.py` 신설. 최초 실행에서 Gemini가 마크다운 코드펜스(` ```json `)로 감싸 응답해 `json.loads` 실패 → `response_mime_type="application/json"` config로 강제해 해결(같은 문제를 `generate_osmu.py`의 쇼츠 프롬프트에도 소급 적용, `json_mode` 파라미터 추가). 실행 결과: 위키백과 2건 fetch(총 6000자) → 키워드 7개·경쟁콘텐츠요약 4건·기회 3건·추천소스("카베 카네부터 학림다방까지..." topic) 생성 확인, 텍스트 근거 밖 사실 없음.
 - **AI Content Analyst**: `analytics.py collect_manual()` 추가 — 소셜 API 자격증명 없이 사람이 입력한 실측치로 분석 가능. `_improvement()`가 미입력 지표를 "측정된 0"과 구분하도록 수정(허위 0 판단 방지). 코드 경로는 예시값(views:500, likes:20, ctr:0.02)으로 정상 동작 확인했으나 이는 "코드 테스트용, 실데이터 아님"으로 명시 — 진짜 게시물 지표가 없어 §2 종단검증 기준은 아직 미충족(정직 기록, 승격 보류).
+
+### 2026-07-23 4차 (CEO "진행" — "CEO가 직접 API 가입 후 자격증명 전달" 선택)
+- **CEO 결정**: Meta/YouTube API 가입은 CTO가 대신할 수 없는 절차(신원확인·비즈니스 인증)이므로 CEO가 직접 수행하기로 선택.
+- **CTO 준비 작업**: 자격증명이 오는 즉시 바로 동작하도록 `analytics.py collect()`에 Meta Graph API(`_fetch_meta_insights`)·YouTube Data API v3(`_fetch_youtube_stats` + OAuth refresh token 교환 `_youtube_access_token`) 실호출 코드를 공식 API 문서 기준으로 구현. 무자격증명 시 기존 dry-run으로 안전 폴백(`collect('instagram','fake')` 테스트로 크래시 없음 확인), 자격증명 오류 시에도 추측 없이 `error` 필드로 원인 반환.
+- **CEO 실행 가이드 작성**: [INSTALL.md](INSTALL.md) §6에 Meta Developer 앱 생성부터 Instagram 비즈니스 계정 연결·Access Token 발급, Google Cloud Console YouTube Data API v3 활성화·OAuth Refresh Token 발급까지 단계별 절차 기록.
+- **정직한 기록**: 코드는 공식 문서대로 정확히 구현했으나 **실토큰으로 테스트하지 않았다** — §2 기준(실데이터 종단검증)을 지키기 위해 자격증명 도착 전까지는 정규직 승격하지 않는다. CEO가 `.env`를 채우고 `python analytics.py` 실행 결과(`dry_run:false`)를 전달하면 즉시 재검증한다.
