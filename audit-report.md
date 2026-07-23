@@ -2,7 +2,7 @@
 
 # Audit Report
 
-생성: 2026-07-23T10:18:58.375Z
+생성: 2026-07-23T10:29:59.956Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
@@ -53,11 +53,10 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: fdff9b4ac30946e1d3ac6cd61b360b02494a02ca feat(media): Meta/YouTube 실API 코드 구현 + CEO 발급 가이드
-- 미커밋 변경: 3건
+- 최근 커밋: 769201c98555a805d732c1da339d1f00cb4b33dc feat(home): 홈페이지 완성도 개선 P1+P3 - AI 웹디자인전략가 실행 결과 반영
+- 미커밋 변경: 2건
 
 ```
-M components/home/Hero.tsx
- M components/home/ProcessSection.tsx
- M components/home/TrustSection.tsx
+M components/home/CTASection.tsx
+ M components/layout/Footer.tsx
 ```

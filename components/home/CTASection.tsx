@@ -17,6 +17,19 @@ export function CTASection() {
         <div className="mt-10">
           <ContactForm />
         </div>
+
+        <div className="mt-8 flex flex-col items-center gap-1 text-sm text-muted-foreground">
+          <p>폼 작성이 어려우시면 바로 연락 주세요.</p>
+          <p>
+            <a href="tel:0225171474" className="font-semibold text-foreground hover:text-accent">
+              02-517-1474
+            </a>
+            {" · "}
+            <a href="mailto:ceo@fobee.co.kr" className="font-semibold text-foreground hover:text-accent">
+              ceo@fobee.co.kr
+            </a>
+          </p>
+        </div>
       </div>
     </section>
   );

@@ -22,7 +22,18 @@ export function Footer() {
             <p>주식회사 디자인포비</p>
             <p>대표이사 이대성</p>
             <p>설립 2000.10.27</p>
-            <p>이메일 ceo@fobee.co.kr</p>
+            <p>
+              전화{" "}
+              <a href="tel:0225171474" className="hover:text-accent">
+                02-517-1474
+              </a>
+            </p>
+            <p>
+              이메일{" "}
+              <a href="mailto:ceo@fobee.co.kr" className="hover:text-accent">
+                ceo@fobee.co.kr
+              </a>
+            </p>
           </div>
 
           <div className="text-sm text-muted-foreground space-y-1">
