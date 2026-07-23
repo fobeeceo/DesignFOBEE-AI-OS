@@ -87,6 +87,8 @@ export function PhotoUploader() {
   return (
     <div className="flex flex-col gap-6">
       <div
+        role="button"
+        tabIndex={0}
         onDragOver={(e) => {
           e.preventDefault();
           setDragOver(true);
@@ -94,6 +96,12 @@ export function PhotoUploader() {
         onDragLeave={() => setDragOver(false)}
         onDrop={handleDrop}
         onClick={() => inputRef.current?.click()}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            inputRef.current?.click();
+          }
+        }}
         className={`flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed p-12 text-center transition-colors ${
           dragOver ? "border-accent bg-accent/5" : "border-border"
         }`}

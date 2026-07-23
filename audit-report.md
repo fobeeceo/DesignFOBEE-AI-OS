@@ -1,8 +1,8 @@
-> **요약**: 총 10건 발견 (Git 미커밋 변경 제외). §6에 따라 이 스크립트는 아무것도 삭제/수정하지 않았다.
+> **요약**: 총 1건 발견 (Git 미커밋 변경 제외). §6에 따라 이 스크립트는 아무것도 삭제/수정하지 않았다.
 
 # Audit Report
 
-생성: 2026-07-23T10:37:35.713Z
+생성: 2026-07-23T10:50:24.127Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
@@ -18,15 +18,7 @@
 
 ## 3. Unused Import
 - 스캔: 68개 파일
-- 이슈: 8건
-  - app/(admin)/admin/leads/[leadId]/page.tsx:83 — Definition for rule '@next/next/no-img-element' was not found.
-  - app/api/auth/naver/route.ts:1 — 'NextRequest' is defined but never used. Allowed unused vars must match /^_/u.
-  - app/consult/[projectId]/[designImageId]/page.tsx:51 — Definition for rule '@next/next/no-img-element' was not found.
-  - components/design/CompareSlider.tsx:56 — Definition for rule '@next/next/no-img-element' was not found.
-  - components/design/CompareSlider.tsx:63 — Definition for rule '@next/next/no-img-element' was not found.
-  - components/design/DesignStudio.tsx:207 — Definition for rule '@next/next/no-img-element' was not found.
-  - components/upload/PhotoUploader.tsx:65 — Definition for rule 'react-hooks/exhaustive-deps' was not found.
-  - components/upload/PhotoUploader.tsx:128 — Definition for rule '@next/next/no-img-element' was not found.
+- 이슈: 0건
 
 ## 4. Broken Route (nav 컴포넌트)
 - nav 파일 스캔: 5
@@ -41,22 +33,24 @@
 - npm audit(production): critical 0, high 1, moderate 1, low 0
 
 ## 7. Environment Variable
-- 코드에서 참조: 8개
-- .env.example 선언: 11개
-- .env.example 누락(코드는 참조하나 예제엔 없음): 1건
-  - NODE_ENV
-- .env.example 미사용(예제엔 있으나 코드가 참조 안 함): 4건
-  - DATABASE_URL
-  - DIRECT_URL
-  - NEXT_PUBLIC_CLARITY_ID
-  - NEXT_PUBLIC_GA_ID
+- 코드에서 참조: 10개
+- .env.example 선언: 9개
+- .env.example 누락(코드는 참조하나 예제엔 없음): 0건
+- .env.example 미사용(예제엔 있으나 코드가 참조 안 함): 0건
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: ba168b670c73c13439d569d0084d02d864ed8914 feat(home): 홈페이지 P2 완료 - 전화/이메일 연락 채널 추가
-- 미커밋 변경: 2건
+- 최근 커밋: 582e455deb2390f862d12964fc44796cf1b81479 feat(home): 디자인포비 회사소개(About) 섹션 신설
+- 미커밋 변경: 9건
 
 ```
-M app/page.tsx
-?? components/home/AboutSection.tsx
+M .env.example
+ M QA-REPORT.md
+ M app/api/auth/naver/route.ts
+ M audit-report.md
+ M components/Studio.tsx
+ M components/design/DesignStudio.tsx
+ M components/upload/PhotoUploader.tsx
+ M eslint.unused.config.mjs
+ M scripts/audit.js
 ```

@@ -198,14 +198,19 @@ function checkEnvVars() {
   ];
   const middlewarePath = path.join(ROOT, "middleware.ts");
   if (fs.existsSync(middlewarePath)) srcFiles.push(middlewarePath);
+  const prismaSchemaPath = path.join(ROOT, "database", "prisma", "schema.prisma");
+  if (fs.existsSync(prismaSchemaPath)) srcFiles.push(prismaSchemaPath);
 
   const referenced = new Set();
-  const envRe = /process\.env\.([A-Z0-9_]+)/g;
+  // process.env.X (TS/TSX) 와 env("X") (Prisma schema) 둘 다 인식한다.
+  const envRes = [/process\.env\.([A-Z0-9_]+)/g, /env\("([A-Z0-9_]+)"\)/g];
   for (const f of srcFiles) {
     if (!fs.existsSync(f) || fs.statSync(f).isDirectory()) continue;
     const src = readFile(f);
-    let m;
-    while ((m = envRe.exec(src))) referenced.add(m[1]);
+    for (const envRe of envRes) {
+      let m;
+      while ((m = envRe.exec(src))) referenced.add(m[1]);
+    }
   }
   const examplePath = path.join(ROOT, ".env.example");
   const declared = new Set();
@@ -216,7 +221,10 @@ function checkEnvVars() {
       if (m) declared.add(m[1]);
     }
   }
-  const missingFromExample = [...referenced].filter((k) => !declared.has(k)).sort();
+  // NODE_ENV는 Node.js/Next.js가 런타임에 자동 주입 — 사용자가 .env에 직접 선언하는 값이 아니다
+  // (오히려 .env.local에 잘못 넣으면 `next dev`의 HMR을 깨뜨릴 수 있어 예제에서 의도적으로 제외).
+  const PLATFORM_INJECTED = new Set(["NODE_ENV"]);
+  const missingFromExample = [...referenced].filter((k) => !declared.has(k) && !PLATFORM_INJECTED.has(k)).sort();
   const unusedInExample = [...declared].filter((k) => !referenced.has(k)).sort();
   results.envVars = { referencedCount: referenced.size, declaredCount: declared.size, missingFromExample, unusedInExample };
 }

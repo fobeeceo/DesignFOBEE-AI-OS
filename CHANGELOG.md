@@ -4,6 +4,13 @@
 
 ## [Unreleased]
 
+### Audit 백로그 정리 — 접근성 9건·Unused Import 8건·env 정합·npm audit 확인 (2026-07-23)
+- **접근성 9건**: 실제 버그 8건 수정(섹션제목용 `<label>`을 `<p>`로 교체 6건, `PhotoUploader.tsx` 키보드접근성 2건). `components/ui/label.tsx`는 제네릭 컴포넌트 오탐으로 확인, 미수정.
+- **Unused Import 8건**: 실제 미사용 1건(`NextRequest`) 수정. 나머지 7건은 audit 툴링 버그(`eslint.unused.config.mjs`에 `@next/next`·`react-hooks` 플러그인 미등록으로 인한 오탐) — 플러그인 등록으로 근본 수정.
+- **env 정합**: `DATABASE_URL`/`DIRECT_URL`은 `database/prisma/schema.prisma`에서 실사용 중인데 audit 스캐너가 `.prisma`를 안 봐서 오탐 — 스캐너에 추가. `NODE_ENV`는 런타임 자동주입값이라 예제에 넣지 않는 게 정석 — 스캐너에 예외처리. `NEXT_PUBLIC_GA_ID`/`NEXT_PUBLIC_CLARITY_ID`는 실제 미사용 확인돼 `.env.example`에서 제거.
+- **npm audit**: high 1·moderate 1(Next.js 계열) 확인 — 수정에 Next.js 14→16 메이저 2단계 업그레이드가 필요해(breaking change) 자율 패치 보류, 별도 마이그레이션 계획 필요.
+- 결과: `npm run audit` 총 발견 10건 → 1건(사전에 알려진 CompareSlider 중복, 별도 결정 대기).
+
 ### 디자인포비 회사소개(About) 섹션 신설 (2026-07-23)
 - **배경**: CEO 요청 "디자인포비 소개문구 필요" → "자료에서 찾아서 스스로 작성" 지시. Drive에서 실제 사업자등록증·전문건설업 등록증·지명원 연혁 문서를 찾아 검증된 사실만으로 작성(추측·과장 없음).
 - `components/home/AboutSection.tsx` 신설: 연혁 4단계(2000 법인설립 → 2009 실내건축공사업 등록 → 2013 GBRICK Coffee 런칭 → 2026 AI 공간 설계 도입) + 소개문. 근거: 사업자등록증(법인설립 2000.10.27)·전문건설업 등록증(은평-09-01-2, 2009.03.16)·지명원 연혁("2013년 지브릭커피 런칭").

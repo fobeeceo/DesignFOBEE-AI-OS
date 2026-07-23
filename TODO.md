@@ -24,11 +24,11 @@
 ## 자율 진행 중 (승인 불요, QA/Audit로 검증된 실제 항목)
 - [x] QA 확장 시스템(`npm run qa:extended`) — a11y/SEO/링크/이미지/성능 실검증 완료.
 - [x] Audit 시스템(`npm run audit`) — 8항목 실검증 완료, 2개 자체 버그 발견·수정.
-- [ ] **접근성 실수정 9건**: `components/design/DesignStudio.tsx`(197/216/235행)·`components/Studio.tsx`(264/346/371행) — 섹션제목용 `<label>`을 `<p>`/heading으로 교체(폼과 무관, 오분류). `components/upload/PhotoUploader.tsx:89` 키보드 접근성(click-events-have-key-events, no-static-element-interactions).
+- [x] **접근성 실수정 9건**(2026-07-23): `DesignStudio.tsx`(197/216/235)·`Studio.tsx`(264/346/371) 섹션제목용 `<label>`→`<p>` 교체. `PhotoUploader.tsx:89` `role="button"`+`tabIndex`+`onKeyDown` 추가. `components/ui/label.tsx:8`은 제네릭 재사용 컴포넌트라 정적분석 한계로 인한 오탐 확인(실사용처는 모두 htmlFor 정상 연결) — 의도적으로 미수정. `npm run qa:extended` 9건→1건(오탐만 잔존).
 - [ ] **중복 컴포넌트 정리 검토**: CompareSlider/Footer/Header/Hero 4쌍(동명이경로) 중 dead 쪽은 삭제됨(위 참조) — 남은 live 쪽 중복(예: `components/design/` vs 다른 경로) 통합 여부 재검토.
-- [ ] Unused Import 8건 실수정(경미, `npm run audit` 리포트 참조).
-- [ ] env 문서 정합: `.env.example`에 `NODE_ENV` 추가, 미사용 4건(DATABASE_URL/DIRECT_URL/GA/Clarity) 실제 코드 참조 여부 재확인 후 정리.
-- [ ] npm audit 취약점(high 1·moderate 1) 확인 후 패치 가능하면 자율 적용.
+- [x] Unused Import 8건 실수정(2026-07-23): 실제 미사용은 `app/api/auth/naver/route.ts`의 `NextRequest` 1건뿐(제거). 나머지 7건은 `eslint.unused.config.mjs`에 `@next/next`·`react-hooks` 플러그인이 미등록돼 소스의 정상 eslint-disable 주석을 "규칙 없음" 오류로 오탐한 audit 툴링 버그 — 플러그인 등록으로 해결. `npm run audit` 8건→0건.
+- [x] env 문서 정합(2026-07-23): `DATABASE_URL`/`DIRECT_URL`은 실제로 `database/prisma/schema.prisma`(`env("...")`)에서 사용 중인데 audit 스캐너가 `.prisma` 파일을 보지 않아 오탐 — `scripts/audit.js`에 스캔 대상 추가로 해결. `NODE_ENV`는 Node/Next.js가 런타임에 자동 주입하는 값이라 `.env.example`에 넣지 않는 게 정석 — audit 스캐너에 플랫폼 주입 변수 예외처리 추가. `NEXT_PUBLIC_GA_ID`/`NEXT_PUBLIC_CLARITY_ID`는 코드 어디서도 실제로 쓰이지 않아 `.env.example`에서 제거(분석 도구 미연결 상태를 정직 반영). `npm run audit` env 섹션 5건→0건.
+- [x] npm audit 취약점(2026-07-23) 확인: high 1(Next.js)·moderate 1(postcss, Next.js 종속) 모두 `npm audit fix --force`가 Next.js 14.2.35→16.2.11 **메이저 2단계 업그레이드**를 요구(breaking change 명시) — 패치가 아니라 마이그레이션 프로젝트라 자율 적용하지 않음. 별도 계획 필요(CEO 판단 권장, 운영서버파괴적변경 소지).
 
 ## AI 조직 갭 (CEO-CHARTER §AI Headquarters 구축, 실체 없이 조작하지 않음)
 - [x] **신설(실체 있음)**: AI QA·AI Audit·AI Security·AI Documentation (scripts/ 실제 시스템 연결).

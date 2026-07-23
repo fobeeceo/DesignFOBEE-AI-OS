@@ -261,10 +261,10 @@ export default function Studio() {
               <div className="grid gap-10 lg:grid-cols-[1fr_1fr] lg:gap-12">
                 {/* 01. 업로드 */}
                 <div className="flex flex-col gap-3">
-                  <label className="flex items-baseline gap-2 text-base font-bold text-ink">
+                  <p className="flex items-baseline gap-2 text-base font-bold text-ink">
                     <span className="font-display text-sm text-clay">01</span>
                     원본 공간 사진 업로드
-                  </label>
+                  </p>
 
                   {!uploadedImage ? (
                     <div
@@ -343,10 +343,10 @@ export default function Studio() {
                 {/* 02+03. 옵션 */}
                 <div className="flex flex-col gap-8">
                   <div className="flex flex-col gap-3">
-                    <label className="flex items-baseline gap-2 text-base font-bold text-ink">
+                    <p className="flex items-baseline gap-2 text-base font-bold text-ink">
                       <span className="font-display text-sm text-clay">02</span>
                       공간 유형
-                    </label>
+                    </p>
                     <div className="flex flex-wrap gap-2">
                       {ROOM_TYPES.map((room) => (
                         <button
@@ -368,10 +368,10 @@ export default function Studio() {
                   </div>
 
                   <div className="flex flex-col gap-3">
-                    <label className="flex items-baseline gap-2 text-base font-bold text-ink">
+                    <p className="flex items-baseline gap-2 text-base font-bold text-ink">
                       <span className="font-display text-sm text-clay">03</span>
                       디자인 스타일
-                    </label>
+                    </p>
                     <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4">
                       {STYLES.map((style) => (
                         <button

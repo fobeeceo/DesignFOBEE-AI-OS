@@ -194,7 +194,7 @@ export function DesignStudio({ projectId, photos }: DesignStudioProps) {
       ) : (
         <div className="grid gap-10 lg:grid-cols-2">
           <div className="flex flex-col gap-3">
-            <label className="text-sm font-bold">01. 분석할 사진 선택</label>
+            <p className="text-sm font-bold">01. 분석할 사진 선택</p>
             <div className="grid grid-cols-3 gap-2">
               {photos.map((photo) => (
                 <button
@@ -213,7 +213,7 @@ export function DesignStudio({ projectId, photos }: DesignStudioProps) {
 
           <div className="flex flex-col gap-8">
             <div className="flex flex-col gap-3">
-              <label className="text-sm font-bold">02. 공간 유형</label>
+              <p className="text-sm font-bold">02. 공간 유형</p>
               <div className="flex flex-wrap gap-2">
                 {ROOM_TYPES.map((room) => (
                   <button
@@ -232,7 +232,7 @@ export function DesignStudio({ projectId, photos }: DesignStudioProps) {
             </div>
 
             <div className="flex flex-col gap-3">
-              <label className="text-sm font-bold">03. 디자인 스타일</label>
+              <p className="text-sm font-bold">03. 디자인 스타일</p>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                 {STYLES.map((style) => (
                   <button
