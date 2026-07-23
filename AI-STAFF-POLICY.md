@@ -49,13 +49,20 @@ AI 직원은 판단이 불확실하거나 데이터가 불충분할 때 **추측
 | **AI SEO Manager** | 정규직(승격) | `scripts/qa-extended.js checkSeo()` — 2026-07-23 재실행, 16페이지 스캔·진짜 공백 0건 확인. 기존에 Media Workforce "인턴"으로 뭉뚱그려졌으나 실제로는 이미 실코드로 반복검증되던 역할이었음(재검증 중 발견) |
 | AI 마케터·AI CEO(전략)·AI 콘텐츠 | 정규직(승격) | 2026-07-23 승인된 SSOT(정보공개서 8,636만원·은평본점 2013년 개점 등)로 각 1건씩 실행해 산출물 생성, 프롬프트 제약(법정고지·SSOT 인용·과장금지) 준수 확인(§8 로그) |
 | AI CRM | 인턴 유지 | 재검증 시도: DB에 실레코드 2건 존재하나(`prisma.lead.count()`) 발신자가 `ceo@fobee.co.kr`이고 메시지가 키보드 오타("rhdtk"·"tkdeks")인 테스트 데이터 — 진짜 고객 시나리오 아님. `services/crmService.ts`도 CRUD뿐 분류·제안 로직 자체가 없어 실행경로가 없음. 실고객 리드 발생 시 재시도 |
-| Media Director·Content Analyst·Trend Researcher·Blog Writer·Shorts Producer | **수습으로 하향** | 재검증 중 `generate_osmu.py`/`analytics.py`를 직접 열어 확인 — `_llm()`이 `"[DRY-RUN::역할]"` 문자열만 반환하는 스텁이고 기존 output도 전부 `"dry_run": true`. Trend Researcher는 대응 코드 파일조차 없음. "인턴(MVP)"이라는 기존 라벨 자체가 근거 없었음(정직 기록) |
-| Instagram·YouTube·TikTok·Naver Blog·Thumbnail·Voice·Video 등 7명 | 대기 | 미가동 |
+| **AI Blog Writer·AI Shorts Producer·Media Director** | 정규직(재승격) | 2026-07-23 CEO 승인으로 `generate_osmu.py _llm()`에 실Gemini 연동(`google-genai`, `gemini-flash-latest`) — dry-run 스텁 제거. 실행 결과 `live:{blog:true,shorts:true,sns:true}`, 브랜드 SSOT(gbrick-style.md: 8,636만원·3년폐점0건·7개매장) 반영된 실제 블로그 본문·쇼츠 대본 생성 확인(§8 로그). Media Director는 이 전체 파이프라인(기획→블로그→쇼츠→SNS→리포트)을 오케스트레이션하는 역할이라 함께 재승격 |
+| AI Content Analyst·AI Trend Researcher | 수습 유지 | `analytics.py`는 LLM이 아니라 소셜 지표 API(Meta Graph/YouTube) 접근이 필요 — 이번 Gemini 연동과 무관한 별도 갭(외부서비스가입, CEO-CHARTER 승인 대상). Trend Researcher는 대응 코드 파일 자체가 없음(경쟁 콘텐츠 트렌드 리서치 기능 미구축) — 둘 다 이번 조치 범위 밖 |
+| Instagram·YouTube·TikTok·Naver Blog·Thumbnail·Voice·Video 등 7명 | 대기 | 미가동(발행 인프라 없음 — 콘텐츠 생성은 되지만 계정 연결·업로드 파이프라인 없음) |
 
-## 8. 재검증 로그 (2026-07-23, CEO "승인" 지시에 따른 실행)
+## 8. 재검증 로그
+### 2026-07-23 1차 (인턴 10개 역할 재검증)
 - **방법**: §2 승격기준을 각 역할에 실제로 적용 — 코드가 있으면 재실행, 프롬프트뿐이면 승인된 SSOT로 직접 1회 실행, 근거 없으면 정직하게 하향.
 - **승격 3건**: AI SEO Manager(기존 코드 재발견), AI 마케터·AI CEO(전략)·AI 콘텐츠(프롬프트 실행 성공).
 - **유지 1건**: AI CRM(실데이터는 있으나 테스트 데이터라 검증 불가).
 - **하향 5건**: Media Director·Content Analyst·Trend Researcher·Blog Writer·Shorts Producer(코드가 dry-run 스텁뿐임을 이번에 처음 확인).
 - **전략적 결론(AI CEO 역할로 직접 판단)**: Media OSMU 파이프라인에 실LLM(Gemini)을 연동하면 이 5명을 정규직으로 만들 수 있으나, 이는 비용 발생 항목이라 이번 재검증 범위를 벗어남 — 별도 CEO 지시 필요.
 - **정직한 기록**: 재검증 전 "인턴"으로 일괄 분류했던 것 자체가 부정확했다 — 실제로는 정규직 승격 대상(SEO Manager 등)과 실행경로가 아예 없는 것(Trend Researcher 등)이 섞여 있었다. §2 기준을 일괄 적용이 아니라 역할별로 직접 실행해봐야 정확한 등급이 나온다는 교훈.
+
+### 2026-07-23 2차 (CEO "다음단계 진행" 승인 — 실Gemini 연동)
+- **범위 판단**: 1차에서 하향된 5명 중 Blog Writer·Shorts Producer(+오케스트레이션하는 Media Director)는 "비용만 있으면 실행 가능"이었으나, Content Analyst·Trend Researcher는 비용 문제가 아니라 애초에 필요한 기능(소셜 API 접근·트렌드 리서치)이 구축돼 있지 않아 이번 승인 범위(Gemini 연동)와 무관 — 승격 대상에서 제외.
+- **구현**: `content-automation-agent/requirements.txt`에 `google-genai` 추가·설치. `generate_osmu.py _llm()`을 실제 Gemini 호출로 교체(GEMINI_API_KEY 없거나 실패 시 dry-run 폴백 유지, 무파괴). 블로그/쇼츠 프롬프트에 브랜드 스타일 가이드(`content-automation-agent/guides/*.md`) 전문을 주입해 SSOT 밖 사실을 지어내지 않도록 제약.
+- **검증**: 실제 실행(`python generate_osmu.py`) → `report.json`에 `"live":{"blog":true,"shorts":true,"sns":true},"dry_run":false`. `blog.md`에 8,636만원·3년폐점0건·7개매장·법정고지("실제 창업 내용과 차이가 있을 수 있습니다") 모두 정확히 반영된 실제 생성 문장 확인.

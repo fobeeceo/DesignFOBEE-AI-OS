@@ -2,7 +2,7 @@
 
 # Audit Report
 
-생성: 2026-07-23T04:38:03.225Z
+생성: 2026-07-23T04:50:38.193Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
@@ -53,13 +53,14 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: ae10bfcb2bf0051de26245a57f223440f43d1e99 docs: AI-STAFF-POLICY.md v1.0 - AI 직원 직급/승격/실행권한/퇴출 지침 신설
-- 미커밋 변경: 5건
+- 최근 커밋: 4609087226b23ca897b5b5fcb9ab025a192a18eb docs(hq): 인턴 10개 역할 재검증 - 승격 3건, 유지 1건, 수습 하향 5건
+- 미커밋 변경: 6건
 
 ```
 M AI-HQ-MASTER.md
  M AI-STAFF-POLICY.md
  M CHANGELOG.md
  M DECISION-LOG.md
- M QA-REPORT.md
+ M content-automation-agent/requirements.txt
+ M content-automation-agent/src/generate_osmu.py
 ```

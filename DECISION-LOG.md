@@ -30,6 +30,13 @@
 - **근거**: 기존 `docs/`는 frozen·미추적 상태로 이미 결정됨 — 그 안에 활성 신규 문서를 섞으면 정책 혼동. 루트는 이미 Git 추적 중인 활성 운영 문서 영역이라 일관성 유지.
 - **문서**: [DOCUMENT-STANDARD.md](DOCUMENT-STANDARD.md) §1.
 
+## 2026-07-23 — Media OSMU 파이프라인 실Gemini 연동 (CEO "다음단계 진행" 승인)
+- **배경**: 직전 재검증에서 CEO 승인 필요 사항으로 보고한 항목("비용 발생 항목이라 범위 밖") — CEO가 "다음단계 진행"으로 명시 승인.
+- **범위 판단**: 하향됐던 5명 중 Blog Writer·Shorts Producer(+오케스트레이션 Media Director)는 "비용만 있으면 실행 가능"했으나, Content Analyst·Trend Researcher는 비용이 아니라 애초에 다른 기능(소셜 API·트렌드 리서치)이 없는 별개 갭이라 이번 승인 범위에서 제외.
+- **구현**: `google-genai` 설치(`requirements.txt`), `generate_osmu.py _llm()`을 dry-run 스텁에서 실Gemini 호출로 교체(GEMINI_API_KEY 없거나 실패 시 폴백 유지). 블로그·쇼츠 프롬프트에 브랜드 스타일가이드(`guides/*.md`) 전문을 주입해 SSOT 밖 사실 생성을 제약.
+- **검증**: 실행 결과 `report.json` `"live":{"blog":true,"shorts":true,"sns":true},"dry_run":false`. `blog.md`가 8,636만원·3년폐점0건·7개매장·법정고지를 정확히 반영한 실제 문장을 생성함을 확인.
+- **문서**: [AI-STAFF-POLICY.md](AI-STAFF-POLICY.md) §7·§8, [AI-HQ-MASTER.md](AI-HQ-MASTER.md) 갱신 — Blog Writer·Shorts Producer·Media Director 정규직 재승격.
+
 ## 2026-07-23 — 인턴 10개 역할 재검증 (CEO "승인" 지시 실행)
 - **방법**: AI-STAFF-POLICY §2 기준을 역할별로 실제 적용 — 코드 있으면 재실행, 프롬프트뿐이면 승인SSOT로 직접 1회 실행, 근거 없으면 정직 하향.
 - **승격 3건**: AI SEO Manager(`scripts/qa-extended.js checkSeo()`가 이미 실코드였음을 재검증 중 발견), AI 마케터·AI CEO(전략)·AI 콘텐츠(정보공개서 8,636만원·은평본점 2013년 개점 등 승인SSOT로 직접 실행 성공).

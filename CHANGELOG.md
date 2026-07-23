@@ -4,6 +4,13 @@
 
 ## [Unreleased]
 
+### Media OSMU 파이프라인 실Gemini 연동 (2026-07-23)
+- **배경**: CEO가 직전 보고의 승인 필요 사항("Media 파이프라인 실LLM 연동, 비용 발생")에 "다음단계 진행"으로 명시 승인.
+- `content-automation-agent/requirements.txt`에 `google-genai` 추가·설치. `generate_osmu.py`의 `_llm()`을 dry-run 스텁에서 실제 Gemini 호출(`gemini-flash-latest`)로 교체 — GEMINI_API_KEY 없거나 호출 실패 시에는 여전히 dry-run으로 안전 폴백(무파괴).
+- 블로그·쇼츠 프롬프트에 브랜드 스타일가이드(`content-automation-agent/guides/gbrick-style.md`/`designpobee-style.md`) 전문을 주입해 SSOT 밖 사실을 지어내지 않도록 제약.
+- **실행 검증**: `python generate_osmu.py` 실행 → `report.json`에 `"live":{"blog":true,"shorts":true,"sns":true},"dry_run":false`. `blog.md`가 승인 SSOT(8,636만원·3년 폐점 0건·7개 매장)와 법정고지를 정확히 반영한 실제 문장을 생성함을 직접 확인.
+- **AI Blog Writer·AI Shorts Producer·Media Director → 정규직 재승격**(직전 재검증에서 하향됐던 것을 되돌림). AI Content Analyst·AI Trend Researcher는 이번 조치와 무관한 별개 갭(소셜 API 미연결·트렌드 리서치 코드 없음)이라 수습 유지.
+
 ### 인턴 10개 역할 재검증 — 승격 3건·유지 1건·하향 5건 (2026-07-23)
 - **AI SEO Manager → 정규직**: `scripts/qa-extended.js checkSeo()`가 이미 실코드로 반복검증되고 있었음을 재검증 중 발견(16페이지 스캔, 진짜 공백 0건). 기존에 Media Workforce "인턴"으로 뭉뚱그려져 있었으나 실제로는 이미 실증된 역할이었음.
 - **AI 마케터·AI CEO(전략)·AI 콘텐츠 → 정규직**: 승인된 SSOT(정보공개서 8,636만원·은평본점 2013년 개점)로 각 역할의 Notion 프롬프트를 직접 1회씩 실행, 산출물이 제약(법정고지·SSOT인용·과장금지)을 지킴을 확인.
