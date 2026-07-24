@@ -40,7 +40,7 @@
 ## P1 — Live Data / Automation
 - [x] `/hq`·`/hq/erp` 프론트가 `/api/hq/erp` client fetch로 연결됨(2026-07-22).
 - [ ] ERP 백엔드 실시간화: `/api/hq/erp`가 여전히 코드 내 스냅샷(`lib/hq/erpSnapshot.ts`)을 반환 — 저장소(DB/파일)에서 최신 POS/재고를 직접 읽도록 다음 단계 필요.
-- [ ] `app/hq/[section]/page.tsx`(가맹점/물류/교육/콘텐츠/직원/설정)도 `/api/hq/erp` 라이브 연결.
+- [x] `app/hq/[section]/page.tsx`(가맹점/물류/교육/콘텐츠/직원/설정)도 `/api/hq/erp` 라이브 연결(2026-07-24). STORES/AI_STAFF/HQ_MENU(조직 로스터)는 ERP 데이터가 아니라 정적 유지.
 - [ ] 타 매장 POS 엑셀 → 전국 집계.
 - [ ] Media 실업로드: YouTube OAuth (자격증명 대기).
 - [ ] 디저트 판매가 → 홈 메뉴 화면 연결.

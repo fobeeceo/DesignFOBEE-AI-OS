@@ -1,4 +1,7 @@
-import { HQ_MENU, ERP_SNAPSHOT as E, STORES, AI_STAFF, won } from "@/lib/hq/erpSnapshot";
+"use client";
+
+import { useEffect, useState } from "react";
+import { HQ_MENU, ERP_SNAPSHOT, STORES, AI_STAFF, won } from "@/lib/hq/erpSnapshot";
 
 const STATUS_STYLE: Record<string, string> = {
   정규직: "bg-accent/15 text-accent",
@@ -28,6 +31,14 @@ const SECTION: Record<string, { title: string; desc: string; note: string }> = {
 };
 
 export default function HqSection({ params }: { params: { section: string } }) {
+  const [E, setE] = useState(ERP_SNAPSHOT);
+  useEffect(() => {
+    fetch("/api/hq/erp")
+      .then((r) => r.json())
+      .then((d) => { if (d?.data) setE(d.data); })
+      .catch(() => {});
+  }, []);
+
   const s = SECTION[params.section];
   const menu = HQ_MENU.find((m) => m.key === params.section);
 

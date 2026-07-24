@@ -4,6 +4,12 @@
 
 ## [Unreleased]
 
+### `/hq/[section]`(가맹점·물류·교육·콘텐츠·직원·설정) 라이브 API 연결 (2026-07-24)
+- **배경**: `/hq`·`/hq/erp`는 2026-07-23에 `/api/hq/erp` client fetch로 전환됐으나, `app/hq/[section]/page.tsx`(가맹점 로스터·물류 발주·설정 화면)는 여전히 서버 컴포넌트에서 `ERP_SNAPSHOT` 상수를 정적 import — 엔진(`erp_engine.py`/`pos_import.py`) 재실행이 화면에 반영되지 않는 마지막 남은 갭이었음(TODO.md P1 재확인으로 발견).
+- `app/hq/[section]/page.tsx`를 client 컴포넌트로 전환, 기존 `/hq`·`/hq/erp`와 동일 패턴(초기 렌더는 `ERP_SNAPSHOT`으로 즉시 표시 → `/api/hq/erp` 응답으로 무깜빡임 갱신)으로 가맹점(본점 실적)·물류(발주 추천) 섹션의 수치를 라이브 연결. `STORES`/`AI_STAFF`/`HQ_MENU`(매장 로스터·AI 조직도)는 ERP 산출물이 아니므로 정적 유지(과잉수정 방지).
+- **검증**: env 없이 `npm run build` exit 0(27 라우트, `/hq/[section]` 포함 정상 컴파일), `npm run lint` clean. `/hq/*`는 이 세션 dev 서버에 실 Supabase env가 로드돼 있어 `/login`으로 리다이렉트되는 기존 인증게이트 동작(§13, 2026-07-23와 동일 제약) — 브라우저 렌더 대신 `fetch('/api/hq/erp')` 직접 호출로 `source:"live"`·매출 16,627,700원·디저트 28종 확인.
+- **다음 우선순위**: (1) 타 매장 POS 업로드 파이프라인(P7 전국 집계, 자격증명/합의 필요). (2) PROJECT 8(본사 전용 뷰) 요구사항 미구체화 — CEO 확인 필요(전 사이클과 동일 결론, 신규 정보 없음).
+
 ### 프롬프트 전용 AI 역할 3건 코드화 → 정규직 승격 (CEO MASTER 업무지시서 §1, 2026-07-23)
 - **배경**: 신기준("실제 코드 존재" 필수) 재평가에서 AI CEO(전략)·AI 마케터·AI 콘텐츠·AI Documentation이 코드 없이 Notion 프롬프트뿐이라 정규직 불가 판정됨 — 이번 사이클에서 3건을 코드화해 해소.
 - `agents/ceoStrategyAgent.ts` + `POST /api/hq/strategy-analysis` 신설: 결정사안+배경 → 복수대안+반대의견+"CEO 없이도 작동하는가" 판단 → 권고(제안까지만, 실행 없음). 실제 안건(API 키 dev/prod 분리)으로 테스트 — 대안 3개·반대의견 2개·구체적 권고 생성 확인.
