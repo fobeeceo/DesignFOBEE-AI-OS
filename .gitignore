@@ -17,6 +17,9 @@ docs/
 # 임시/테스트 파일
 __delete_test.txt
 
+# CEO 다이제스트(매번 새 파일, DECISION-LOG/CHANGELOG가 영구 기록이라 날짜별 산출물은 미추적)
+ceo-digest-*.md
+
 # AI Media Automation OS — 민감/생성물
 content-automation-agent/.env
 content-automation-agent/output/
