@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin, AdminAuthError } from "@/lib/auth/requireAdmin";
+import { AdminAuthError } from "@/lib/auth/requireAdmin";
+import { requireServiceOrAdmin } from "@/lib/auth/requireServiceOrAdmin";
 import { generateMarketingCopy, MarketerAgentError, type MarketingCopyRequest } from "@/agents/marketerAgent";
 
 const VALID_CHANNELS: MarketingCopyRequest["channel"][] = ["instagram", "blog", "franchise_landing"];
@@ -7,11 +8,11 @@ const VALID_CHANNELS: MarketingCopyRequest["channel"][] = ["instagram", "blog", 
 /**
  * POST /api/hq/marketing-copy
  * body: { topic: string, channel: "instagram"|"blog"|"franchise_landing" }
- * AI 마케터 — Gemini 호출 = 비용 발생 → 인증 필수(design-trends와 동일 패턴).
+ * AI 마케터 — Gemini 호출 = 비용 발생 → 관리자 세션 또는 n8n 서비스 토큰 인증 필요.
  */
 export async function POST(req: NextRequest) {
   try {
-    await requireAdmin();
+    await requireServiceOrAdmin(req);
 
     const body = await req.json().catch(() => ({}));
     const topic = typeof body?.topic === "string" ? body.topic : "";

@@ -32,3 +32,29 @@ services:
       - ../content-automation-agent/output:/app/output
       - ../content-automation-agent/logs:/app/logs
     profiles: ["tools"] # 상시 기동 아님 — `docker compose run erp ...`로 온디맨드 실행
+
+  # 자동화 엔진(CEO 승인, 2026-07-24) — AI 직원 API(/api/hq/*)·Telegram·Notion·Drive를
+  # 워크플로로 연결. 자격증명은 n8n 자체 Credential Manager에서 암호화 저장(.env에 안 넣음).
+  n8n:
+    image: n8nio/n8n:latest
+    ports:
+      - "${N8N_PORT:-5678}:5678"
+    environment:
+      - GENERIC_TIMEZONE=Asia/Seoul
+      - TZ=Asia/Seoul
+      - N8N_HOST=${N8N_HOST:-localhost}
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - WEBHOOK_URL=${N8N_WEBHOOK_URL:-http://localhost:5678/}
+      # web 컨테이너의 /api/hq/* 를 n8n이 호출할 때 쓰는 서비스 토큰(브라우저 로그인 세션 대체).
+      # 값은 web과 동일해야 하며 .env.local의 N8N_SERVICE_TOKEN에서 주입(비어있으면 web이 서비스토큰 인증 자체를 비활성화).
+      - AI_HQ_SERVICE_TOKEN=${N8N_SERVICE_TOKEN:-}
+      - AI_HQ_WEB_URL=http://web:3000
+    volumes:
+      - n8n_data:/home/node/.n8n
+    restart: unless-stopped
+    depends_on:
+      - web
+
+volumes:
+  n8n_data:

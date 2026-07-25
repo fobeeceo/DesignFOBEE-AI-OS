@@ -1,15 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin, AdminAuthError } from "@/lib/auth/requireAdmin";
+import { AdminAuthError } from "@/lib/auth/requireAdmin";
+import { requireServiceOrAdmin } from "@/lib/auth/requireServiceOrAdmin";
 import { generateStrategyAnalysis, CeoStrategyAgentError } from "@/agents/ceoStrategyAgent";
 
 /**
  * POST /api/hq/strategy-analysis
  * body: { decision: string, context: string }
- * AI CEO(전략) — Gemini 호출 = 비용 발생 → 인증 필수. 제안까지만(실행 없음, AI-STAFF-POLICY §4).
+ * AI CEO(전략) — Gemini 호출 = 비용 발생 → 관리자 세션 또는 n8n 서비스 토큰 인증 필요.
+ * 제안까지만(실행 없음, AI-STAFF-POLICY §4).
  */
 export async function POST(req: NextRequest) {
   try {
-    await requireAdmin();
+    await requireServiceOrAdmin(req);
 
     const body = await req.json().catch(() => ({}));
     const decision = typeof body?.decision === "string" ? body.decision : "";

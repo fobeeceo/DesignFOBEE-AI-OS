@@ -4,6 +4,14 @@
 
 ## [Unreleased]
 
+### n8n 자동화 엔진용 서비스 토큰 인증 경로 신설 (2026-07-25)
+- **배경**: `/api/hq/design-trends`·`/api/hq/marketing-copy`·`/api/hq/strategy-analysis`(Gemini 호출, 비용 발생) 3건은 `requireAdmin()`으로 브라우저 관리자 로그인만 허용 — CEO MASTER 업무지시서에서 승인된 n8n 자동화 엔진(Docker Compose 서비스)이 워크플로에서 이 API들을 직접 호출할 방법이 없었음(이전 세션에서 착수했으나 미커밋 상태로 남아있던 작업을 이번 사이클에서 검증·완료).
+- `lib/auth/requireServiceOrAdmin.ts` 신설: `Authorization: Bearer <N8N_SERVICE_TOKEN>` 헤더가 환경변수와 일치하면 서비스 프로필(`service:n8n`)을 반환, 아니면 기존 `requireAdmin()`(브라우저 세션)으로 폴백. `N8N_SERVICE_TOKEN` 미설정 시 서비스 토큰 경로 자체가 비활성화되어 기존 관리자 인증만 동작(무파괴).
+- 위 3개 라우트를 `requireAdmin()` → `requireServiceOrAdmin(req)`로 교체(인증 실패 시 에러 처리·상태코드는 기존 `AdminAuthError` 그대로 유지, 동작 변경 없음).
+- `AI-HQ/docker-compose.yml`에 `n8n` 서비스 추가(`n8nio/n8n:latest`, `${N8N_PORT:-5678}`, `AI_HQ_SERVICE_TOKEN`을 `.env.local`의 `N8N_SERVICE_TOKEN`에서 주입, `web` 컨테이너에 `depends_on`). `.env.example`에 `N8N_SERVICE_TOKEN` 항목·용도 설명 추가.
+- **검증**: env 없이 `npm run build` exit 0(27 라우트, 3개 라우트 모두 정상 컴파일), `npm run lint` clean. 토큰 미설정 시 기존 `requireAdmin()` 경로만 타는 것은 코드 리뷰로 확인(런타임 n8n 컨테이너 기동은 미실행 — Docker 재기동은 운영 서버 변경 소지라 이번 사이클에선 코드만 완성).
+- **다음 우선순위**: n8n 컨테이너 실기동 후 실제 서비스 토큰으로 3개 라우트 종단 호출 검증(현재는 코드 경로만 확인, 컨테이너 실행 검증은 미완료로 명시).
+
 ### `/hq/[section]`(가맹점·물류·교육·콘텐츠·직원·설정) 라이브 API 연결 (2026-07-24)
 - **배경**: `/hq`·`/hq/erp`는 2026-07-23에 `/api/hq/erp` client fetch로 전환됐으나, `app/hq/[section]/page.tsx`(가맹점 로스터·물류 발주·설정 화면)는 여전히 서버 컴포넌트에서 `ERP_SNAPSHOT` 상수를 정적 import — 엔진(`erp_engine.py`/`pos_import.py`) 재실행이 화면에 반영되지 않는 마지막 남은 갭이었음(TODO.md P1 재확인으로 발견).
 - `app/hq/[section]/page.tsx`를 client 컴포넌트로 전환, 기존 `/hq`·`/hq/erp`와 동일 패턴(초기 렌더는 `ERP_SNAPSHOT`으로 즉시 표시 → `/api/hq/erp` 응답으로 무깜빡임 갱신)으로 가맹점(본점 실적)·물류(발주 추천) 섹션의 수치를 라이브 연결. `STORES`/`AI_STAFF`/`HQ_MENU`(매장 로스터·AI 조직도)는 ERP 산출물이 아니므로 정적 유지(과잉수정 방지).

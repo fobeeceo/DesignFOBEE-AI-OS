@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin, AdminAuthError } from "@/lib/auth/requireAdmin";
+import { AdminAuthError } from "@/lib/auth/requireAdmin";
+import { requireServiceOrAdmin } from "@/lib/auth/requireServiceOrAdmin";
 import { analyzeDesignTrends, DesignTrendError, type CompetitorInput } from "@/agents/designTrendAgent";
 
 const OUR_SUMMARY =
@@ -10,11 +11,12 @@ const OUR_SUMMARY =
 /**
  * POST /api/hq/design-trends
  * body: { competitors: [{ name, url }] }
- * AI 웹디자인 트렌드 전략가 — 경쟁사 홈페이지 fetch+Gemini 분석. 관리자 전용(Gemini 호출 = 비용 발생 → 인증 필수).
+ * AI 웹디자인 트렌드 전략가 — 경쟁사 홈페이지 fetch+Gemini 분석. 관리자 세션 또는 n8n 서비스 토큰 인증
+ * 필요(Gemini 호출 = 비용 발생).
  */
 export async function POST(req: NextRequest) {
   try {
-    await requireAdmin();
+    await requireServiceOrAdmin(req);
 
     const body = await req.json().catch(() => ({}));
     const competitors: CompetitorInput[] = Array.isArray(body?.competitors) ? body.competitors : [];
