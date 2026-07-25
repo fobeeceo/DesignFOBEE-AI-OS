@@ -4,6 +4,14 @@
 
 ## [Unreleased]
 
+### 디저트 판매가 → 홈 메뉴 화면 연결 (TODO.md P1, 2026-07-25)
+- **배경**: TODO.md P1에 미완료로 남아있던 "디저트 판매가 → 홈 메뉴 화면 연결" — `/hq/erp`(내부 ERP 대시보드)에는 디저트 원가·판매가가 이미 라이브 연결돼 있었으나, 공개 홈페이지에는 메뉴 화면 자체가 없었음(Explore 조사로 확인: `components/home/GBrickSection.tsx`는 브랜드 소개 문구뿐, 메뉴 목록·가격 없음, `/menu` 라우트 없음).
+- `lib/menu/dessertMenu.ts` 신설: SSOT는 `content-automation-agent/output/dessert_menu.json`(지브릭커피 디저트단가표 Excel 실import, 28종) — 원가·원가율(내부 경영정보)은 제외하고 이름·판매가만 공개용으로 옮겨 적음. 공급사 코드/중량 표기(`JW)`·`EDT`·`110g`·`-N` 등)만 정리, 이름·가격 자체는 원본 그대로(추측·변경 없음).
+- `components/home/MenuSection.tsx` 신설 + `app/page.tsx`에 GBrick 섹션 뒤로 삽입(Hero→Portfolio→Services→About→Process→GBrick→**Menu**→Trust→Contact). 원가/마진 데이터는 공개 노출하지 않음(경쟁사 노출 방지).
+- 데이터 성격상(디저트단가표 개정 시 CEO가 갱신하는 마스터 데이터, ERP 산출물 아님) `STORES`/`AI_STAFF`/`HQ_MENU`와 동일하게 정적 방식 채택(과잉엔지니어링 방지, 2026-07-24 항목과 동일 판단 기준).
+- **검증**: 이 세션 자체 dev 서버(포트 54473)에서 `document.querySelector('#menu')`로 직접 확인 — 28개 항목 전부 이름·가격 정상 렌더(예: 가나슈초코케이크 7,000원 ~ 뉴욕치즈케익 11,800원), opacity:1로 실제 표시 확인. env 없이 `npm run build`/`npm run lint`/`npm run qa` 모두 exit 0(27 라우트 정상 컴파일, 신규 라우트 없음 — 정적 컴포넌트라 `/`에 인라인).
+- **다음 우선순위**: 음료 메뉴(현재 `erp_engine.py` MENU 딕셔너리는 데모 9종뿐, 09_MENU_COST_TABLE SSOT가 12개 버전에 걸쳐 카테고리 평균만 확정되고 개별 63개 라인 전체는 문서 자체가 "재계산 예정"으로 미확정 상태임을 Drive 직접 확인 — 전체 확장 시도 시 추측 위험이 있어 이번 사이클엔 보류, SSOT 문서가 스스로 완결된 후 진행 권장).
+
 ### n8n 자동화 엔진용 서비스 토큰 인증 경로 신설 (2026-07-25)
 - **배경**: `/api/hq/design-trends`·`/api/hq/marketing-copy`·`/api/hq/strategy-analysis`(Gemini 호출, 비용 발생) 3건은 `requireAdmin()`으로 브라우저 관리자 로그인만 허용 — CEO MASTER 업무지시서에서 승인된 n8n 자동화 엔진(Docker Compose 서비스)이 워크플로에서 이 API들을 직접 호출할 방법이 없었음(이전 세션에서 착수했으나 미커밋 상태로 남아있던 작업을 이번 사이클에서 검증·완료).
 - `lib/auth/requireServiceOrAdmin.ts` 신설: `Authorization: Bearer <N8N_SERVICE_TOKEN>` 헤더가 환경변수와 일치하면 서비스 프로필(`service:n8n`)을 반환, 아니면 기존 `requireAdmin()`(브라우저 세션)으로 폴백. `N8N_SERVICE_TOKEN` 미설정 시 서비스 토큰 경로 자체가 비활성화되어 기존 관리자 인증만 동작(무파괴).

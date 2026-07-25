@@ -43,7 +43,8 @@
 - [x] `app/hq/[section]/page.tsx`(가맹점/물류/교육/콘텐츠/직원/설정)도 `/api/hq/erp` 라이브 연결(2026-07-24). STORES/AI_STAFF/HQ_MENU(조직 로스터)는 ERP 데이터가 아니라 정적 유지.
 - [ ] 타 매장 POS 엑셀 → 전국 집계.
 - [ ] Media 실업로드: YouTube OAuth (자격증명 대기).
-- [ ] 디저트 판매가 → 홈 메뉴 화면 연결.
+- [x] **디저트 판매가 → 홈 메뉴 화면 연결**(2026-07-25): `components/home/MenuSection.tsx` + `lib/menu/dessertMenu.ts` 신설, `/`(홈페이지)에 GBrick 섹션 뒤로 삽입. SSOT: `dessert_menu.json`(28종), 원가/원가율은 비공개.
+- [ ] 음료 메뉴 원가(`erp_engine.py` MENU) 데모 9종 → 63개 전체 확장: Drive `09_MENU_COST_TABLE`이 v1.12 기준으로도 "개별 63개 라인 전체 재계산 예정" 상태(문서 자체가 미확정)라 확정 SSOT 없이는 보류.
 
 ## P2 — 확장 (Scale)
 - [ ] Franchise 포털(가맹점 로그인).
