@@ -2,11 +2,11 @@
 
 # Audit Report
 
-생성: 2026-07-23T23:52:09.742Z
+생성: 2026-07-25T06:48:43.484Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
-- 스캔: 33개 컴포넌트
+- 스캔: 34개 컴포넌트
 - 미사용(어디서도 import 안 됨): 0건
 - ⚠️ §6 규정: 삭제는 CEO 승인 후에만 수행.
 
@@ -17,7 +17,7 @@
     - components/design/CompareSlider.tsx
 
 ## 3. Unused Import
-- 스캔: 70개 파일
+- 스캔: 71개 파일
 - 이슈: 0건
 
 ## 4. Broken Route (nav 컴포넌트)
@@ -33,27 +33,20 @@
 - npm audit(production): critical 0, high 2, moderate 0, low 0
 
 ## 7. Environment Variable
-- 코드에서 참조: 10개
-- .env.example 선언: 9개
+- 코드에서 참조: 11개
+- .env.example 선언: 11개
 - .env.example 누락(코드는 참조하나 예제엔 없음): 0건
-- .env.example 미사용(예제엔 있으나 코드가 참조 안 함): 0건
+- .env.example 미사용(예제엔 있으나 코드가 참조 안 함): 1건
+  - N8N_API_KEY
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: 43de672f9c950d891ea4faebc93dd7ad995e16ec feat(assets): 이미지 SSOT 파이프라인(sync-images.js) + API 키 관리 감사
-- 미커밋 변경: 12건
+- 최근 커밋: c17803086b8728a542cf6748efc51e1de1cab61f feat(home): 디저트 메뉴 섹션을 홈페이지에 연결
+- 미커밋 변경: 4건
 
 ```
-M AI-HQ-MASTER.md
- M AI-STAFF-POLICY.md
- M DOCUMENT-INDEX.md
- M audit-report.md
- M lib/hq/erpSnapshot.ts
- M package.json
-?? agents/ceoStrategyAgent.ts
-?? agents/marketerAgent.ts
-?? app/api/hq/marketing-copy/
-?? app/api/hq/strategy-analysis/
-?? docs-sync-report.json
-?? scripts/check-docs-sync.js
+M .env.example
+ M DECISION-LOG.md
+ M INSTALL.md
+ M TODO.md
 ```

@@ -85,6 +85,13 @@
 - **검증**: 둘 다 실제 데이터로 종단 테스트(더미 아님) — 웹디자인전략가는 스타벅스코리아 실사이트, 메뉴전략가는 실 POS(2026-07-01~20).
 - **문서**: Notion AI Prompt Library에 역할 카드 2건 등록(select 옵션 신규 추가), [AI-HQ-MASTER.md](AI-HQ-MASTER.md) 직원표 갱신.
 
+## 2026-07-25 — n8n 아침 브리핑 워크플로: 자동화 범위를 "워크플로 구축"까지로 한정, "구글 계정 인증"은 CEO 액션으로 분리
+- **배경**: CEO가 "아침에 이메일 확인·오늘 일정 확인·중요한 거 체크"를 자동화해달라고 요청. 세션 내 Gmail·Calendar MCP를 먼저 시도했으나 두 커넥터 모두 미인증(OAuth) 상태로 즉시 조회 불가.
+- **검토한 대안**: ①n8n 워크플로를 credential 없이 미리 만들어두고 CEO 인증만 남긴다 ②CEO 인증 전까지 아무것도 만들지 않고 대기한다 ③이 세션(Claude Code)의 Gmail/Calendar MCP만 연결해 n8n 없이 요청 시점에만 조회한다.
+- **결정**: ①. 이유: Gmail/Calendar OAuth는 CEO 본인 구글 계정 인증이 필요해 Claude Code가 대신할 수 없는 영역(외부서비스가입과 유사한 성격)이지만, 워크플로 뼈대(스케줄 트리거·노드 배치·요약 로직)는 credential 없이도 100% 구축 가능 — 인증 즉시 활성화만 하면 되도록 선작업.
+- **구현**: n8n workflow `AI HQ - 아침 브리핑`(id `toB3sf8BJpWaJNIl`) — 매일 08:30(Asia/Seoul) Schedule Trigger → Gmail(`is:important newer_than:1d`) + Google Calendar(오늘 범위) 병렬 조회 → Code 노드로 텍스트 요약 조합 → 발송 채널은 NoOp placeholder(Telegram 봇 생성 후 교체 예정). n8n API 키를 재발급해 `.env.local`에 저장(이전 키는 원문이 세션 로그에만 노출되고 안전하게 저장되지 않아 폐기, 새 키는 즉시 파일로만 기록하고 채팅에 출력하지 않음).
+- **정직한 기록**: 완전 자동화가 아니다 — CEO가 n8n UI에서 Gmail·Calendar OAuth2 credential을 직접 연결하고 Active 토글을 켜야 실제로 동작한다. 절차는 [INSTALL.md](INSTALL.md) §9.
+
 ## 2026-07-22 — AI-HQ-SYSTEM-RULES.md 별도 생성 안 함
 - **결정**: MASTER INITIALIZATION이 요청한 `AI-HQ-SYSTEM-RULES.md`를 별도 파일로 만들지 않음.
 - **근거**: [CLAUDE.md](CLAUDE.md)가 이미 QA/Audit/Docs/Git/Deploy/Dev/Media 규칙 전부를 포함하는 "AI Headquarters Constitution & Operating Manual" — 거의 동일한 목적의 문서를 새로 만들면 [DOCUMENT-STANDARD.md](DOCUMENT-STANDARD.md) §3(중복보다 정본 지정)를 스스로 위반. CLAUDE.md를 정본으로 지정.

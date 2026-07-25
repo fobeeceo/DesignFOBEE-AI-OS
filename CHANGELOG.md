@@ -4,6 +4,12 @@
 
 ## [Unreleased]
 
+### n8n 아침 브리핑 워크플로 신설 (이메일+일정, 2026-07-25)
+- **배경**: CEO 요청 — "아침에 이메일 확인·오늘 일정 확인·중요한 것 체크"를 자동화. 세션 내 Gmail·Calendar MCP는 미인증 상태로 즉시 조회 불가 확인.
+- n8n에 워크플로 `AI HQ - 아침 브리핑`(id `toB3sf8BJpWaJNIl`) 신설: 매일 08:30(Asia/Seoul) → Gmail 중요메일 조회 + Google Calendar 오늘 일정 조회(병렬) → 텍스트 요약 조합 → 발송 채널(현재 NoOp placeholder, Telegram 봇 생성 후 교체 예정).
+- n8n API 키 재발급 후 `.env.local`에만 저장(채팅 미노출), `.env.example`에 `N8N_API_KEY` 항목 추가.
+- **정직한 범위 고지**: 워크플로는 credential 미연결로 현재 inactive. Gmail·Google Calendar OAuth2 연결은 CEO 본인 구글 계정 인증이 필요해 자동화 불가 — 절차는 [INSTALL.md](INSTALL.md) §9. 상세 근거는 [DECISION-LOG.md](DECISION-LOG.md) 2026-07-25 항목.
+
 ### 디저트 판매가 → 홈 메뉴 화면 연결 (TODO.md P1, 2026-07-25)
 - **배경**: TODO.md P1에 미완료로 남아있던 "디저트 판매가 → 홈 메뉴 화면 연결" — `/hq/erp`(내부 ERP 대시보드)에는 디저트 원가·판매가가 이미 라이브 연결돼 있었으나, 공개 홈페이지에는 메뉴 화면 자체가 없었음(Explore 조사로 확인: `components/home/GBrickSection.tsx`는 브랜드 소개 문구뿐, 메뉴 목록·가격 없음, `/menu` 라우트 없음).
 - `lib/menu/dessertMenu.ts` 신설: SSOT는 `content-automation-agent/output/dessert_menu.json`(지브릭커피 디저트단가표 Excel 실import, 28종) — 원가·원가율(내부 경영정보)은 제외하고 이름·판매가만 공개용으로 옮겨 적음. 공급사 코드/중량 표기(`JW)`·`EDT`·`110g`·`-N` 등)만 정리, 이름·가격 자체는 원본 그대로(추측·변경 없음).

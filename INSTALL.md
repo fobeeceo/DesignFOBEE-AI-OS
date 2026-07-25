@@ -85,3 +85,15 @@ npm run sync-images -- --source <스테이징폴더>
 스테이징 폴더는 Drive와 동일한 하위구조를 로컬에 미러링한 것이다. 실행하면 각 이미지를 **WebP 변환·1920px 최적화·400px 썸네일 생성·Gemini Vision 기반 한국어 ALT 자동생성**까지 수행해 `public/images/`에 배치하고 `public/images/manifest.json`에 출처·경로·ALT·동기화일시를 기록한다.
 
 ⚠️ **정직한 범위 고지**: "Drive → 로컬 스테이징 폴더"는 자동화되어 있지 않다. Drive API 서비스 계정 자격증명이 없어(외부서비스가입, CEO 승인 대상) 완전 무인 동기화는 아직 불가능 — 현재는 Claude Code 세션이 Drive MCP로 직접 다운로드해 스테이징 폴더를 채운 뒤 이 스크립트를 실행하는 반자동 방식이다. `npm run sync-images` 자체(WebP/최적화/썸네일/ALT/배치)는 완전 자동화되어 있고 실제 이미지로 종단 검증 완료([DECISION-LOG.md](DECISION-LOG.md) 참조).
+
+## 9. n8n 아침 브리핑(이메일+일정) — CEO 인증 필요 (2026-07-25)
+n8n(`http://localhost:5678`, 오너계정 `ceo@fobee.co.kr`)에 워크플로 **"AI HQ - 아침 브리핑"**(id `toB3sf8BJpWaJNIl`)을 신설했다: 매일 08:30 → Gmail 중요메일 조회 → Google Calendar 오늘 일정 조회 → 요약 생성 → 발송(현재 placeholder). **credential 미연결로 inactive 상태** — 아래는 Claude Code 세션이 대신 할 수 없는, CEO 본인 계정 인증이 필요한 절차다.
+
+1. 브라우저로 `http://localhost:5678` 접속 → 오너 계정 로그인.
+2. 좌측 **Credentials → Add Credential → Gmail OAuth2 API** 선택 → "Connect my account"로 구글 로그인(대표님 계정) → 저장.
+3. 같은 방식으로 **Google Calendar OAuth2 API** credential도 추가.
+4. 워크플로 **"AI HQ - 아침 브리핑"**을 열어 `중요 이메일 조회`·`오늘 일정 조회` 두 노드에 각각 방금 만든 credential을 지정(노드 클릭 → Credential 드롭다운에서 선택) → 저장.
+5. 마지막 노드 `발송 채널`은 아직 placeholder(NoOp)다 — Telegram Bot(§6-Telegram, 아직 미작성) 또는 원하는 채널이 정해지면 해당 노드로 교체 필요.
+6. 우측 상단 토글로 워크플로를 **Active**로 전환하면 매일 08:30(Asia/Seoul)에 자동 실행된다.
+
+이 세션에서 즉시 조회하고 싶다면(자동화 아님, 그때그때 요청 시): `claude mcp`(또는 인터랙티브 세션의 `/mcp`)로 Gmail·Google Calendar 커넥터를 이 Claude Code 세션에 인증하면, 다음 대화부터 요청 시 바로 오늘 일정·안읽은 중요메일을 조회해 보고할 수 있다.
