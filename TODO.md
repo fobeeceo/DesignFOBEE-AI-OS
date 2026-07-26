@@ -9,6 +9,7 @@
 - [ ] **이메일 실발송 자동화**: 현재 Gmail 연동은 초안(draft) 생성까지만 가능, 실제 발송 기능 없음 — CEO 다이제스트를 완전자동 발송하려면 별도 자격증명/도구가 필요(외부서비스가입 소지).
 - [ ] **카카오톡 채널 연동**: CEO가 요청한 두 번째 채널(카카오톡 요약발송)은 현재 연동된 도구가 없음 — 카카오 비즈니스 API 등 외부서비스가입 필요.
 - [ ] **n8n 아침 브리핑 활성화**(2026-07-25 신설): n8n에 워크플로("AI HQ - 아침 브리핑", id `toB3sf8BJpWaJNIl`)까지는 만들었으나 Gmail·Google Calendar OAuth2 credential은 CEO 본인 구글 계정 인증이 필요해 Claude Code가 대신할 수 없음 — 절차는 [INSTALL.md](INSTALL.md) §9 참조(외부서비스가입 소지). 완료 전까지 워크플로는 inactive.
+- [ ] **n8n 메뉴전략 승인 워크플로 활성화**(2026-07-25 신설): 워크플로("AI HQ - 메뉴전략 승인(Telegram+Notion)", id `lgLgyt0lw5Q78Kgc`)와 Notion "AI 제안함" DB까지는 완성. Telegram Bot(§10)·Notion Internal Integration(§11) 두 credential은 CEO 본인 계정 작업이 필요 — 절차는 [INSTALL.md](INSTALL.md) §10·§11 참조. 완료 전까지 워크플로는 inactive.
 
 ## 완료 (2026-07-26)
 - [x] **`next.config.ts`/`next.config.mjs` 중복 config 파일 정리**: 두 파일이 내용 동일하게 공존 — 실제로는 **Next.js 14.2.35가 `.ts` config를 지원하지 않아**(`next build`가 즉시 에러) `next.config.mjs`만 항상 유효했고 `.ts`는 사용된 적 없는 완전한 Dead Code였음(직접 재현 확인: `.mjs` 삭제 시 `next build`가 "Configuring Next.js via 'next.config.ts' is not supported" 에러로 즉시 실패). Dead `.ts` 삭제, `.mjs` 유지. `npm run build`/`lint` exit 0 재확인.

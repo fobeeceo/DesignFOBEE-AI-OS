@@ -2,7 +2,7 @@
 
 # Audit Report
 
-생성: 2026-07-25T06:48:43.484Z
+생성: 2026-07-26T11:36:55.899Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
@@ -41,11 +41,11 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: c17803086b8728a542cf6748efc51e1de1cab61f feat(home): 디저트 메뉴 섹션을 홈페이지에 연결
+- 최근 커밋: 9ff6fe4d496575c3ce0474483e9af22472c8492b chore(hq): dead next.config.ts 정리 + PROJECT 8 최종결론
 - 미커밋 변경: 4건
 
 ```
-M .env.example
+M CHANGELOG.md
  M DECISION-LOG.md
  M INSTALL.md
  M TODO.md

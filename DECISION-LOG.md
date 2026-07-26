@@ -92,6 +92,15 @@
 - **구현**: n8n workflow `AI HQ - 아침 브리핑`(id `toB3sf8BJpWaJNIl`) — 매일 08:30(Asia/Seoul) Schedule Trigger → Gmail(`is:important newer_than:1d`) + Google Calendar(오늘 범위) 병렬 조회 → Code 노드로 텍스트 요약 조합 → 발송 채널은 NoOp placeholder(Telegram 봇 생성 후 교체 예정). n8n API 키를 재발급해 `.env.local`에 저장(이전 키는 원문이 세션 로그에만 노출되고 안전하게 저장되지 않아 폐기, 새 키는 즉시 파일로만 기록하고 채팅에 출력하지 않음).
 - **정직한 기록**: 완전 자동화가 아니다 — CEO가 n8n UI에서 Gmail·Calendar OAuth2 credential을 직접 연결하고 Active 토글을 켜야 실제로 동작한다. 절차는 [INSTALL.md](INSTALL.md) §9.
 
+## 2026-07-25 — 메뉴전략 승인 워크플로: Notion "AI 제안함"을 승인 상태의 SSOT로, Telegram은 알림/입력 채널로 분리
+- **배경**: CEO 지시 "매일 아침 → n8n 트리거 → AI 메뉴전략가 API 호출 → Telegram 승인/반려 버튼 → 콜백을 n8n이 받아 Notion에 기록"을 실제로 구현.
+- **검토한 대안**: ①승인 상태를 Telegram 메시지 자체(수정된 텍스트)로만 관리 ②승인 상태를 Notion DB에 페이지로 기록하고 Telegram은 알림+버튼 UI 역할만 담당 ③둘 다 구현하지 않고 Notion에만 수동 기록.
+- **결정**: ②. Telegram 메시지는 상태를 "조회"할 수 있는 이력이 아니라 "알리는" 매체로 한정하고, 조직 전체가 참조하는 승인 큐(SSOT)는 항상 Notion에 두는 것이 CLAUDE.md §3(SSOT 원칙)과 일치. Notion 페이지 ID를 Telegram 인라인 버튼의 `callback_data`에 실어(`approve:<pageId>`) 콜백 처리 시 정확한 레코드를 갱신하도록 연결.
+- **구현**: Notion DB "AI 제안함"(제안/제안자/상태/요약/제안일시/처리일시/처리채널/원본데이터 스키마) 신설 → n8n 워크플로 `AI HQ - 메뉴전략 승인(Telegram+Notion)`(id `lgLgyt0lw5Q78Kgc`) 2-트리거 구조: (A) 매일 08:00 스케줄 → ERP API(`/api/hq/erp`, 이미 만든 서비스 토큰 Header Auth 재사용) → 요약 생성 → Notion 대기 등록 → Telegram 발송. (B) Telegram 콜백 수신 트리거 → 콜백 파싱 → Notion 상태 갱신.
+- **재사용**: n8n Header Auth credential을 이미 있는 `N8N_SERVICE_TOKEN`으로 API를 통해 미리 생성해둬서(`1mbnZGqyNCGxIFtC`) CEO가 이 부분은 추가로 할 일이 없다 — Gmail/Calendar/Telegram/Notion처럼 "CEO 본인 계정이 필요한 외부서비스"가 아니라 우리 자체 API 인증이기 때문에 Claude Code가 대신 처리 가능했던 경우.
+- **정직한 기록**: Telegram Bot·Notion Integration Token 두 credential은 CEO 본인 계정이 있어야 발급 가능해 여전히 미연결(inactive) — 절차는 [INSTALL.md](INSTALL.md) §10(Telegram) 및 아래 Notion 안내 참조.
+- **Notion 연동 안내(추가 필요)**: n8n의 Notion 노드가 동작하려면 notion.so/my-integrations에서 내부 통합(Internal Integration) 생성 → 토큰 발급 → "AI 제안함" 데이터베이스에 그 통합 공유(Share) → n8n Credentials에 Notion API로 등록. 이 과정도 CEO 본인 Notion 계정 작업이라 Claude Code가 대신할 수 없음.
+
 ## 2026-07-22 — AI-HQ-SYSTEM-RULES.md 별도 생성 안 함
 - **결정**: MASTER INITIALIZATION이 요청한 `AI-HQ-SYSTEM-RULES.md`를 별도 파일로 만들지 않음.
 - **근거**: [CLAUDE.md](CLAUDE.md)가 이미 QA/Audit/Docs/Git/Deploy/Dev/Media 규칙 전부를 포함하는 "AI Headquarters Constitution & Operating Manual" — 거의 동일한 목적의 문서를 새로 만들면 [DOCUMENT-STANDARD.md](DOCUMENT-STANDARD.md) §3(중복보다 정본 지정)를 스스로 위반. CLAUDE.md를 정본으로 지정.

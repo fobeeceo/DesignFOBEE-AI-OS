@@ -97,3 +97,28 @@ n8n(`http://localhost:5678`, 오너계정 `ceo@fobee.co.kr`)에 워크플로 **"
 6. 우측 상단 토글로 워크플로를 **Active**로 전환하면 매일 08:30(Asia/Seoul)에 자동 실행된다.
 
 이 세션에서 즉시 조회하고 싶다면(자동화 아님, 그때그때 요청 시): `claude mcp`(또는 인터랙티브 세션의 `/mcp`)로 Gmail·Google Calendar 커넥터를 이 Claude Code 세션에 인증하면, 다음 대화부터 요청 시 바로 오늘 일정·안읽은 중요메일을 조회해 보고할 수 있다.
+
+## 10. Telegram 봇 생성 (CEO 전용 수동 절차, 승인/반려 워크플로용)
+n8n 워크플로가 "승인/반려 버튼이 있는 메시지"를 보내려면 Telegram Bot이 필요하다. 이건 대표님 텔레그램 계정으로만 만들 수 있어 Claude Code가 대신할 수 없다.
+
+1. 텔레그램 앱에서 **@BotFather** 검색 → 대화 시작.
+2. `/newbot` 입력 → 봇 이름(예: `GBRICK AI HQ`) → 봇 사용자명(예: `gbrick_ai_hq_bot`, 반드시 `bot`으로 끝나야 함) 입력.
+3. BotFather가 발급하는 **API Token**(`123456789:AAxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx` 형식) 복사 — 이 토큰이 있으면 누구나 봇을 조작할 수 있으니 채팅/커밋에 붙여넣지 말 것.
+4. 텔레그램에서 방금 만든 봇을 검색해 `/start`로 대화 시작(봇이 메시지를 보내려면 먼저 사용자가 대화를 시작해야 함).
+5. 대표님의 **chat_id** 확인: 봇과 대화 후 브라우저로 `https://api.telegram.org/bot<토큰>/getUpdates` 접속 → `"chat":{"id":...}` 값 확인.
+6. n8n → Credentials → Add Credential → **Telegram API** → 위 토큰 입력 → 저장.
+7. 발급받은 토큰과 chat_id는 채팅으로 전달하지 말고, `.env.local`에 `TELEGRAM_BOT_TOKEN`·`TELEGRAM_CHAT_ID`로 직접 입력하거나 n8n Credential 화면에 직접 입력.
+
+완료되면 §9(아침 브리핑)의 `발송 채널` 노드와, 메뉴전략 승인 워크플로(DECISION-LOG 2026-07-25 참조)의 Telegram 노드에 이 credential을 연결하면 된다.
+
+## 11. Notion 연동 (n8n → "AI 제안함" DB 기록용, CEO 전용 수동 절차)
+n8n 워크플로 **"AI HQ - 메뉴전략 승인(Telegram+Notion)"**(id `lgLgyt0lw5Q78Kgc`)이 승인/반려 결과를 Notion "AI 제안함" DB(https://app.notion.com/p/5211427b8727446cafa447b56d2e3da7)에 기록하려면, n8n 자체의 Notion API 연동이 필요하다(Claude Code가 쓰는 Notion MCP와는 별개 — n8n은 자기만의 통합 토큰이 있어야 함).
+
+1. 브라우저로 https://www.notion.so/my-integrations 접속(대표님 Notion 계정으로 로그인).
+2. **+ New integration** → 이름(예: `n8n AI HQ`) → 워크스페이스 선택 → 생성.
+3. 발급된 **Internal Integration Token**(`ntn_...` 형식) 복사 — 채팅/커밋에 붙여넣지 말 것.
+4. Notion에서 "AI 제안함" DB 페이지 열기 → 우측 상단 `···` → **연결 추가(Add connections)** → 방금 만든 통합 선택(이 단계를 빼먹으면 통합 토큰이 있어도 이 DB는 못 씀).
+5. n8n → Credentials → Add Credential → **Notion API** → 토큰 입력 → 저장.
+6. 워크플로의 `Notion에 대기 등록`·`Notion 상태 갱신` 두 노드에 이 credential을 지정 → 저장.
+
+§10(Telegram)·§11(Notion) 두 credential과 §9(Gmail/Calendar)까지 모두 연결되면, "AI HQ - 메뉴전략 승인" 워크플로를 Active로 전환해 실제 자동 승인 루프가 동작한다.

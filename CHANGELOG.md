@@ -12,6 +12,13 @@
 - **검증**: env 없이 `npm run build` exit 0(27 라우트, 회귀 없음), `npm run lint` clean.
 - **다음 우선순위**: (1) `output: standalone`을 별도 포트/태그의 격리 Docker 이미지로 Prisma 동작까지 검증 후 Dockerfile 교체. (2) 타 매장 POS 업로드 파이프라인(P7 전국 집계, 자격증명/합의 필요, 불변). (3) 음료 메뉴 원가 63종 확장(Drive SSOT 미확정으로 계속 보류).
 
+### n8n 메뉴전략 승인 워크플로 + Notion "AI 제안함" 신설 (2026-07-25)
+- **배경**: CEO 지시 — "매일 아침 → n8n → AI 메뉴전략가 API → Telegram 승인/반려 버튼 → 콜백을 n8n이 받아 Notion에 기록".
+- Notion DB `AI 제안함` 신설(제안/제안자/상태/요약/제안일시/처리일시/처리채널/원본데이터).
+- n8n 워크플로 `AI HQ - 메뉴전략 승인(Telegram+Notion)`(id `lgLgyt0lw5Q78Kgc`) 신설: 매일 08:00 → ERP 메뉴전략 API 조회 → Notion에 대기 상태로 등록 → Telegram 승인/반려 버튼 발송(트리거 A) / Telegram 콜백 수신 → Notion 상태 갱신(트리거 B).
+- n8n Header Auth credential을 기존 `N8N_SERVICE_TOKEN`으로 API를 통해 자동 생성(CEO 액션 불필요).
+- **정직한 범위 고지**: Telegram Bot·Notion Internal Integration 두 credential은 CEO 본인 계정 인증이 필요해 미연결 — 워크플로는 inactive. 절차는 [INSTALL.md](INSTALL.md) §10·§11. 상세 근거는 [DECISION-LOG.md](DECISION-LOG.md) 2026-07-25 항목.
+
 ### n8n 아침 브리핑 워크플로 신설 (이메일+일정, 2026-07-25)
 - **배경**: CEO 요청 — "아침에 이메일 확인·오늘 일정 확인·중요한 것 체크"를 자동화. 세션 내 Gmail·Calendar MCP는 미인증 상태로 즉시 조회 불가 확인.
 - n8n에 워크플로 `AI HQ - 아침 브리핑`(id `toB3sf8BJpWaJNIl`) 신설: 매일 08:30(Asia/Seoul) → Gmail 중요메일 조회 + Google Calendar 오늘 일정 조회(병렬) → 텍스트 요약 조합 → 발송 채널(현재 NoOp placeholder, Telegram 봇 생성 후 교체 예정).
