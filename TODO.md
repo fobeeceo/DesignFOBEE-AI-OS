@@ -10,6 +10,10 @@
 - [ ] **카카오톡 채널 연동**: CEO가 요청한 두 번째 채널(카카오톡 요약발송)은 현재 연동된 도구가 없음 — 카카오 비즈니스 API 등 외부서비스가입 필요.
 - [ ] **n8n 아침 브리핑 활성화**(2026-07-25 신설): n8n에 워크플로("AI HQ - 아침 브리핑", id `toB3sf8BJpWaJNIl`)까지는 만들었으나 Gmail·Google Calendar OAuth2 credential은 CEO 본인 구글 계정 인증이 필요해 Claude Code가 대신할 수 없음 — 절차는 [INSTALL.md](INSTALL.md) §9 참조(외부서비스가입 소지). 완료 전까지 워크플로는 inactive.
 
+## 완료 (2026-07-26)
+- [x] **`next.config.ts`/`next.config.mjs` 중복 config 파일 정리**: 두 파일이 내용 동일하게 공존 — 실제로는 **Next.js 14.2.35가 `.ts` config를 지원하지 않아**(`next build`가 즉시 에러) `next.config.mjs`만 항상 유효했고 `.ts`는 사용된 적 없는 완전한 Dead Code였음(직접 재현 확인: `.mjs` 삭제 시 `next build`가 "Configuring Next.js via 'next.config.ts' is not supported" 에러로 즉시 실패). Dead `.ts` 삭제, `.mjs` 유지. `npm run build`/`lint` exit 0 재확인.
+- [x] **PROJECT 8(본사 전용 뷰) 최종 결론**: 2026-07-22·23·24 세 사이클 연속 "요구사항 미구체화"로 보류돼온 항목 — 이번 사이클에 재검토 없이 또 보류하는 대신 CTO 판단으로 확정. `/hq`(CEO Dashboard)가 매출·원가·재고·발주·판매순위를 본점(본사) 관점에서 통합해 이미 이 역할을 수행 중이며, 가맹점 개별 뷰(`/hq/[section]` franchise 섹션)와 명확히 분리돼 있음 — **별도 "PROJECT 8" 전용 화면 신설은 불필요로 결론**. CEO가 이후 다른 구체적 요구사항(예: 전 매장 통합 집계 뷰)을 명시하면 그것은 P7 전국집계(TODO P1, 타 매장 POS 데이터 대기 중) 항목으로 이어서 처리.
+
 ## 완료 (2026-07-22)
 - [x] **Dead Code 7건 삭제**: `components/{Header,Footer,Hero,Faq,HowItWorks,StyleGallery,StyleCards}.tsx` — CEO-CHARTER §16-B③ 승인 조건 충족(참조 재확인→삭제→build exit 0) 확인 후 실행·커밋.
 - [x] **문서 체계 정리**: PROJECT-INDEX.md·DOCUMENT-INDEX.md 신설(60개 문서 전수조사). 중복 2건 확인(AI_ORGANIZATION_MASTER.md·BACKLOG.md, docs/master가 정본). docs/는 Git 미추적이라 삭제하지 않음(색인으로 정본만 표시).
@@ -23,7 +27,7 @@
 - [x] `AI-HQ/docker-compose.yml` + `Dockerfile`(web)·`content-automation-agent/Dockerfile`(erp) — 빌드·기동·HTTP 200 실증.
 - [x] `.dockerignore`·`requirements.txt` 추가.
 - [x] INSTALL.md·AI-HQ-ARCHITECTURE.md 신설.
-- [ ] `output: standalone` 전환 검토(이미지 경량화, 승인 불요·자율진행 가능).
+- [ ] `output: standalone` 전환 검토(이미지 경량화, 승인 불요·자율진행 가능) — 2026-07-26 시도: `next.config.mjs`에 플래그만 추가 시 `npm run build`는 통과하나, `Dockerfile` runner 단계가 여전히 `npm start`(풀 `node_modules` 복사)라 실질적 이미지 경량화 효과 없음. 완전 전환에는 Dockerfile을 `node server.js`(standalone 산출물)로 교체해야 하는데, 이 프로젝트가 Prisma를 쓰고 있어 standalone 출력에 Prisma 쿼리 엔진 바이너리가 자동 포함되는지 별도 검증이 필요함(알려진 Next+Prisma 함정) — 현재 `ai-hq-web-1` 컨테이너가 n8n 자동화와 연동돼 18시간+ 운영 중이라, 검증 없이 교체하면 운영 중단 위험(§8 검증규칙: 확인 못한 것 완료 보고 금지). 이번 사이클엔 미적용 원복, 다음 사이클에 격리된 테스트 이미지(다른 포트/태그)로 Prisma 동작까지 확인 후 진행 권장.
 
 ## 자율 진행 중 (승인 불요, QA/Audit로 검증된 실제 항목)
 - [x] QA 확장 시스템(`npm run qa:extended`) — a11y/SEO/링크/이미지/성능 실검증 완료.

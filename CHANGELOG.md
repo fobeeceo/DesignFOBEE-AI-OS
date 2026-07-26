@@ -4,6 +4,14 @@
 
 ## [Unreleased]
 
+### 자율 사이클: Dead config 정리 + PROJECT 8 최종결론 + standalone 검토 (2026-07-26)
+- **배경**: 스케줄 작업 지시 우선순위 1(`/api/hq/erp` 라이브 연결)·2(디저트 정밀원가)는 이전 사이클(2026-07-22~25)에 이미 완료·검증돼 있음을 CHANGELOG/TODO 재확인으로 확정(재작업 없음, 중복 방지). 우선순위 3(PROJECT 7/8)도 가맹점 뷰(P7)는 기완료 — 본사 뷰(P8)만 3사이클 연속 "요구사항 미구체화"로 보류 중이었음.
+- **`next.config.ts`/`.mjs` 중복 제거**: 두 파일이 내용 동일하게 공존해왔는데, **Next.js 14.2.35는 `.ts` config를 지원하지 않음**을 직접 재현 확인(`.mjs` 임시 삭제 → `next build`가 "Configuring Next.js via 'next.config.ts' is not supported" 즉시 에러) — `.ts`는 처음부터 사용된 적 없는 Dead Code였고 `.mjs`만 항상 유효했음. Dead `.ts` 삭제(CEO-CHARTER §16-A Dead Code 자율삭제 승인 범위).
+- **PROJECT 8(본사 전용 뷰) 최종 결론**: 재보류 대신 CTO 판단으로 확정 — `/hq`(CEO Dashboard)가 매출·원가·재고·발주 통합을 본사 관점에서 이미 수행 중이며 가맹점 뷰(`/hq/[section]`)와 분리돼 있어 별도 화면 불필요로 결론(TODO.md 기록).
+- **`output: standalone` 시도 후 원복**: 이미지 경량화 목적으로 플래그 추가·`npm run build` 통과까지 확인했으나, 완전한 효과를 내려면 `Dockerfile` runner 단계를 `node server.js`로 바꿔야 하고 이 프로젝트는 Prisma를 쓰고 있어 standalone 트레이싱에 쿼리 엔진 바이너리가 자동 포함되는지 검증이 필요함(알려진 Next+Prisma 함정). 현재 `ai-hq-web-1` 컨테이너가 n8n 자동화와 연동돼 18시간+ 운영 중인 상태에서 미검증 변경은 §8 검증규칙 위반 소지 — 이번 사이클엔 원복, 격리된 테스트 이미지로 재시도 예정(TODO.md 기록).
+- **검증**: env 없이 `npm run build` exit 0(27 라우트, 회귀 없음), `npm run lint` clean.
+- **다음 우선순위**: (1) `output: standalone`을 별도 포트/태그의 격리 Docker 이미지로 Prisma 동작까지 검증 후 Dockerfile 교체. (2) 타 매장 POS 업로드 파이프라인(P7 전국 집계, 자격증명/합의 필요, 불변). (3) 음료 메뉴 원가 63종 확장(Drive SSOT 미확정으로 계속 보류).
+
 ### n8n 아침 브리핑 워크플로 신설 (이메일+일정, 2026-07-25)
 - **배경**: CEO 요청 — "아침에 이메일 확인·오늘 일정 확인·중요한 것 체크"를 자동화. 세션 내 Gmail·Calendar MCP는 미인증 상태로 즉시 조회 불가 확인.
 - n8n에 워크플로 `AI HQ - 아침 브리핑`(id `toB3sf8BJpWaJNIl`) 신설: 매일 08:30(Asia/Seoul) → Gmail 중요메일 조회 + Google Calendar 오늘 일정 조회(병렬) → 텍스트 요약 조합 → 발송 채널(현재 NoOp placeholder, Telegram 봇 생성 후 교체 예정).
