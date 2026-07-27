@@ -4,6 +4,13 @@
 
 ## [Unreleased]
 
+### 실행 권한 원칙 개정: 홈페이지 UI/콘텐츠 AI 자동구현 파이프라인 신설 (2026-07-27)
+- **배경**: CEO 지시 — "AI 직원은 제안까지만" 원칙(2026-07-23)을 홈페이지 UI/콘텐츠에 한해 "코드+QA/Audit까지 AI, push는 사람"으로 개정.
+- Notion "AI 제안함" DB에 `적용범위`·`구현상태`·`브랜치`·`구현일시` 4개 속성 추가.
+- 예약 작업 `ai-proposal-implementer`(매일 10:00 Asia/Seoul) 신설: 승인된 홈페이지 UI/콘텐츠 제안을 찾아 `app/page.tsx`·`components/home/**` 범위 내에서만 구현 → QA/Audit 통과 시 로컬 브랜치(`ai-proposal/<id>`)에 커밋 → Notion 갱신. **`git push`는 절대 하지 않음**, 대표님이 리뷰 후 직접 push.
+- `AI-STAFF-POLICY.md` §4에 2026-07-27 개정 조항 추가. 상세 근거는 [DECISION-LOG.md](DECISION-LOG.md) 2026-07-27 항목.
+- **정직한 범위 고지**: 아직 이 파이프라인으로 실제 구현된 건이 없다(승인된 홈페이지 제안 자체가 아직 없음) — 다음 승인 건에서 최초 검증 필요. AI 웹디자인전략가의 분석 결과를 이 DB에 자동으로 밀어넣는 경로도 아직 없어 당분간은 수동 등록 필요(TODO.md 기록).
+
 ### `output: standalone` 격리검증 완료 → 운영 Dockerfile 전환 (2026-07-27)
 - **배경**: 2026-07-26 사이클에서 미검증 상태로 보류됐던 항목 — "Prisma 쿼리엔진이 standalone 트레이싱에 자동 포함되는지"를 격리 이미지로 검증 후 Dockerfile 교체하는 작업(TODO.md 다음 우선순위 ①). 세션 재개 시점에 이미 `next.config.mjs`(DOCKER_BUILD=true일 때만 `output:"standalone"` — Vercel 빌드엔 영향 없음)·`Dockerfile`(조건부 standalone runner)·`Dockerfile.standalone-test`(격리 검증용, 별도 이미지/컨테이너)가 미커밋 상태로 작업 중이었음을 확인, 이어서 검증 완료.
 - **격리검증 3단계로 확인**(운영 컨테이너 `ai-hq-web-1` 미접촉 상태에서):

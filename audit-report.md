@@ -2,7 +2,7 @@
 
 # Audit Report
 
-생성: 2026-07-26T11:36:55.899Z
+생성: 2026-07-27T05:14:38.349Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
@@ -41,12 +41,12 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: 9ff6fe4d496575c3ce0474483e9af22472c8492b chore(hq): dead next.config.ts 정리 + PROJECT 8 최종결론
+- 최근 커밋: f14388c340e929a844f81a27d4febb10abf74b10 feat(infra): output:standalone 격리검증 완료, 운영 Dockerfile 전환(1.25GB→401MB)
 - 미커밋 변경: 4건
 
 ```
-M CHANGELOG.md
+M AI-STAFF-POLICY.md
+ M CHANGELOG.md
  M DECISION-LOG.md
- M INSTALL.md
  M TODO.md
 ```

@@ -11,6 +11,9 @@
 - [ ] **n8n 아침 브리핑 활성화**(2026-07-25 신설): n8n에 워크플로("AI HQ - 아침 브리핑", id `toB3sf8BJpWaJNIl`)까지는 만들었으나 Gmail·Google Calendar OAuth2 credential은 CEO 본인 구글 계정 인증이 필요해 Claude Code가 대신할 수 없음 — 절차는 [INSTALL.md](INSTALL.md) §9 참조(외부서비스가입 소지). 완료 전까지 워크플로는 inactive.
 - [ ] **n8n 메뉴전략 승인 워크플로 활성화**(2026-07-25 신설): 워크플로("AI HQ - 메뉴전략 승인(Telegram+Notion)", id `lgLgyt0lw5Q78Kgc`)와 Notion "AI 제안함" DB까지는 완성. Telegram Bot(§10)·Notion Internal Integration(§11) 두 credential은 CEO 본인 계정 작업이 필요 — 절차는 [INSTALL.md](INSTALL.md) §10·§11 참조. 완료 전까지 워크플로는 inactive.
 
+## 자율 진행 가능 (승인 불요, CEO 액션 대기 아님)
+- [ ] **AI 웹디자인전략가 → "AI 제안함" 자동 등록 파이프라인 미구축**(2026-07-27): `ai-proposal-implementer` 예약 작업(매일 10:00)은 Notion "AI 제안함"에 `상태=승인`·`적용범위=홈페이지 UI/콘텐츠`로 등록된 건을 찾아 구현하지만, 지금은 `/api/hq/design-trends`(designTrendAgent.ts) 결과를 그 DB에 자동으로 밀어넣는 경로가 없다 — 당장은 CEO/CTO가 Notion에 수동으로 항목을 만들어 `상태=승인`으로 표시해야 파이프라인이 작동한다. 메뉴전략 워크플로(DECISION-LOG 2026-07-25)와 동일한 패턴(n8n 스케줄→API 호출→Notion 등록→Telegram 승인)으로 자동화 가능, 다음 사이클 후보.
+
 ## 완료 (2026-07-26)
 - [x] **`next.config.ts`/`next.config.mjs` 중복 config 파일 정리**: 두 파일이 내용 동일하게 공존 — 실제로는 **Next.js 14.2.35가 `.ts` config를 지원하지 않아**(`next build`가 즉시 에러) `next.config.mjs`만 항상 유효했고 `.ts`는 사용된 적 없는 완전한 Dead Code였음(직접 재현 확인: `.mjs` 삭제 시 `next build`가 "Configuring Next.js via 'next.config.ts' is not supported" 에러로 즉시 실패). Dead `.ts` 삭제, `.mjs` 유지. `npm run build`/`lint` exit 0 재확인.
 - [x] **PROJECT 8(본사 전용 뷰) 최종 결론**: 2026-07-22·23·24 세 사이클 연속 "요구사항 미구체화"로 보류돼온 항목 — 이번 사이클에 재검토 없이 또 보류하는 대신 CTO 판단으로 확정. `/hq`(CEO Dashboard)가 매출·원가·재고·발주·판매순위를 본점(본사) 관점에서 통합해 이미 이 역할을 수행 중이며, 가맹점 개별 뷰(`/hq/[section]` franchise 섹션)와 명확히 분리돼 있음 — **별도 "PROJECT 8" 전용 화면 신설은 불필요로 결론**. CEO가 이후 다른 구체적 요구사항(예: 전 매장 통합 집계 뷰)을 명시하면 그것은 P7 전국집계(TODO P1, 타 매장 POS 데이터 대기 중) 항목으로 이어서 처리.
