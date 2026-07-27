@@ -1,5 +1,5 @@
 {
-  "syncedAt": "2026-07-27T06:58:22.198Z",
+  "syncedAt": "2026-07-27T10:50:57.423Z",
   "items": {
     "portfolio/website/designfobee-bathroom-tile-01.webp": {
       "source": "PORTFOLIO\\WEBSITE\\designfobee-bathroom-tile-01.jpg",
@@ -63,6 +63,34 @@
       "thumb": "/images/portfolio/website/designfobee-storefront-exterior-01-thumb.webp",
       "alt": "야간에 조명이 켜진 휴대폰 매장 외관.",
       "syncedAt": "2026-07-27T06:58:22.197Z"
+    },
+    "portfolio/website/designfobee-cafe-lounge-02.webp": {
+      "source": "PORTFOLIO\\WEBSITE\\designfobee-cafe-lounge-02.jpg",
+      "webp": "/images/portfolio/website/designfobee-cafe-lounge-02.webp",
+      "thumb": "/images/portfolio/website/designfobee-cafe-lounge-02-thumb.webp",
+      "alt": "원목 테이블과 의자가 놓인 카페 내부 모습.",
+      "syncedAt": "2026-07-27T10:50:37.434Z"
+    },
+    "portfolio/website/designfobee-cafe-lounge-03.webp": {
+      "source": "PORTFOLIO\\WEBSITE\\designfobee-cafe-lounge-03.jpg",
+      "webp": "/images/portfolio/website/designfobee-cafe-lounge-03.webp",
+      "thumb": "/images/portfolio/website/designfobee-cafe-lounge-03-thumb.webp",
+      "alt": "다양한 의자와 목재 테이블이 놓인 실내 공간.",
+      "syncedAt": "2026-07-27T10:50:45.760Z"
+    },
+    "portfolio/website/designfobee-office-02.webp": {
+      "source": "PORTFOLIO\\WEBSITE\\designfobee-office-02.jpg",
+      "webp": "/images/portfolio/website/designfobee-office-02.webp",
+      "thumb": "/images/portfolio/website/designfobee-office-02-thumb.webp",
+      "alt": "책상과 의자가 배치된 사무실 내부 모습.",
+      "syncedAt": "2026-07-27T10:50:50.752Z"
+    },
+    "portfolio/website/designfobee-retail-clothing-01.webp": {
+      "source": "PORTFOLIO\\WEBSITE\\designfobee-retail-clothing-01.jpg",
+      "webp": "/images/portfolio/website/designfobee-retail-clothing-01.webp",
+      "thumb": "/images/portfolio/website/designfobee-retail-clothing-01-thumb.webp",
+      "alt": "옷들이 진열되어 있는 의류 매장 내부 모습.",
+      "syncedAt": "2026-07-27T10:50:57.423Z"
     }
   }
 }

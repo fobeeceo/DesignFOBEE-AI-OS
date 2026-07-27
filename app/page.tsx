@@ -6,15 +6,13 @@ import { ServicesSection } from "@/components/home/ServicesSection";
 import { AboutSection } from "@/components/home/AboutSection";
 import { ProcessSection } from "@/components/home/ProcessSection";
 import { PortfolioSection } from "@/components/home/PortfolioSection";
-import { WorkGallerySection } from "@/components/home/WorkGallerySection";
 import { GBrickSection } from "@/components/home/GBrickSection";
-import { MenuSection } from "@/components/home/MenuSection";
 import { TrustSection } from "@/components/home/TrustSection";
 import { CTASection } from "@/components/home/CTASection";
 
 /**
  * 홈페이지 (STEP 1).
- * 섹션 순서: Hero → Portfolio → Work Gallery → Services → About → Process → GBrick → Menu → Trust → Contact
+ * 섹션 순서: Hero → Portfolio → Services → About → Process → GBrick → Trust → Contact
  */
 export default function HomePage() {
   return (
@@ -23,12 +21,10 @@ export default function HomePage() {
       <main>
         <Hero />
         <Reveal><PortfolioSection /></Reveal>
-        <Reveal><WorkGallerySection /></Reveal>
         <Reveal><ServicesSection /></Reveal>
         <Reveal><AboutSection /></Reveal>
         <Reveal><ProcessSection /></Reveal>
         <Reveal><GBrickSection /></Reveal>
-        <Reveal><MenuSection /></Reveal>
         <Reveal><TrustSection /></Reveal>
         <Reveal><CTASection /></Reveal>
       </main>

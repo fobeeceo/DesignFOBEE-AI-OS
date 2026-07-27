@@ -59,4 +59,24 @@ export const WORK_GALLERY: WorkItem[] = [
     category: "카페 · F&B",
     caption: "갤러리형 카페 공간",
   },
+  {
+    slug: "designfobee-office-02",
+    category: "오피스",
+    caption: "스톤 월과 우드 마감의 오피스",
+  },
+  {
+    slug: "designfobee-retail-clothing-01",
+    category: "리테일 · 브랜드관",
+    caption: "컬러 포인트 의류 매장",
+  },
+  {
+    slug: "designfobee-cafe-lounge-02",
+    category: "카페 · 라운지",
+    caption: "체크 패턴 라운지 좌석",
+  },
+  {
+    slug: "designfobee-cafe-lounge-03",
+    category: "카페 · 라운지",
+    caption: "우드톤 카페 좌석 공간",
+  },
 ];
