@@ -4,6 +4,13 @@
 
 ## [Unreleased]
 
+### 신규 자동구현 파이프라인 첫 사례: 포트폴리오 사진 교체 + 우리 작업 갤러리 + 회사소개 페이지 (2026-07-27)
+- **배경**: CEO가 채팅으로 직접 홈페이지 변경 요청(포트폴리오 사진 라벨 오류 지적, Google Drive 실사진 83장 폴더 제공, 참고 사이트 2곳 제시).
+- 은평본점/단대점 포트폴리오 사진 라벨 오류 수정(CEO 확인 후 파일 내용 교체).
+- Drive 실사진 83장 중 9장 선별 → `sync-images.js`로 WebP 변환+최적화+Gemini ALT 생성 → `WorkGallerySection.tsx` 신설(호버 시 스케일업+오버레이+캡션, `PortfolioSection`에도 동일 shadow-lift 호버 적용).
+- `/about`(회사소개) 페이지 신설 — 새 사실 없이 기존 SSOT(연혁·사업영역·연락처)만 `lib/company/profile.ts`로 통합 재사용.
+- Notion "AI 제안함" → `ai-proposal/3aa3abcb` 브랜치 커밋(QA/Audit 통과, push 안 함) 파이프라인으로 진행한 첫 실전 사례. 상세 근거는 [DECISION-LOG.md](DECISION-LOG.md) 2026-07-27 항목.
+
 ### 실행 권한 원칙 개정: 홈페이지 UI/콘텐츠 AI 자동구현 파이프라인 신설 (2026-07-27)
 - **배경**: CEO 지시 — "AI 직원은 제안까지만" 원칙(2026-07-23)을 홈페이지 UI/콘텐츠에 한해 "코드+QA/Audit까지 AI, push는 사람"으로 개정.
 - Notion "AI 제안함" DB에 `적용범위`·`구현상태`·`브랜치`·`구현일시` 4개 속성 추가.
