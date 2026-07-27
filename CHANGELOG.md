@@ -4,6 +4,16 @@
 
 ## [Unreleased]
 
+### `output: standalone` 격리검증 완료 → 운영 Dockerfile 전환 (2026-07-27)
+- **배경**: 2026-07-26 사이클에서 미검증 상태로 보류됐던 항목 — "Prisma 쿼리엔진이 standalone 트레이싱에 자동 포함되는지"를 격리 이미지로 검증 후 Dockerfile 교체하는 작업(TODO.md 다음 우선순위 ①). 세션 재개 시점에 이미 `next.config.mjs`(DOCKER_BUILD=true일 때만 `output:"standalone"` — Vercel 빌드엔 영향 없음)·`Dockerfile`(조건부 standalone runner)·`Dockerfile.standalone-test`(격리 검증용, 별도 이미지/컨테이너)가 미커밋 상태로 작업 중이었음을 확인, 이어서 검증 완료.
+- **격리검증 3단계로 확인**(운영 컨테이너 `ai-hq-web-1` 미접촉 상태에서):
+  1. 별도 컨테이너(`ai-hq-web-standalone-test`, 포트 3012)에서 `docker exec`로 실제 Prisma 쿼리엔진 로드 테스트 — 가짜 `DATABASE_URL`로 `$queryRaw`를 실행해 "Can't reach database server"(연결거부, 정상) 오류만 발생함을 확인, "엔진을 찾을 수 없음" 오류 없음 → 바이너리(`libquery_engine-debian-openssl-3.0.x.so.node`)가 정상 포함·로드됨을 실증(alpine 아닌 slim 베이스+`openssl` 설치로 해결됨을 Dockerfile 주석대로 재확인).
+  2. 실제 운영 Dockerfile(조건부)을 `docker compose build web`으로 빌드 → **이미지 1.25GB → 401MB(68% 감소)** 확인.
+  3. 새 이미지를 별도 포트(3013)에 실제 `.env.local`(Supabase/DB 자격증명)로 기동 → `/`(200)·`/hq`(로그인 미인증 시 307 리다이렉트, 인증게이트 정상)·`/api/hq/erp`(라이브 데이터 정상) 모두 확인. (중간에 `docker run --env-file`이 따옴표를 값에 그대로 포함시켜 일시적 500을 만든 것을 발견 — `docker compose`의 env_file 파서는 따옴표를 제거하므로 실제 운영 경로엔 해당 없음을 확인, 테스트 방법 오류였음.)
+- **운영 전환**: 검증 통과 후 `docker compose -f AI-HQ/docker-compose.yml up -d web`으로 `ai-hq-web-1`을 새 이미지로 재생성. 재기동 후 `/`·`/hq`·`/api/hq/erp` 즉시 재확인(모두 정상), `ai-hq-n8n-1`(의존 서비스) 계속 정상 가동 확인. 격리 테스트 컨테이너·이미지·`Dockerfile.standalone-test`는 검증 완료 후 삭제.
+- **검증**: env 없이 `npm run build` exit 0(27 라우트, Vercel 경로 영향 없음 — `DOCKER_BUILD` 미설정이라 기존 방식 그대로), `npm run lint` clean.
+- **다음 우선순위**: (1) 타 매장 POS 업로드 파이프라인(P7 전국 집계, 자격증명/합의 필요, 불변). (2) 음료 메뉴 원가 63종 확장(Drive SSOT 미확정으로 계속 보류).
+
 ### 자율 사이클: Dead config 정리 + PROJECT 8 최종결론 + standalone 검토 (2026-07-26)
 - **배경**: 스케줄 작업 지시 우선순위 1(`/api/hq/erp` 라이브 연결)·2(디저트 정밀원가)는 이전 사이클(2026-07-22~25)에 이미 완료·검증돼 있음을 CHANGELOG/TODO 재확인으로 확정(재작업 없음, 중복 방지). 우선순위 3(PROJECT 7/8)도 가맹점 뷰(P7)는 기완료 — 본사 뷰(P8)만 3사이클 연속 "요구사항 미구체화"로 보류 중이었음.
 - **`next.config.ts`/`.mjs` 중복 제거**: 두 파일이 내용 동일하게 공존해왔는데, **Next.js 14.2.35는 `.ts` config를 지원하지 않음**을 직접 재현 확인(`.mjs` 임시 삭제 → `next build`가 "Configuring Next.js via 'next.config.ts' is not supported" 즉시 에러) — `.ts`는 처음부터 사용된 적 없는 Dead Code였고 `.mjs`만 항상 유효했음. Dead `.ts` 삭제(CEO-CHARTER §16-A Dead Code 자율삭제 승인 범위).

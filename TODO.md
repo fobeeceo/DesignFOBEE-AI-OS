@@ -28,7 +28,7 @@
 - [x] `AI-HQ/docker-compose.yml` + `Dockerfile`(web)·`content-automation-agent/Dockerfile`(erp) — 빌드·기동·HTTP 200 실증.
 - [x] `.dockerignore`·`requirements.txt` 추가.
 - [x] INSTALL.md·AI-HQ-ARCHITECTURE.md 신설.
-- [ ] `output: standalone` 전환 검토(이미지 경량화, 승인 불요·자율진행 가능) — 2026-07-26 시도: `next.config.mjs`에 플래그만 추가 시 `npm run build`는 통과하나, `Dockerfile` runner 단계가 여전히 `npm start`(풀 `node_modules` 복사)라 실질적 이미지 경량화 효과 없음. 완전 전환에는 Dockerfile을 `node server.js`(standalone 산출물)로 교체해야 하는데, 이 프로젝트가 Prisma를 쓰고 있어 standalone 출력에 Prisma 쿼리 엔진 바이너리가 자동 포함되는지 별도 검증이 필요함(알려진 Next+Prisma 함정) — 현재 `ai-hq-web-1` 컨테이너가 n8n 자동화와 연동돼 18시간+ 운영 중이라, 검증 없이 교체하면 운영 중단 위험(§8 검증규칙: 확인 못한 것 완료 보고 금지). 이번 사이클엔 미적용 원복, 다음 사이클에 격리된 테스트 이미지(다른 포트/태그)로 Prisma 동작까지 확인 후 진행 권장.
+- [x] **`output: standalone` 전환 완료**(2026-07-27): 격리 이미지(별도 포트/태그)로 Prisma 쿼리엔진 로드 실증(연결거부 오류만 발생, 엔진누락 오류 없음) → 운영 Dockerfile을 `DOCKER_BUILD=true`일 때만 standalone을 쓰도록 조건부 전환(Vercel 빌드 무영향) → 실 자격증명으로 `/`·`/hq`·`/api/hq/erp` 재검증 → `ai-hq-web-1` 운영 컨테이너 교체 완료(이미지 1.25GB→401MB, 68%↓). 격리 테스트 이미지/컨테이너/Dockerfile은 검증 후 삭제.
 
 ## 자율 진행 중 (승인 불요, QA/Audit로 검증된 실제 항목)
 - [x] QA 확장 시스템(`npm run qa:extended`) — a11y/SEO/링크/이미지/성능 실검증 완료.
