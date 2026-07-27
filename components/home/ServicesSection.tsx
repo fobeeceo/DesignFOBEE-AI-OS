@@ -1,13 +1,9 @@
 import { SectionHeading } from "@/components/ui/section-heading";
 import { Building2, Church, GraduationCap, Briefcase, Home } from "lucide-react";
+import { SERVICES as SERVICE_DATA } from "@/lib/company/profile";
 
-const SERVICES = [
-  { icon: Building2, title: "상업공간", desc: "브랜드 경험을 담은 매장·상업 공간 디자인" },
-  { icon: Church, title: "교회", desc: "공동체의 가치를 담은 예배 공간 설계" },
-  { icon: GraduationCap, title: "교육시설", desc: "배움에 몰입하는 학습 환경 조성" },
-  { icon: Briefcase, title: "오피스", desc: "일하는 방식을 바꾸는 업무 공간 설계" },
-  { icon: Home, title: "주거공간", desc: "삶의 질을 높이는 주거 공간 디자인" },
-];
+const ICONS = [Building2, Church, GraduationCap, Briefcase, Home];
+const SERVICES = SERVICE_DATA.map((s, i) => ({ ...s, icon: ICONS[i] }));
 
 /**
  * 디자인포비 핵심 서비스 5개 영역 카드.

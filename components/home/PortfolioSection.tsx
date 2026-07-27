@@ -73,7 +73,7 @@ const PROJECTS: Project[] = [
 function ProjectCard({ project, featured }: { project: Project; featured?: boolean }) {
   return (
     <div
-      className={`group relative overflow-hidden rounded-2xl bg-primary ${
+      className={`group relative overflow-hidden rounded-2xl bg-primary shadow-sm transition-all duration-500 ease-out hover:-translate-y-1 hover:shadow-xl ${
         featured ? "aspect-[4/3] sm:col-span-2 sm:row-span-2 sm:aspect-auto" : "aspect-[4/5]"
       }`}
     >

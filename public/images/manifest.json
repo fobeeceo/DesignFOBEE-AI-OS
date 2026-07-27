@@ -1,0 +1,68 @@
+{
+  "syncedAt": "2026-07-27T06:58:22.198Z",
+  "items": {
+    "portfolio/website/designfobee-bathroom-tile-01.webp": {
+      "source": "PORTFOLIO\\WEBSITE\\designfobee-bathroom-tile-01.jpg",
+      "webp": "/images/portfolio/website/designfobee-bathroom-tile-01.webp",
+      "thumb": "/images/portfolio/website/designfobee-bathroom-tile-01-thumb.webp",
+      "alt": "초록색 모자이크 타일 벽과 세면대가 있는 화장실 모습.",
+      "syncedAt": "2026-07-27T06:57:31.541Z"
+    },
+    "portfolio/website/designfobee-cafe-interior-01.webp": {
+      "source": "PORTFOLIO\\WEBSITE\\designfobee-cafe-interior-01.jpg",
+      "webp": "/images/portfolio/website/designfobee-cafe-interior-01.webp",
+      "thumb": "/images/portfolio/website/designfobee-cafe-interior-01-thumb.webp",
+      "alt": "갈색 벽과 원목 가구가 배치된 갤러리 내부 모습.",
+      "syncedAt": "2026-07-27T06:57:35.736Z"
+    },
+    "portfolio/website/designfobee-cafe-kiosk-01.webp": {
+      "source": "PORTFOLIO\\WEBSITE\\designfobee-cafe-kiosk-01.jpg",
+      "webp": "/images/portfolio/website/designfobee-cafe-kiosk-01.webp",
+      "thumb": "/images/portfolio/website/designfobee-cafe-kiosk-01-thumb.webp",
+      "alt": "빨간색 인테리어의 라바짜 매장 실내 모습.",
+      "syncedAt": "2026-07-27T06:57:41.816Z"
+    },
+    "portfolio/website/designfobee-lounge-furniture-01.webp": {
+      "source": "PORTFOLIO\\WEBSITE\\designfobee-lounge-furniture-01.jpg",
+      "webp": "/images/portfolio/website/designfobee-lounge-furniture-01.webp",
+      "thumb": "/images/portfolio/website/designfobee-lounge-furniture-01-thumb.webp",
+      "alt": "원형 목재 테이블과 검은색 의자가 배치된 카페 실내.",
+      "syncedAt": "2026-07-27T06:57:47.206Z"
+    },
+    "portfolio/website/designfobee-meeting-room-01.webp": {
+      "source": "PORTFOLIO\\WEBSITE\\designfobee-meeting-room-01.jpg",
+      "webp": "/images/portfolio/website/designfobee-meeting-room-01.webp",
+      "thumb": "/images/portfolio/website/designfobee-meeting-room-01-thumb.webp",
+      "alt": "다양한 색상의 의자와 원목 테이블이 놓인 회의실.",
+      "syncedAt": "2026-07-27T06:57:55.614Z"
+    },
+    "portfolio/website/designfobee-office-01.webp": {
+      "source": "PORTFOLIO\\WEBSITE\\designfobee-office-01.jpg",
+      "webp": "/images/portfolio/website/designfobee-office-01.webp",
+      "thumb": "/images/portfolio/website/designfobee-office-01-thumb.webp",
+      "alt": "민트색 벽면과 흰색 가구가 있는 사무실 모습.",
+      "syncedAt": "2026-07-27T06:58:00.886Z"
+    },
+    "portfolio/website/designfobee-retail-bedding-01.webp": {
+      "source": "PORTFOLIO\\WEBSITE\\designfobee-retail-bedding-01.jpg",
+      "webp": "/images/portfolio/website/designfobee-retail-bedding-01.webp",
+      "thumb": "/images/portfolio/website/designfobee-retail-bedding-01-thumb.webp",
+      "alt": "베개와 침구가 정돈되어 진열된 매장 내부.",
+      "syncedAt": "2026-07-27T06:58:09.101Z"
+    },
+    "portfolio/website/designfobee-retail-vmd-01.webp": {
+      "source": "PORTFOLIO\\WEBSITE\\designfobee-retail-vmd-01.jpg",
+      "webp": "/images/portfolio/website/designfobee-retail-vmd-01.webp",
+      "thumb": "/images/portfolio/website/designfobee-retail-vmd-01-thumb.webp",
+      "alt": "다양한 백팩이 진열된 가방 매장 내부 모습.",
+      "syncedAt": "2026-07-27T06:58:15.741Z"
+    },
+    "portfolio/website/designfobee-storefront-exterior-01.webp": {
+      "source": "PORTFOLIO\\WEBSITE\\designfobee-storefront-exterior-01.jpg",
+      "webp": "/images/portfolio/website/designfobee-storefront-exterior-01.webp",
+      "thumb": "/images/portfolio/website/designfobee-storefront-exterior-01-thumb.webp",
+      "alt": "야간에 조명이 켜진 휴대폰 매장 외관.",
+      "syncedAt": "2026-07-27T06:58:22.197Z"
+    }
+  }
+}
