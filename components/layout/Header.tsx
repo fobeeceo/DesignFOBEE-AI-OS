@@ -6,6 +6,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { MobileNav } from "@/components/layout/MobileNav";
 
 const NAV_ITEMS = [
+  { label: "회사소개", href: "/about" },
   { label: "서비스", href: "/#services" },
   { label: "프로세스", href: "/#process" },
   { label: "포트폴리오", href: "/#portfolio" },

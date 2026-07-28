@@ -1,13 +1,14 @@
-> **요약**: 총 1건 발견 (Git 미커밋 변경 제외). §6에 따라 이 스크립트는 아무것도 삭제/수정하지 않았다.
+> **요약**: 총 2건 발견 (Git 미커밋 변경 제외). §6에 따라 이 스크립트는 아무것도 삭제/수정하지 않았다.
 
 # Audit Report
 
-생성: 2026-07-27T05:14:38.349Z
+생성: 2026-07-28T00:02:14.321Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
 - 스캔: 34개 컴포넌트
-- 미사용(어디서도 import 안 됨): 0건
+- 미사용(어디서도 import 안 됨): 1건
+  - components/home/MenuSection.tsx
 - ⚠️ §6 규정: 삭제는 CEO 승인 후에만 수행.
 
 ## 2. Duplicate Component
@@ -17,7 +18,7 @@
     - components/design/CompareSlider.tsx
 
 ## 3. Unused Import
-- 스캔: 71개 파일
+- 스캔: 72개 파일
 - 이슈: 0건
 
 ## 4. Broken Route (nav 컴포넌트)
@@ -40,13 +41,22 @@
   - N8N_API_KEY
 
 ## 8. Git Status
-- 브랜치: main
-- 최근 커밋: f14388c340e929a844f81a27d4febb10abf74b10 feat(infra): output:standalone 격리검증 완료, 운영 Dockerfile 전환(1.25GB→401MB)
-- 미커밋 변경: 4건
+- 브랜치: ai-proposal/3aa3abcb
+- 최근 커밋: 2101173792816b51d875bb1c97788012644dff73 fix(home): 원래 디자인 유지하며 GBRICK 매장+작업공간 이미지 통합, 디저트 섹션 삭제
+- 미커밋 변경: 13건
 
 ```
-M AI-STAFF-POLICY.md
- M CHANGELOG.md
- M DECISION-LOG.md
- M TODO.md
+M components/home/PortfolioSection.tsx
+ M lib/portfolio/workGallery.ts
+ M public/images/manifest.json
+ M public/images/portfolio/gbrick-dandae.jpg
+ D public/images/portfolio/gbrick-eunpyeong.jpg
+ M public/images/portfolio/gbrick-samsong.jpg
+ M public/images/portfolio/gbrick-singil.jpg
+?? public/images/portfolio/website/designfobee-cafe-lounge-04-thumb.webp
+?? public/images/portfolio/website/designfobee-cafe-lounge-04.webp
+?? public/images/portfolio/website/designfobee-cafe-reading-01-thumb.webp
+?? public/images/portfolio/website/designfobee-cafe-reading-01.webp
+?? public/images/portfolio/website/designfobee-office-lounge-01-thumb.webp
+?? public/images/portfolio/website/designfobee-office-lounge-01.webp
 ```
