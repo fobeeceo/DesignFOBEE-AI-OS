@@ -49,10 +49,34 @@ def reorder_recommendations() -> list[dict]:
     recs = []
     for name, cur, safe in INVENTORY:
         short = round(safe - cur, 2)
-        if short > 0:  # 현재 < 적정 → 발주
+        if short > 0:  # 현재 < 안전재고 → 발주
             recs.append({"품목": name, "현재": cur, "적정": safe, "부족": short,
                          "발주추천": short, "긴급": cur == 0})
     return sorted(recs, key=lambda r: (-r["긴급"], -r["부족"]))
+
+
+def purchase_orders() -> list[dict]:
+    """reorder_recommendations()를 발주서 초안으로 변환.
+    SUPPLIER_MASTER(Notion, 거래처·단가)가 아직 Google Doc 원문 그대로라 코드가 읽을 수 있는
+    형태(품목→거래처/단가 매핑)로 구조화되지 않았다 — 그래서 공급처·예상금액은 계산하지 않고
+    "미배정"으로 정직하게 남긴다(추측 금지). 실제 발주 실행(발주서 전송·비용 발생)은 이 함수의
+    책임이 아니다 — CEO 승인 후 사람이 처리하거나, SUPPLIER_MASTER 구조화 이후 별도 연동 필요.
+    """
+    today = datetime.date.today().isoformat()
+    orders = []
+    for i, r in enumerate(reorder_recommendations(), start=1):
+        orders.append({
+            "발주ID": f"PO-{today}-{i:02d}",
+            "품목": r["품목"],
+            "현재재고": r["현재"],
+            "안전재고": r["적정"],
+            "발주추천수량": r["발주추천"],
+            "긴급": r["긴급"],
+            "공급처": "미배정(SUPPLIER_MASTER 구조화 대기)",
+            "예상금액": None,
+            "승인상태": "대기",
+        })
+    return orders
 
 
 def menu_costs() -> list[dict]:
@@ -148,6 +172,7 @@ def daily_report() -> dict:
         "원재료그룹수": sum(INGREDIENT_GROUPS.values()),
         "디저트": _dessert_summary(),
         "메뉴엔지니어링": menu_engineering(),
+        "발주서초안": purchase_orders(),
     }
     (OUT / "erp_daily_report.json").write_text(
         json.dumps(report, ensure_ascii=True, indent=2), encoding="utf-8")

@@ -2,7 +2,7 @@
 
 # Audit Report
 
-생성: 2026-07-28T00:02:14.321Z
+생성: 2026-07-28T08:39:05.275Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
@@ -41,22 +41,12 @@
   - N8N_API_KEY
 
 ## 8. Git Status
-- 브랜치: ai-proposal/3aa3abcb
-- 최근 커밋: 2101173792816b51d875bb1c97788012644dff73 fix(home): 원래 디자인 유지하며 GBRICK 매장+작업공간 이미지 통합, 디저트 섹션 삭제
-- 미커밋 변경: 13건
+- 브랜치: main
+- 최근 커밋: 5ae151bce55c51a07c2d5cee7efc31b178ad748d docs: 포트폴리오/회사소개 브랜치 main 병합 기록 (CEO 승인)
+- 미커밋 변경: 3건
 
 ```
-M components/home/PortfolioSection.tsx
- M lib/portfolio/workGallery.ts
- M public/images/manifest.json
- M public/images/portfolio/gbrick-dandae.jpg
- D public/images/portfolio/gbrick-eunpyeong.jpg
- M public/images/portfolio/gbrick-samsong.jpg
- M public/images/portfolio/gbrick-singil.jpg
-?? public/images/portfolio/website/designfobee-cafe-lounge-04-thumb.webp
-?? public/images/portfolio/website/designfobee-cafe-lounge-04.webp
-?? public/images/portfolio/website/designfobee-cafe-reading-01-thumb.webp
-?? public/images/portfolio/website/designfobee-cafe-reading-01.webp
-?? public/images/portfolio/website/designfobee-office-lounge-01-thumb.webp
-?? public/images/portfolio/website/designfobee-office-lounge-01.webp
+M app/api/hq/erp/route.ts
+ M content-automation-agent/src/erp_engine.py
+ M lib/hq/erpSnapshot.ts
 ```

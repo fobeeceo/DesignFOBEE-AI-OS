@@ -13,6 +13,10 @@ type DailyReport = {
   재고부족_건수: number;
   긴급발주_건수: number;
   발주추천: { 품목: string; 현재: number; 적정: number; 발주추천: number; 긴급: boolean }[];
+  발주서초안: {
+    발주ID: string; 품목: string; 현재재고: number; 안전재고: number;
+    발주추천수량: number; 긴급: boolean; 공급처: string; 예상금액: number | null; 승인상태: string;
+  }[];
   평균원가율: number;
   메뉴원가: { 메뉴: string; 판매가: number; 원가율: number }[];
   디저트: {
@@ -97,6 +101,17 @@ async function readLiveData() {
         safe: r.적정,
         order: r.발주추천,
         urgent: r.긴급,
+      })),
+      purchaseOrders: (report.발주서초안 ?? []).map((o) => ({
+        id: o.발주ID,
+        item: o.품목,
+        current: o.현재재고,
+        safe: o.안전재고,
+        order: o.발주추천수량,
+        urgent: o.긴급,
+        supplier: o.공급처,
+        estimatedCost: o.예상금액,
+        approvalStatus: o.승인상태,
       })),
     },
     cost: {

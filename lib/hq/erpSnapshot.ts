@@ -36,6 +36,11 @@ export const ERP_SNAPSHOT = {
       { item: "우유", current: 1, safe: 10, order: 9, urgent: false },
       { item: "탄산수", current: 2, safe: 10, order: 8, urgent: false },
     ],
+    purchaseOrders: [
+      { id: "PO-2026-07-20-01", item: "딸기라떼소분", current: 0, safe: 6, order: 6, urgent: true, supplier: "미배정(SUPPLIER_MASTER 구조화 대기)", estimatedCost: null, approvalStatus: "대기" },
+      { id: "PO-2026-07-20-02", item: "치즈케익박스", current: 0, safe: 2, order: 2, urgent: true, supplier: "미배정(SUPPLIER_MASTER 구조화 대기)", estimatedCost: null, approvalStatus: "대기" },
+      { id: "PO-2026-07-20-03", item: "초코케익박스", current: 0, safe: 2, order: 2, urgent: true, supplier: "미배정(SUPPLIER_MASTER 구조화 대기)", estimatedCost: null, approvalStatus: "대기" },
+    ],
   },
   cost: {
     avgRatio: 22.6,
