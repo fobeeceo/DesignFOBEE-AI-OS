@@ -13,8 +13,8 @@
 - [ ] **n8n 웹디자인 트렌드 제안 자동등록 워크플로 활성화**(2026-07-28 신설): 워크플로("AI HQ - 웹디자인 트렌드 제안 자동등록(Notion)", id `b4LV2B4n43btf6Qg`)까지는 완성(매주 월 09:00 → `/api/hq/design-trends` 조회 → Notion "AI 제안함"에 `상태=대기`·`적용범위=홈페이지 UI/콘텐츠`로 등록). 메뉴전략 워크플로와 동일하게 Notion Internal Integration credential(§11)이 CEO 본인 계정 작업으로 연결돼야 활성화됨 — 완료 전까지 inactive.
 
 ## 자동화 재점검 (2026-07-28 발견 — Claude Desktop 재설치 이후 유실 추정)
-- [ ] **`gbrick-ai-os-build`·`ai-proposal-implementer` 스케줄 미등록 확인**: SKILL.md 파일은 `.claude/scheduled-tasks/`에 그대로 남아있으나, `list_scheduled_tasks`/`CronList`/Windows 작업 스케줄러 어디에도 등록되어 있지 않음 — 즉 지금은 둘 다 자동 실행되지 않는 상태(파일은 있지만 예약이 끊김). Claude Desktop 삭제·재설치 시점(2026-07-28 업무지시서)과 일치. 재등록은 CEO 확인 후 진행(특히 `gbrick-ai-os-build`는 main에 자동 push까지 하는 자율 파이프라인이라 재활성화 전 명시 확인 필요).
-- [x] **`auto-order-recommender` 신설**(발주서 초안 자동생성): `content-automation-agent/src/erp_engine.py`에 `purchase_orders()` 추가 완료(공급처는 SUPPLIER_MASTER 미구조화로 "미배정" 정직 표기) + Notion "AI 발주 승인" DB 신설(https://app.notion.com/p/e4181883090c4e74b4bbaf3464dbe9fb) + 오늘자 발주서 초안 15건 등록 완료 + `.claude/scheduled-tasks/auto-order-recommender/SKILL.md` 작성 완료. **스케줄 등록은 CEO 확인 후 진행**(승인 없이 새 상시 자동화를 켜지 않음).
+- [x] **`gbrick-ai-os-build`·`ai-proposal-implementer` 스케줄 재등록**(2026-07-28, CEO 채팅 승인): SKILL.md 파일은 남아있었으나 실제 예약이 전부 유실돼 있던 것을 발견 → CEO 확인 후 `mcp__scheduled-tasks__create_scheduled_task`로 동일 내용 그대로 재등록. `gbrick-ai-os-build`(매일 09:30대, main 자동 push 포함)·`ai-proposal-implementer`(매일 10:00대, push 없음) 둘 다 재가동.
+- [x] **`auto-order-recommender` 신설·활성화**(2026-07-28, CEO 채팅 승인): `content-automation-agent/src/erp_engine.py`에 `purchase_orders()` 추가(공급처는 SUPPLIER_MASTER 미구조화로 "미배정" 정직 표기) + Notion "AI 발주 승인" DB 신설(https://app.notion.com/p/e4181883090c4e74b4bbaf3464dbe9fb) + 오늘자 발주서 초안 15건 등록 + 매일 09:00대 스케줄 등록 완료(실주문 없음, Notion 승인 큐 등록까지만).
 
 ## 자율 진행 가능 (승인 불요, CEO 액션 대기 아님)
 (현재 없음 — 2026-07-28 사이클에서 마지막 남은 항목인 "AI 제안함 자동 등록 파이프라인"을 구축 완료함)
