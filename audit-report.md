@@ -2,7 +2,7 @@
 
 # Audit Report
 
-생성: 2026-07-27T11:02:03.168Z
+생성: 2026-07-28T00:02:14.321Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
@@ -42,23 +42,21 @@
 
 ## 8. Git Status
 - 브랜치: ai-proposal/3aa3abcb
-- 최근 커밋: 8d623c1ce9890356c4c3b8e4d4f0156190b09693 feat(home): 포트폴리오 사진 교체 + 우리 작업 갤러리 + 회사소개 페이지
-- 미커밋 변경: 15건
+- 최근 커밋: 2101173792816b51d875bb1c97788012644dff73 fix(home): 원래 디자인 유지하며 GBRICK 매장+작업공간 이미지 통합, 디저트 섹션 삭제
+- 미커밋 변경: 13건
 
 ```
-M app/page.tsx
- M components/home/PortfolioSection.tsx
- D components/home/WorkGallerySection.tsx
+M components/home/PortfolioSection.tsx
  M lib/portfolio/workGallery.ts
  M public/images/manifest.json
  M public/images/portfolio/gbrick-dandae.jpg
- M public/images/portfolio/gbrick-eunpyeong.jpg
-?? public/images/portfolio/website/designfobee-cafe-lounge-02-thumb.webp
-?? public/images/portfolio/website/designfobee-cafe-lounge-02.webp
-?? public/images/portfolio/website/designfobee-cafe-lounge-03-thumb.webp
-?? public/images/portfolio/website/designfobee-cafe-lounge-03.webp
-?? public/images/portfolio/website/designfobee-office-02-thumb.webp
-?? public/images/portfolio/website/designfobee-office-02.webp
-?? public/images/portfolio/website/designfobee-retail-clothing-01-thumb.webp
-?? public/images/portfolio/website/designfobee-retail-clothing-01.webp
+ D public/images/portfolio/gbrick-eunpyeong.jpg
+ M public/images/portfolio/gbrick-samsong.jpg
+ M public/images/portfolio/gbrick-singil.jpg
+?? public/images/portfolio/website/designfobee-cafe-lounge-04-thumb.webp
+?? public/images/portfolio/website/designfobee-cafe-lounge-04.webp
+?? public/images/portfolio/website/designfobee-cafe-reading-01-thumb.webp
+?? public/images/portfolio/website/designfobee-cafe-reading-01.webp
+?? public/images/portfolio/website/designfobee-office-lounge-01-thumb.webp
+?? public/images/portfolio/website/designfobee-office-lounge-01.webp
 ```

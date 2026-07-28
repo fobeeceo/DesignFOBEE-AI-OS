@@ -1,5 +1,5 @@
 {
-  "syncedAt": "2026-07-27T10:50:57.423Z",
+  "syncedAt": "2026-07-27T23:56:30.642Z",
   "items": {
     "portfolio/website/designfobee-bathroom-tile-01.webp": {
       "source": "PORTFOLIO\\WEBSITE\\designfobee-bathroom-tile-01.jpg",
@@ -91,6 +91,27 @@
       "thumb": "/images/portfolio/website/designfobee-retail-clothing-01-thumb.webp",
       "alt": "옷들이 진열되어 있는 의류 매장 내부 모습.",
       "syncedAt": "2026-07-27T10:50:57.423Z"
+    },
+    "portfolio/website/designfobee-cafe-lounge-04.webp": {
+      "source": "PORTFOLIO\\WEBSITE\\designfobee-cafe-lounge-04.jpg",
+      "webp": "/images/portfolio/website/designfobee-cafe-lounge-04.webp",
+      "thumb": "/images/portfolio/website/designfobee-cafe-lounge-04-thumb.webp",
+      "alt": "창가에 원목 테이블과 소파가 배치된 카페 내부.",
+      "syncedAt": "2026-07-27T23:56:19.452Z"
+    },
+    "portfolio/website/designfobee-cafe-reading-01.webp": {
+      "source": "PORTFOLIO\\WEBSITE\\designfobee-cafe-reading-01.jpg",
+      "webp": "/images/portfolio/website/designfobee-cafe-reading-01.webp",
+      "thumb": "/images/portfolio/website/designfobee-cafe-reading-01-thumb.webp",
+      "alt": "원목 책장과 원형 테이블이 배치된 휴게 공간.",
+      "syncedAt": "2026-07-27T23:56:24.235Z"
+    },
+    "portfolio/website/designfobee-office-lounge-01.webp": {
+      "source": "PORTFOLIO\\WEBSITE\\designfobee-office-lounge-01.jpg",
+      "webp": "/images/portfolio/website/designfobee-office-lounge-01.webp",
+      "thumb": "/images/portfolio/website/designfobee-office-lounge-01-thumb.webp",
+      "alt": "다채로운 의자와 원목 테이블이 놓인 회의 공간.",
+      "syncedAt": "2026-07-27T23:56:30.642Z"
     }
   }
 }

@@ -79,4 +79,19 @@ export const WORK_GALLERY: WorkItem[] = [
     category: "카페 · 라운지",
     caption: "우드톤 카페 좌석 공간",
   },
+  {
+    slug: "designfobee-cafe-lounge-04",
+    category: "카페 · 라운지",
+    caption: "벨벳 소파 라운지 공간",
+  },
+  {
+    slug: "designfobee-office-lounge-01",
+    category: "오피스",
+    caption: "컬러 포인트 오피스 라운지",
+  },
+  {
+    slug: "designfobee-cafe-reading-01",
+    category: "카페 · F&B",
+    caption: "그린 인테리어의 북카페형 공간",
+  },
 ];
