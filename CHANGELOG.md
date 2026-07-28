@@ -4,6 +4,11 @@
 
 ## [Unreleased]
 
+### 홈페이지 포트폴리오/회사소개 개편 main 병합·배포 (2026-07-28, CEO 승인)
+- `ai-proposal/3aa3abcb`(2026-07-27 자동구현, 리뷰 대기 중이던 브랜치)를 CEO가 채팅으로 검토·승인 → main에 병합(`21ee28a`) 후 push. 병합 전 `npm run qa`(lint+tsc+build) 재확인 PASS.
+- 변경 내용: `/about` 회사소개 페이지 신설, `lib/company/profile.ts`(회사 프로필 SSOT)·`lib/portfolio/workGallery.ts`(작업 갤러리 16장) 신규 모듈, 홈 디저트 섹션 제거, GBRICK 매장 사진 최종 매핑.
+- Vercel 배포는 절차상 대표님이 직접 최종 확인 후 진행.
+
 ### n8n 웹디자인 트렌드 제안 자동등록 워크플로 신설 (2026-07-28)
 - **배경**: TODO.md에 마지막으로 남아있던 자율진행 가능 항목 — `ai-proposal-implementer`(2026-07-27 신설, 매일 10:00 Notion "AI 제안함"에서 `상태=승인`·`적용범위=홈페이지 UI/콘텐츠` 건을 찾아 구현)는 만들어졌지만, `/api/hq/design-trends`(AI 웹디자인전략가) 결과를 그 DB에 자동으로 밀어넣는 경로가 없어 CEO/CTO가 매번 Notion에 수동 등록해야 했던 갭.
 - **조치**: 기존 "AI HQ - 메뉴전략 승인(Telegram+Notion)" 워크플로(2026-07-25, id `lgLgyt0lw5Q78Kgc`)를 템플릿으로 재사용해 n8n 내부 REST API(오너 계정 로그인 → 세션 쿠키로 `/rest/workflows` 호출)로 신규 워크플로 "AI HQ - 웹디자인 트렌드 제안 자동등록(Notion)"(id `b4LV2B4n43btf6Qg`) 생성: 매주 월 09:00 스케줄 → `POST /api/hq/design-trends`(경쟁사 오늘의집·스타벅스코리아, 기존 검증된 서비스 토큰 헤더인증 credential 재사용) → Code 노드로 트렌드종합/우리대비제안/접근실패를 요약문 조립 → Notion "AI 제안함"에 `제안자=AI 웹디자인전략가`·`상태=대기`·`적용범위=홈페이지 UI/콘텐츠`·`처리채널=Notion 직접`으로 신규 페이지 생성(Telegram 왕복 없이 CEO가 Notion에서 직접 승인/반려하는 이 파이프라인의 기존 방식과 일치).
