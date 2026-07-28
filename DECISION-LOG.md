@@ -2,6 +2,12 @@
 
 > CEO MASTER INITIALIZATION MISSION §12 산출물. 이후 모든 중요 기술 결정은 여기 append한다. 형식: 날짜·결정·근거·대안 비교(§문제해결규칙: 대안 3개 이상 검토).
 
+## 2026-07-28 — 자동 발주 로직 신설 + "Claude Code 자동연결" 현황 재점검(스케줄 유실 발견)
+- **배경**: CEO가 채팅으로 "자동 발주 로직"과 "Claude Code 자동연결 현황 재정리"를 요청. 후자를 점검하다가 `mcp__scheduled-tasks__list_scheduled_tasks`·`CronList`·Windows 작업 스케줄러가 전부 비어있음을 확인 — `gbrick-ai-os-build`(매일 09:30 자율빌드+push)·`ai-proposal-implementer`(매일 10:00) SKILL.md 파일은 디스크에 남아있으나 실제 예약은 등록돼 있지 않아 지금은 자동 실행되지 않는 상태. CEO 업무지시서가 언급한 "Claude Desktop 삭제 후 재설치"(2026-07-28) 시점과 일치 — 재설치 과정에서 예약만 유실되고 파일은 보존된 것으로 추정.
+- **자동 발주 로직 구현 범위 판단**: 실제 공급처 발주(발주서 전송·비용 발생)는 CEO-CHARTER §승인규칙(비용발생)에 해당해 자동화 대상에서 제외. 대신 기존 `reorder_recommendations()`(안전재고 기반 부족량 계산)를 발주서 초안으로 구조화하는 `purchase_orders()`를 신설하고, 기존 "메뉴전략 승인(Telegram+Notion)" 패턴을 그대로 재사용해 Notion "AI 발주 승인" DB(승인 큐)에 등록하는 데까지만 구현. 공급처·예상금액은 SUPPLIER_MASTER가 아직 Google Doc 원문 그대로라 계산 불가 — "미배정"으로 정직 표기(추측 금지).
+- **구현**: `erp_engine.py purchase_orders()` 신설 → `/api/hq/erp`·`erpSnapshot.ts`에 `purchaseOrders` 필드로 연결(라이브+폴백). Notion에 "AI 발주 승인" DB 신설(Master DB SSOT 레지스트리에도 등록) + 오늘자 초안 15건 실등록(dry-run 아님, 실제 Notion 페이지). `npm run qa`·`npm run audit` PASS 확인 후 main에 직접 커밋·push(핵심 로직 변경이라 CEO 승인 필요 6항목에 해당하지 않아 자율 진행 — 기존 원칙과 동일).
+- **의도적으로 하지 않은 것**: `.claude/scheduled-tasks/auto-order-recommender/SKILL.md`는 작성했으나 실제 cron 등록(`create_scheduled_task`)은 CEO 채팅 확인 전까지 보류 — 상시 자동화를 새로 켜는 행위이자, 기존 두 자동화(gbrick-ai-os-build·ai-proposal-implementer)의 재활성화 여부도 함께 CEO가 결정할 사안으로 판단.
+
 ## 2026-07-28 — 포트폴리오/회사소개 브랜치 main 병합 (CEO 채팅 승인)
 - **배경**: 위 항목의 `ai-proposal/3aa3abcb`가 "구현완료(리뷰대기)" 상태로 대기 중이던 것을 CEO가 채팅에서 직접 리뷰 요청 → Claude Code가 diff·이미지 참조 무결성(16개 slug ↔ 파일 1:1 일치)·데이터 출처(통계·연혁이 기존 SSOT와 일치, 새 수치 없음)를 검증해 보고 → CEO "승인".
 - **조치**: `main`으로 체크아웃 → `git merge --no-ff ai-proposal/3aa3abcb` → `npm run qa` 재확인(PASS) → `git push origin main`(`21ee28a`). main 직접 병합·push는 CEO-CHARTER상 사람의 최종 확인이 필요한 행위이므로, 병합 자체를 채팅 승인으로 대신하고 실행은 Claude Code가 수행(ai-proposal-implementer 규칙의 "push 금지"는 자율 파이프라인 한정 — 이번은 CEO 명시 승인 하 예외).
