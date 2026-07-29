@@ -2,11 +2,13 @@ import { NextResponse } from "next/server";
 import { promises as fs } from "fs";
 import path from "path";
 import { ERP_SNAPSHOT } from "@/lib/hq/erpSnapshot";
+import type { ErpData, ErpApiResponse, MenuEngineering } from "@/lib/hq/types";
 
 export const dynamic = "force-dynamic";
 
 const OUT_DIR = path.join(process.cwd(), "content-automation-agent", "output");
 
+/** erp_engine.py `daily_report()`가 실제로 쓰는 원시 JSON 산출물 형태(한글 키, 파이썬 산출물 그대로). */
 type DailyReport = {
   date: string;
   store: string;
@@ -29,21 +31,6 @@ type DailyReport = {
   메뉴엔지니어링: MenuEngineering;
 };
 
-type MenuEngineeringRow = {
-  메뉴: string; 판매량: number; 판매가: number; 마진: number; 원가율: number; 분류: string; 제안: string;
-};
-type MenuEngineering =
-  | { available: false; reason: string }
-  | {
-      available: true;
-      기준_평균판매량: number;
-      기준_평균마진: number;
-      인기도_임계값: number;
-      단종후보: MenuEngineeringRow[];
-      프로모션후보: MenuEngineeringRow[];
-      전체: MenuEngineeringRow[];
-    };
-
 type PosAnalysis = {
   period: string;
   상품수: number;
@@ -65,9 +52,9 @@ async function readJson<T>(file: string): Promise<T | null> {
 
 /**
  * erp_engine.py(daily_report)·pos_import.py(analyze) 실행 산출물을 읽어
- * ERP_SNAPSHOT과 동일한 형태로 변환. 산출물이 없으면(Vercel 등, .gitignore 처리됨) null.
+ * ErpData(Dashboard·ERP 상세 공용 타입)로 변환. 산출물이 없으면(Vercel 등, .gitignore 처리됨) null.
  */
-async function readLiveData() {
+async function readLiveData(): Promise<ErpData | null> {
   const [report, pos] = await Promise.all([
     readJson<DailyReport>("erp_daily_report.json"),
     readJson<PosAnalysis>("pos_analysis.json"),
@@ -143,6 +130,8 @@ async function readLiveData() {
  */
 export async function GET() {
   const live = await readLiveData();
-  if (live) return NextResponse.json({ ok: true, source: "live", data: live });
-  return NextResponse.json({ ok: true, source: "snapshot", data: ERP_SNAPSHOT });
+  const body: ErpApiResponse = live
+    ? { ok: true, source: "live", data: live }
+    : { ok: true, source: "snapshot", data: ERP_SNAPSHOT };
+  return NextResponse.json(body);
 }

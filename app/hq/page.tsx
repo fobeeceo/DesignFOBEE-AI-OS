@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { ERP_SNAPSHOT, won } from "@/lib/hq/erpSnapshot";
+import type { ErpApiResponse } from "@/lib/hq/types";
 
 function Stat({ label, value, sub, pending }: { label: string; value: string; sub?: string; pending?: boolean }) {
   return (
@@ -18,8 +19,8 @@ export default function HqDashboard() {
   const [E, setE] = useState(ERP_SNAPSHOT);
   useEffect(() => {
     fetch("/api/hq/erp")
-      .then((r) => r.json())
-      .then((d) => { if (d?.data) setE(d.data); })
+      .then((r) => r.json() as Promise<ErpApiResponse>)
+      .then((d) => { if (d.ok) setE(d.data); })
       .catch(() => {});
   }, []);
   return (

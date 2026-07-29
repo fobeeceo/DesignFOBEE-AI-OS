@@ -2,14 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { ERP_SNAPSHOT, won } from "@/lib/hq/erpSnapshot";
+import type { ErpApiResponse } from "@/lib/hq/types";
 
 /** ERP 상세 — POS 판매·원가·재고 발주 (실데이터, SSOT: erp_engine/pos_import, 라이브: /api/hq/erp). */
 export default function HqErp() {
   const [E, setE] = useState(ERP_SNAPSHOT);
   useEffect(() => {
     fetch("/api/hq/erp")
-      .then((r) => r.json())
-      .then((d) => { if (d?.data) setE(d.data); })
+      .then((r) => r.json() as Promise<ErpApiResponse>)
+      .then((d) => { if (d.ok) setE(d.data); })
       .catch(() => {});
   }, []);
   return (

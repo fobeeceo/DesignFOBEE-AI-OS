@@ -1,9 +1,12 @@
+import type { ErpData } from "./types";
+
 /**
  * AI HQ ERP 실데이터 스냅샷 (SSOT: content-automation-agent/src erp_engine + pos_import).
  * POS clsProd 2026-07-01~07-20 · 재고관리 DB 2026-07-05 · 09_MENU_COST_TABLE.
  * 추후 라이브 API(/api/hq/erp)로 대체 가능한 형태. 값은 실제 계산 결과.
+ * `/api/hq/erp`의 라이브 데이터와 동일한 `ErpData` 타입을 공유한다(Dashboard·ERP 상세 공용).
  */
-export const ERP_SNAPSHOT = {
+export const ERP_SNAPSHOT: ErpData = {
   updatedAt: "2026-07-20",
   store: "지브릭커피 본점",
   sales: {
@@ -95,7 +98,7 @@ export const ERP_SNAPSHOT = {
       { 메뉴: "팥빙수", 판매량: 246, 판매가: 12000, 마진: 9516, 원가율: 20.7, 분류: "Star", 제안: "유지 · 적극 홍보" },
     ],
   },
-} as const;
+};
 
 /**
  * AI 직원 조직 (SSOT: Notion AI Prompt Library + AI Media Workforce + AI-STAFF-POLICY.md §7).

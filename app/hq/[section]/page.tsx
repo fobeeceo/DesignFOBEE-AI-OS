@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { HQ_MENU, ERP_SNAPSHOT, STORES, AI_STAFF, won } from "@/lib/hq/erpSnapshot";
+import type { ErpApiResponse } from "@/lib/hq/types";
 
 const STATUS_STYLE: Record<string, string> = {
   정규직: "bg-accent/15 text-accent",
@@ -34,8 +35,8 @@ export default function HqSection({ params }: { params: { section: string } }) {
   const [E, setE] = useState(ERP_SNAPSHOT);
   useEffect(() => {
     fetch("/api/hq/erp")
-      .then((r) => r.json())
-      .then((d) => { if (d?.data) setE(d.data); })
+      .then((r) => r.json() as Promise<ErpApiResponse>)
+      .then((d) => { if (d.ok) setE(d.data); })
       .catch(() => {});
   }, []);
 
