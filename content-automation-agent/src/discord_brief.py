@@ -1,16 +1,21 @@
 """
-discord_brief.py — Discord Morning Brief 조립기 (업무지시서 v1.1 Priority 4).
-ERP KPI·긴급재고·승인대기발주는 이 저장소의 실데이터(erp_engine.py)로 채운다.
-날씨·AI뉴스·정부지원사업은 이 스크립트가 직접 조회할 수 없다(외부 API 자격증명 없음) —
-호출자(예: 웹서치 도구를 가진 Claude Code 세션)가 실제로 조회한 값을 인자로 넘겨야 한다.
-값을 못 구했으면 None으로 두면 정직하게 "확인 필요"로 표시한다(추측 데이터 생성 금지).
-"오늘의 말씀"은 특정 종교 콘텐츠 선택이 필요해 이 스크립트가 임의로 생성하지 않는다 —
-CEO가 지정한 소스(devotional API/수동 입력)가 있을 때만 채운다.
+discord_brief.py — Discord Morning Brief 오케스트레이터 (업무지시서 v1.1 Priority 4~5).
+8개 섹션 각각의 Input/Process/Output은 agents/ 아래 각 Agent가 전담한다(중복 계산 없음).
+이 파일은 Agent들을 순서대로 호출해 Discord Markdown 한 장으로 조립하는 역할만 한다.
 """
 from __future__ import annotations
 import datetime
 import sys
-from erp_engine import dashboard
+
+from agents import (
+    weather_agent,
+    news_agent,
+    government_agent,
+    bible_agent,
+    ceo_agent,
+    dashboard_agent,
+    erp_agent,
+)
 
 
 def _fmt_list(items: list[str] | None, empty_note: str) -> str:
@@ -19,30 +24,24 @@ def _fmt_list(items: list[str] | None, empty_note: str) -> str:
     return "\n".join(f"{i + 1}. {v}" for i, v in enumerate(items))
 
 
-def build_ceo_question(dash: dict) -> str:
-    """ERP 실데이터 기반 CEO Question 자동 생성(추측 없음 — dashboard() 산출물만 사용)."""
-    urgent = dash.get("긴급발주", 0)
-    if urgent > 0:
-        return f"오늘 긴급 발주 {urgent}건이 대기 중입니다 — 어떤 기준으로 우선순위를 정하시겠습니까?"
-    candidates = dash.get("단종후보") or []
-    if candidates:
-        return f"메뉴 엔지니어링에서 단종 후보로 나온 {', '.join(candidates)} — 실제로 단종을 검토하시겠습니까?"
-    return "오늘 특별히 점검하고 싶은 지표가 있으신가요?"
-
-
 def build_brief(
     *,
-    weather: str | None = None,
-    ai_news: list[str] | None = None,
-    gov_programs: list[str] | None = None,
+    weather_raw: str | None = None,
+    ai_news_raw: list[str] | None = None,
+    gov_programs_raw: list[str] | None = None,
     verse: str | None = None,
     date: str | None = None,
 ) -> str:
-    """8개 섹션을 Discord Markdown으로 조립. 값이 없는 섹션은 "확인 필요"로 정직 표시."""
-    dash = dashboard()
-    d = date or datetime.date.today().isoformat()
-    ceo_question = build_ceo_question(dash)
+    """각 Agent의 Output만 모아 Discord Markdown으로 조립. 값이 없는 섹션은 "확인 필요"로 정직 표시."""
+    dash = erp_agent.run()
+    board = dashboard_agent.run(dash)
+    weather = weather_agent.run(weather_raw)
+    ai_news = news_agent.run(ai_news_raw)
+    gov_programs = government_agent.run(gov_programs_raw)
+    today_verse = bible_agent.run(verse)
+    ceo_question = ceo_agent.run(dash)
 
+    d = date or datetime.date.today().isoformat()
     sales = dash.get("매출_POS") or {}
     return f"""# ☀️ GBRICK AI HQ — Morning Brief ({d})
 
@@ -61,14 +60,14 @@ def build_brief(
 - 판매순위 TOP3: {', '.join(sales.get('판매순위_TOP3') or []) or '확인 필요'}
 
 **⑤ 긴급 재고**
-- {dash.get('긴급발주', 0)}건 (전체 재고부족 {dash.get('재고부족', 0)}건)
-{_fmt_list(dash.get('발주추천_TOP3'), '긴급 발주 없음')}
+- {board['urgentCount']}건 (전체 재고부족 {board['shortageCount']}건)
+{_fmt_list(board['top'], '긴급 발주 없음')}
 
 **⑥ 승인 대기 발주**
 - Notion "AI 발주 승인" 큐에서 직접 확인 필요(이 스크립트는 로컬 ERP 추천 건수만 앎, 실제 승인 상태는 Notion이 SSOT)
 
 **⑦ 오늘의 말씀**
-{verse or "확인 필요 (CEO 지정 소스 없음 — 자동 생성하지 않음)"}
+{today_verse or "확인 필요 (CEO 지정 소스 없음 — 자동 생성하지 않음)"}
 
 **⑧ CEO Question**
 {ceo_question}
