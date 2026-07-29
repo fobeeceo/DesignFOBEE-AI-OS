@@ -6,6 +6,7 @@ import { FREE_GENERATIONS, ROOM_TYPES, STYLES } from '@/lib/constants';
 import { useLocalStorage } from '@/lib/useLocalStorage';
 import CompareSlider from './CompareSlider';
 import Reveal from './Reveal';
+import { ContactForm } from './home/ContactForm';
 
 const LOADING_STATUSES = [
   '공간 구조 분석 중...',
@@ -249,12 +250,19 @@ export default function Studio() {
                   </button>
                 </div>
 
-                <a
-                  href="/#contact"
-                  className="text-sm font-semibold text-clay underline underline-offset-4 transition-colors hover:text-clay-deep"
-                >
-                  이 디자인으로 전문가 상담·예상 견적 받기 →
-                </a>
+                {/* AI 디자인 상담 — 인테리어/가맹 상담과 완전히 분리된 전용 폼(전환 흐름 이탈 없이
+                    바로 여기서 접수, CEO 업무지시 Sprint 2 P1). */}
+                <div className="w-full max-w-md rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+                  <p className="text-center text-sm font-semibold text-ink">
+                    이 디자인으로 전문가 상담·예상 견적 받기
+                  </p>
+                  <p className="mt-1 text-center text-xs text-ink-soft">
+                    지금 확인한 AI 디자인을 기준으로 담당 디자이너가 연락드립니다.
+                  </p>
+                  <div className="mt-5">
+                    <ContactForm variant="ai_design" />
+                  </div>
+                </div>
               </div>
             ) : (
               /* ── 입력 단계 ── */

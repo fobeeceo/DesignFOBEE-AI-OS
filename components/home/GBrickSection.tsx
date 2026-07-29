@@ -1,26 +1,60 @@
+import Image from "next/image";
 import { SectionHeading } from "@/components/ui/section-heading";
-import { buttonVariants } from "@/components/ui/button";
+import { ContactForm } from "@/components/home/ContactForm";
 import { Coffee } from "lucide-react";
 
 /**
- * GBRICK Coffee 브랜드 소개 섹션. "공간과 커피를 결합한 브랜드" 철학 전달.
+ * GBRICK Coffee 가맹 상담 섹션 — 이전엔 브랜드 소개 2문장 + 홈 상담폼(#contact) 링크뿐이었다.
+ * CEO 업무지시(Sprint 2 P1): 가맹 상담을 인테리어 상담과 완전히 분리 — 이 섹션 자체가
+ * 독립된 랜딩(실제 매장 사진 + 신뢰 수치) + 전용 폼(variant="franchise")을 갖는다.
+ * 통계는 lib/company/profile.ts STATS(지명원·정보공개서 기반 실수치)와 동일 SSOT.
  */
 export function GBrickSection() {
   return (
     <section id="gbrick" className="py-20 sm:py-28">
       <div className="container-px mx-auto max-w-6xl">
-        <div className="flex flex-col items-center gap-6 rounded-3xl bg-accent/10 p-10 text-center sm:p-16">
-          <Coffee className="h-9 w-9 text-accent" />
-          <SectionHeading
-            title="GBRICK Coffee"
-            description="공간과 커피를 결합한 브랜드. 고객은 커피가 아니라 좋은 공간을 경험하러 옵니다. 사람과 사람을 연결하는, 좋은 에너지가 흐르는 공간입니다."
-          />
-          <a
-            href="#contact"
-            className={buttonVariants({ variant: "outline", size: "lg" })}
-          >
-            GBRICK Coffee 알아보기
-          </a>
+        <SectionHeading
+          eyebrow="Franchise"
+          title="GBRICK Coffee 가맹 상담"
+          description="공간과 커피를 결합한 브랜드. 고객은 커피가 아니라 좋은 공간을 경험하러 옵니다 — 26년 공간디자인 노하우가 매장 설계에 그대로 들어갑니다."
+        />
+
+        <div className="mt-12 grid gap-10 lg:grid-cols-2 lg:items-center">
+          <div className="relative aspect-[4/3] overflow-hidden rounded-2xl">
+            <Image
+              src="/images/portfolio/website/designfobee-gbrick-storefront-night-01.webp"
+              alt="GBRICK Coffee 은평본점 야간 매장 외관"
+              fill
+              sizes="(min-width: 1024px) 50vw, 100vw"
+              className="object-cover"
+            />
+          </div>
+
+          <div className="flex flex-col gap-6">
+            <div className="grid grid-cols-2 gap-4 rounded-2xl border border-border bg-muted/40 p-6 sm:grid-cols-4">
+              <div className="text-center">
+                <p className="text-2xl font-bold text-accent">7개</p>
+                <p className="mt-1 text-xs text-muted-foreground">직영·가맹 매장</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-accent">0건</p>
+                <p className="mt-1 text-xs text-muted-foreground">3년간 폐점</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-accent">10년+</p>
+                <p className="mt-1 text-xs text-muted-foreground">평균 운영 기간</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-accent">26년</p>
+                <p className="mt-1 text-xs text-muted-foreground">공간설계 경험</p>
+              </div>
+            </div>
+            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Coffee className="h-4 w-4 text-accent" />
+              매장 설계·시공을 본사가 직접 책임집니다 — 외주 인테리어 업체를 따로 찾을 필요가 없습니다.
+            </p>
+            <ContactForm variant="franchise" />
+          </div>
         </div>
       </div>
     </section>

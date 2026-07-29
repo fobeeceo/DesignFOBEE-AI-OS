@@ -2,7 +2,7 @@
 
 # Audit Report
 
-생성: 2026-07-29T10:34:23.544Z
+생성: 2026-07-29T10:59:43.837Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
@@ -41,10 +41,13 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: 43d928abe389e234377098ac72fb3fe8624b79ab fix(seo): sitemap에 /about·/design 추가, robots에 앱 플로우 라우트 제외 (Sprint 1 P5)
-- 미커밋 변경: 2건
+- 최근 커밋: a8d6a8adcc3e4b16db14a631df8b44dd57c6421d fix(design): /design 스튜디오 섹션 제목을 "AI 디자인 스튜디오"로 변경
+- 미커밋 변경: 5건
 
 ```
-M  audit-report.md
+M audit-report.md
 M  components/Studio.tsx
+M  components/home/CTASection.tsx
+M  components/home/ContactForm.tsx
+M  components/home/GBrickSection.tsx
 ```
