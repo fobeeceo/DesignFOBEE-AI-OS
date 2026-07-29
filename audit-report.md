@@ -2,7 +2,7 @@
 
 # Audit Report
 
-생성: 2026-07-29T08:25:44.184Z
+생성: 2026-07-29T08:29:53.058Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
@@ -42,10 +42,10 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: 9937cff17ee34aa7beaf0e9399bee2375ff7a809 feat(discord): Discord Morning Brief 조립기 신설 (4단계)
+- 최근 커밋: b3542e1c009f273386f7a302681190b929b8f083 refactor(agents): 7개 Agent로 구조 분리 (5단계)
 - 미커밋 변경: 2건
 
 ```
-M content-automation-agent/src/discord_brief.py
-?? content-automation-agent/src/agents/
+M app/api/hq/erp/route.ts
+?? lib/core/
 ```

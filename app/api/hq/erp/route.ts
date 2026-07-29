@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
-import { promises as fs } from "fs";
 import path from "path";
 import { ERP_SNAPSHOT } from "@/lib/hq/erpSnapshot";
 import type { ErpData, ErpApiResponse, MenuEngineering } from "@/lib/hq/types";
+import { config } from "@/lib/core/config";
+import { readJsonFile } from "@/lib/core/helpers";
+import { logger } from "@/lib/core/logger";
 
 export const dynamic = "force-dynamic";
 
-const OUT_DIR = path.join(process.cwd(), "content-automation-agent", "output");
+const OUT_DIR = config.contentAutomationOutputDir();
 
 /** erp_engine.py `daily_report()`가 실제로 쓰는 원시 JSON 산출물 형태(한글 키, 파이썬 산출물 그대로). */
 type DailyReport = {
@@ -41,25 +43,19 @@ type PosAnalysis = {
   판매순위_매출: { 메뉴: string; 매출: number; 수량: number }[];
 };
 
-async function readJson<T>(file: string): Promise<T | null> {
-  try {
-    const raw = await fs.readFile(path.join(OUT_DIR, file), "utf-8");
-    return JSON.parse(raw) as T;
-  } catch {
-    return null;
-  }
-}
-
 /**
  * erp_engine.py(daily_report)·pos_import.py(analyze) 실행 산출물을 읽어
  * ErpData(Dashboard·ERP 상세 공용 타입)로 변환. 산출물이 없으면(Vercel 등, .gitignore 처리됨) null.
  */
 async function readLiveData(): Promise<ErpData | null> {
   const [report, pos] = await Promise.all([
-    readJson<DailyReport>("erp_daily_report.json"),
-    readJson<PosAnalysis>("pos_analysis.json"),
+    readJsonFile<DailyReport>(path.join(OUT_DIR, "erp_daily_report.json")),
+    readJsonFile<PosAnalysis>(path.join(OUT_DIR, "pos_analysis.json")),
   ]);
-  if (!report) return null;
+  if (!report) {
+    logger.warn("hq.erp", "erp_daily_report.json 없음 — 스냅샷으로 폴백");
+    return null;
+  }
 
   return {
     ...ERP_SNAPSHOT,
@@ -130,6 +126,7 @@ async function readLiveData(): Promise<ErpData | null> {
  */
 export async function GET() {
   const live = await readLiveData();
+  if (live) logger.info("hq.erp", "live 데이터 응답");
   const body: ErpApiResponse = live
     ? { ok: true, source: "live", data: live }
     : { ok: true, source: "snapshot", data: ERP_SNAPSHOT };
