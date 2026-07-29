@@ -2,7 +2,7 @@
 
 # Audit Report
 
-생성: 2026-07-29T11:29:08.494Z
+생성: 2026-07-30T00:00:57.653Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
@@ -41,16 +41,10 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: c1cb4164af76eb69f37142fe6bb2585e445c6fe0 feat(consultation): 인테리어/가맹/AI디자인 상담 완전 분리 (Sprint2 P1)
-- 미커밋 변경: 8건
+- 최근 커밋: 6ec92abe87f986694b5f51824afc21c7817e1493 perf(home): Lighthouse Performance 79 → 95 (Sprint2 P3)
+- 미커밋 변경: 2건
 
 ```
-A  app/design/layout.tsx
-M  app/globals.css
-M  components/home/Hero.tsx
-M  components/layout/MobileNav.tsx
-A  lib/fonts.ts
-M  package-lock.json
-M  package.json
-M  tailwind.config.ts
+M audit-report.md
+M  components/home/PortfolioSection.tsx
 ```

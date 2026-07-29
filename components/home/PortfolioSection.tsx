@@ -107,7 +107,7 @@ export function PortfolioSection() {
           ))}
         </div>
 
-        <div className="mt-8 grid auto-rows-[1fr] grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
           {filtered.map((project, i) => (
             <ProjectCard key={project.name} project={project} featured={cat === "전체" && i === 0} />
           ))}
