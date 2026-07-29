@@ -3,7 +3,7 @@
  * 여기서만 계산한다. 컴포넌트(app/hq/**)는 이 모듈이 반환한 값을 그대로 표시(Display)만 한다.
  */
 import type { CostMenu, ErpData } from "./types";
-import { won } from "./erpSnapshot";
+import { won } from "./format";
 
 /** 판매가×원가율 → 원가(원 단위 반올림). 메뉴 원가·디저트 원가에서 공통으로 쓰던 계산을 통합. */
 export function costOf(price: number, ratioPercent: number): number {

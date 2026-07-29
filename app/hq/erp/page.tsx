@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ERP_SNAPSHOT, won } from "@/lib/hq/erpSnapshot";
+import { ERP_SNAPSHOT } from "@/lib/hq/erpSnapshot";
+import { won } from "@/lib/hq/format";
 import type { ErpApiResponse } from "@/lib/hq/types";
 import { costOf } from "@/lib/hq/kpi";
 

@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { HQ_MENU, ERP_SNAPSHOT, STORES, AI_STAFF, won } from "@/lib/hq/erpSnapshot";
+import { HQ_MENU, ERP_SNAPSHOT, STORES, AI_STAFF } from "@/lib/hq/erpSnapshot";
+import { won } from "@/lib/hq/format";
 import type { ErpApiResponse } from "@/lib/hq/types";
 
 const STATUS_STYLE: Record<string, string> = {

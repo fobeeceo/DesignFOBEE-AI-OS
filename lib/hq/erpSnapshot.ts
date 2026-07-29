@@ -1,6 +1,10 @@
 import type { ErpData } from "./types";
 
 /**
+ * HQ 데이터(Data) 레이어 — 가공하지 않은 SSOT 값만 둔다. 파생값 계산은 kpi.ts, 문자열
+ * 포맷팅은 format.ts, 화면 표시는 app/hq/**로 분리되어 있다(3계층: Data → Calculation →
+ * Presentation). 이 파일에는 계산식·포맷 함수를 추가하지 않는다.
+ *
  * AI HQ ERP 실데이터 스냅샷 (SSOT: content-automation-agent/src erp_engine + pos_import).
  * POS clsProd 2026-07-01~07-20 · 재고관리 DB 2026-07-05 · 09_MENU_COST_TABLE.
  * 추후 라이브 API(/api/hq/erp)로 대체 가능한 형태. 값은 실제 계산 결과.
@@ -153,5 +157,3 @@ export const HQ_MENU = [
   { key: "staff", label: "AI 직원", icon: "🤖" },
   { key: "settings", label: "설정", icon: "⚙️" },
 ] as const;
-
-export const won = (n: number) => n.toLocaleString("ko-KR") + "원";

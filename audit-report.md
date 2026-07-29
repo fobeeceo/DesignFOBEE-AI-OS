@@ -2,7 +2,7 @@
 
 # Audit Report
 
-생성: 2026-07-29T08:11:32.554Z
+생성: 2026-07-29T08:14:56.658Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
@@ -42,11 +42,14 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: 852e402aa58a077914dbfda95bac0fa84eb225a0 refactor(hq): ERP API 응답 타입 통합 (1단계)
-- 미커밋 변경: 3건
+- 최근 커밋: 75c4d90d8e756b4d3f0876023b78cbf90555a1aa refactor(hq): Dashboard 계산 로직을 lib/hq/kpi.ts로 이동 (2단계)
+- 미커밋 변경: 6건
 
 ```
-M app/hq/erp/page.tsx
+M app/hq/[section]/page.tsx
+ M app/hq/erp/page.tsx
  M app/hq/page.tsx
-?? lib/hq/kpi.ts
+ M lib/hq/erpSnapshot.ts
+ M lib/hq/kpi.ts
+?? lib/hq/format.ts
 ```
