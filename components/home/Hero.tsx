@@ -12,11 +12,12 @@ import { buttonVariants } from "@/components/ui/button";
 export function Hero() {
   return (
     <section id="top" className="relative min-h-[88vh] w-full overflow-hidden bg-primary text-white">
-      {/* 풀블리드 공간 사진 — gbrick-eunpyeong.jpg는 2026-07-28 삭제됨(은평본점 사진 미확보),
-          안산점 실사진(로고 노출된 확정 GBRICK Coffee 인테리어)으로 교체(2026-07-29). */}
+      {/* 풀블리드 공간 사진 — gbrick-eunpyeong.jpg는 2026-07-28 삭제됨(은평본점 사진 미확보).
+          2026-07-29 대표님이 새 사진(디자인포비작업사진2 IMG_8205)을 은평본점 야간 외관으로
+          직접 확인해주셔서, 임시로 썼던 안산점 사진 대신 이 확정 본점 사진으로 교체. */}
       <Image
-        src="/images/portfolio/gbrick-ansan.jpg"
-        alt="DesignFOBEE가 설계·시공한 GBRICK Coffee 공간"
+        src="/images/portfolio/website/designfobee-gbrick-storefront-night-01.webp"
+        alt="GBRICK Coffee 은평본점 야간 매장 외관 — DesignFOBEE 설계·시공"
         fill
         priority
         sizes="100vw"

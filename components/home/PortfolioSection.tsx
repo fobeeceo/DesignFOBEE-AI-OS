@@ -8,11 +8,11 @@ import { WORK_GALLERY } from "@/lib/portfolio/workGallery";
 
 /**
  * GBRICK Coffee 직영·가맹점 — 출처: 지명원·정보공개서.
- * 매장별 사진 매핑은 2026-07-28 CEO 최종 확인 기준(은평본점 사진은 아직 미확보 — 추후 재업로드 예정,
- * 그 전까지 매장명만 표시하고 사진은 비워둔다. 추측 이미지 사용 금지).
+ * 매장별 사진 매핑은 2026-07-28 CEO 최종 확인 기준. 은평본점 사진은 2026-07-29 대표님이
+ * "디자인포비작업사진2"(야간 매장 외관 IMG_8205)를 본점으로 직접 확인해주셔서 반영.
  */
 const GBRICK_STORES = [
-  { name: "GBRICK Coffee 은평본점", location: "서울 은평구", meta: "직영 1호점 · 2013", image: undefined },
+  { name: "GBRICK Coffee 은평본점", location: "서울 은평구", meta: "직영 1호점 · 2013", image: "/images/portfolio/website/designfobee-gbrick-storefront-night-01.webp" },
   { name: "GBRICK Coffee 안산점", location: "경기 안산시", meta: "가맹점 시공", image: "/images/portfolio/gbrick-ansan.jpg" },
   { name: "GBRICK Coffee 단대점", location: "경기 성남시", meta: "2013", image: "/images/portfolio/gbrick-dandae.jpg" },
   { name: "GBRICK Coffee 삼송점", location: "경기 고양시 삼송", meta: "가맹점 시공", image: "/images/portfolio/gbrick-samsong.jpg" },

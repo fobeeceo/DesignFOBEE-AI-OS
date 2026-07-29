@@ -2,7 +2,7 @@
 
 # Audit Report
 
-생성: 2026-07-29T10:00:01.379Z
+생성: 2026-07-29T10:05:47.008Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
@@ -42,27 +42,24 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: ed7f53b4b5be479a8ca2419768cfbeacdd214491 docs: 10단계 CTO 업무지시 실행 기록 + Supabase 4단계 진단 (2026-07-29)
-- 미커밋 변경: 19건
+- 최근 커밋: fa11f6a1bbb0d10c816bba8a161c4898eabe887f fix(home): Hero 배경 이미지 404 긴급 복구 (Sprint 1 P0)
+- 미커밋 변경: 16건
 
 ```
-M QA-REPORT.md
- M audit-report.md
 M  components/home/Hero.tsx
- M lib/portfolio/workGallery.ts
- M public/images/manifest.json
-?? lh-summary.txt
-?? lighthouse-home.json
-?? public/images/portfolio/website/designfobee-cafe-bakery-counter-01-thumb.webp
-?? public/images/portfolio/website/designfobee-cafe-bakery-counter-01.webp
-?? public/images/portfolio/website/designfobee-cafe-counter-shelving-01-thumb.webp
-?? public/images/portfolio/website/designfobee-cafe-counter-shelving-01.webp
-?? public/images/portfolio/website/designfobee-gbrick-storefront-night-01-thumb.webp
-?? public/images/portfolio/website/designfobee-gbrick-storefront-night-01.webp
-?? public/images/portfolio/website/designfobee-kids-lounge-01-thumb.webp
-?? public/images/portfolio/website/designfobee-kids-lounge-01.webp
-?? public/images/portfolio/website/designfobee-kids-lounge-02-thumb.webp
-?? public/images/portfolio/website/designfobee-kids-lounge-02.webp
-?? public/images/portfolio/website/designfobee-retail-corridor-01-thumb.webp
-?? public/images/portfolio/website/designfobee-retail-corridor-01.webp
+M  components/home/PortfolioSection.tsx
+M  lib/portfolio/workGallery.ts
+M  public/images/manifest.json
+A  public/images/portfolio/website/designfobee-cafe-bakery-counter-01-thumb.webp
+A  public/images/portfolio/website/designfobee-cafe-bakery-counter-01.webp
+A  public/images/portfolio/website/designfobee-cafe-counter-shelving-01-thumb.webp
+A  public/images/portfolio/website/designfobee-cafe-counter-shelving-01.webp
+A  public/images/portfolio/website/designfobee-gbrick-storefront-night-01-thumb.webp
+A  public/images/portfolio/website/designfobee-gbrick-storefront-night-01.webp
+A  public/images/portfolio/website/designfobee-kids-lounge-01-thumb.webp
+A  public/images/portfolio/website/designfobee-kids-lounge-01.webp
+A  public/images/portfolio/website/designfobee-kids-lounge-02-thumb.webp
+A  public/images/portfolio/website/designfobee-kids-lounge-02.webp
+A  public/images/portfolio/website/designfobee-retail-corridor-01-thumb.webp
+A  public/images/portfolio/website/designfobee-retail-corridor-01.webp
 ```
