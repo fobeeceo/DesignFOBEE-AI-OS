@@ -2,7 +2,7 @@
 
 # Audit Report
 
-생성: 2026-07-29T08:14:56.658Z
+생성: 2026-07-29T08:21:04.958Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
@@ -42,14 +42,9 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: 75c4d90d8e756b4d3f0876023b78cbf90555a1aa refactor(hq): Dashboard 계산 로직을 lib/hq/kpi.ts로 이동 (2단계)
-- 미커밋 변경: 6건
+- 최근 커밋: 35b19e335b2159fdfd1ce703a282cbd01f6d65dc refactor(hq): erpSnapshot 3계층 분리 — Data/Calculation/Presentation (3단계)
+- 미커밋 변경: 1건
 
 ```
-M app/hq/[section]/page.tsx
- M app/hq/erp/page.tsx
- M app/hq/page.tsx
- M lib/hq/erpSnapshot.ts
- M lib/hq/kpi.ts
-?? lib/hq/format.ts
+?? content-automation-agent/src/discord_brief.py
 ```
