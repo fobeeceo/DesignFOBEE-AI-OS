@@ -2,7 +2,7 @@
 
 # QA Extended Report
 
-생성: 2026-07-29T01:08:35.760Z
+생성: 2026-07-29T09:08:45.763Z
 기준: CLAUDE.md §9
 
 ## 1. Accessibility (jsx-a11y)

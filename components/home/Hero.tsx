@@ -12,9 +12,10 @@ import { buttonVariants } from "@/components/ui/button";
 export function Hero() {
   return (
     <section id="top" className="relative min-h-[88vh] w-full overflow-hidden bg-primary text-white">
-      {/* 풀블리드 공간 사진 */}
+      {/* 풀블리드 공간 사진 — gbrick-eunpyeong.jpg는 2026-07-28 삭제됨(은평본점 사진 미확보),
+          안산점 실사진(로고 노출된 확정 GBRICK Coffee 인테리어)으로 교체(2026-07-29). */}
       <Image
-        src="/images/portfolio/gbrick-eunpyeong.jpg"
+        src="/images/portfolio/gbrick-ansan.jpg"
         alt="DesignFOBEE가 설계·시공한 GBRICK Coffee 공간"
         fill
         priority
