@@ -192,7 +192,7 @@ export default function Studio() {
                 Studio
               </p>
               <h2 className="font-display mt-3 text-3xl font-bold tracking-tight text-ink md:text-4xl">
-                나의 리디자인 스튜디오
+                AI 디자인 스튜디오
               </h2>
             </div>
             <span className="rounded-full border border-line bg-paper-raised px-4 py-2 text-xs font-semibold text-ink-soft">

@@ -2,7 +2,7 @@
 
 # Audit Report
 
-생성: 2026-07-29T10:24:03.159Z
+생성: 2026-07-29T10:34:23.544Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
@@ -41,11 +41,10 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: a37b1f8ddf6907f55cca4aae24ce668bf4619feb feat(home): TrustSection에 실제 프랜차이즈 신뢰지표 반영 (Sprint 1 P3)
-- 미커밋 변경: 3건
+- 최근 커밋: 43d928abe389e234377098ac72fb3fe8624b79ab fix(seo): sitemap에 /about·/design 추가, robots에 앱 플로우 라우트 제외 (Sprint 1 P5)
+- 미커밋 변경: 2건
 
 ```
-M  app/robots.ts
-M  app/sitemap.ts
 M  audit-report.md
+M  components/Studio.tsx
 ```
