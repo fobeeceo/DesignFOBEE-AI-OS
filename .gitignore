@@ -28,3 +28,5 @@ content-automation-agent/logs/
 # Python
 __pycache__/
 *.pyc
+.pytest_cache/
+.coverage

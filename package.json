@@ -8,7 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "qa": "next lint && tsc --noEmit && next build",
+    "test": "vitest run",
+    "qa": "next lint && tsc --noEmit && next build && npm run test",
     "qa:extended": "node scripts/qa-extended.js",
     "audit": "node scripts/audit.js",
     "sync-images": "node scripts/sync-images.js",
@@ -48,6 +49,7 @@
     "postcss": "^8.4.47",
     "prisma": "^5.19.1",
     "tailwindcss": "^3.4.11",
-    "typescript": "^5.6.2"
+    "typescript": "^5.6.2",
+    "vitest": "^4.1.10"
   }
 }
