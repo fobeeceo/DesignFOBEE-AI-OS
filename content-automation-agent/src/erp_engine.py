@@ -55,12 +55,25 @@ def reorder_recommendations() -> list[dict]:
     return sorted(recs, key=lambda r: (-r["긴급"], -r["부족"]))
 
 
+SUPPLIER_MAP = {  # SUPPLIER_MASTER v1.2(2026-07 확정, 대표님 확정분만) — 품목 → 확정 거래처
+    "디카페인원두": "뉴디스코리아 (SUPPLIER-002, BEAN)",
+    "우유": "서울우유 (SUPPLIER-003, MILK-001)",
+    "자몽청": "본사 제작(자체 제조, 외부 거래처 없음)",
+    "자몽에이드소분": "본사 제작(자체 제조, 외부 거래처 없음)",
+    "오미자청": "본사 제작(자체 제조, 외부 거래처 없음)",
+    "딸기라떼소분": "본사 제작(자체 제조, 외부 거래처 없음)",
+    "치즈케익박스": "제원인터내셔날 (SUPPLIER-001, DESSERT)",
+    "초코케익박스": "제원인터내셔날 (SUPPLIER-001, DESSERT)",
+}  # 나머지 품목(오트밀크·일반두유·무당두유·탄산수·컵류·버블티소분)은 SUPPLIER_MASTER v1.2에
+   # 아직 미입력 상태(원문: "그 외 : 미입력, 대표님 확인 대기") — 추측하지 않고 그대로 남긴다.
+
+
 def purchase_orders() -> list[dict]:
     """reorder_recommendations()를 발주서 초안으로 변환.
-    SUPPLIER_MASTER(Notion, 거래처·단가)가 아직 Google Doc 원문 그대로라 코드가 읽을 수 있는
-    형태(품목→거래처/단가 매핑)로 구조화되지 않았다 — 그래서 공급처·예상금액은 계산하지 않고
-    "미배정"으로 정직하게 남긴다(추측 금지). 실제 발주 실행(발주서 전송·비용 발생)은 이 함수의
-    책임이 아니다 — CEO 승인 후 사람이 처리하거나, SUPPLIER_MASTER 구조화 이후 별도 연동 필요.
+    공급처는 SUPPLIER_MASTER v1.2(Notion 연결 Google Doc, 2026-07 확정분)에서 확인된 품목만
+    채우고, 나머지는 원문 그대로 "미확인"으로 정직하게 남긴다(추측 금지). 단가가 아직
+    SUPPLIER_MASTER에 없어 예상금액은 계산하지 않는다. 실제 발주 실행(발주서 전송·비용 발생)은
+    이 함수의 책임이 아니다 — CEO 승인 후 사람이 처리한다.
     """
     today = datetime.date.today().isoformat()
     orders = []
@@ -72,7 +85,7 @@ def purchase_orders() -> list[dict]:
             "안전재고": r["적정"],
             "발주추천수량": r["발주추천"],
             "긴급": r["긴급"],
-            "공급처": "미배정(SUPPLIER_MASTER 구조화 대기)",
+            "공급처": SUPPLIER_MAP.get(r["품목"], "미확인(SUPPLIER_MASTER v1.2 미입력 — 대표님 확인 대기)"),
             "예상금액": None,
             "승인상태": "대기",
         })
