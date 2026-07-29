@@ -3,8 +3,10 @@
 import { useEffect, useState } from "react";
 import { ERP_SNAPSHOT, won } from "@/lib/hq/erpSnapshot";
 import type { ErpApiResponse } from "@/lib/hq/types";
+import { dashboardKpis, highCostMenus, type DashboardKpi } from "@/lib/hq/kpi";
 
-function Stat({ label, value, sub, pending }: { label: string; value: string; sub?: string; pending?: boolean }) {
+/** 표시 전용 — 계산은 lib/hq/kpi.ts의 dashboardKpis()가 전담한다. */
+function Stat({ label, value, sub, pending }: DashboardKpi) {
   return (
     <div className={`rounded-2xl border p-5 ${pending ? "border-dashed border-border/60 bg-muted/20" : "border-border bg-background"}`}>
       <p className="text-xs text-muted-foreground">{label}</p>
@@ -33,14 +35,7 @@ export default function HqDashboard() {
       </div>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Stat label="매출 (집계기간 기준)" value={won(E.sales.revenue)} sub={E.sales.period} />
-        <Stat label="발주 승인 대기" value={`${E.inventory.purchaseOrders.length}건`} sub="ERP 추천 기준 · Notion 승인 큐와 별도 확인 필요" />
-        <Stat label="긴급 재고" value={`${E.inventory.urgentCount}건`} sub={`전체 재고부족 ${E.inventory.shortageCount}건`} />
-        <Stat label="AI 실패 건수" value="연결 필요" sub="Notion 실패/반려 집계 미연동 (TODO)" pending />
-        <Stat label="오늘 일정" value="연결 필요" sub="Google Calendar OAuth 대기 (TODO)" pending />
-        <Stat label="오늘 AI 작업 완료율" value="연결 필요" sub="실행 로그 집계 미구축 (TODO)" pending />
-        <Stat label="전국 매장 현황" value="준비 중" sub="타 매장 POS 데이터 확보 후 제공 예정" pending />
-        <Stat label="평균 원가율" value={`${E.cost.avgRatio}%`} sub={`메뉴 ${E.masters.menus}종`} />
+        {dashboardKpis(E).map((k) => <Stat key={k.label} {...k} />)}
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
@@ -78,7 +73,7 @@ export default function HqDashboard() {
       <div className="rounded-2xl border border-border p-5">
         <h2 className="text-sm font-bold">⚠️ 고원가 메뉴 (원가율 25%+)</h2>
         <div className="mt-3 flex flex-wrap gap-2">
-          {E.cost.menus.filter((m) => m.ratio >= 25).map((m) => (
+          {highCostMenus(E.cost.menus).map((m) => (
             <span key={m.name} className="rounded-full border border-border px-3 py-1 text-xs">
               {m.name} <span className="font-semibold text-red-500">{m.ratio}%</span>
             </span>

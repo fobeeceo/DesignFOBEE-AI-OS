@@ -2,7 +2,7 @@
 
 # Audit Report
 
-생성: 2026-07-29T08:08:10.647Z
+생성: 2026-07-29T08:11:32.554Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
@@ -42,14 +42,11 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: 78d838ded9f2d134bcf919233b97c44936bde8f8 docs: GBRICK AI HQ 업무지시서 v1.0 실행 기록 (P1~P10)
-- 미커밋 변경: 6건
+- 최근 커밋: 852e402aa58a077914dbfda95bac0fa84eb225a0 refactor(hq): ERP API 응답 타입 통합 (1단계)
+- 미커밋 변경: 3건
 
 ```
-M app/api/hq/erp/route.ts
- M app/hq/[section]/page.tsx
- M app/hq/erp/page.tsx
+M app/hq/erp/page.tsx
  M app/hq/page.tsx
- M lib/hq/erpSnapshot.ts
-?? lib/hq/types.ts
+?? lib/hq/kpi.ts
 ```

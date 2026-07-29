@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { ERP_SNAPSHOT, won } from "@/lib/hq/erpSnapshot";
 import type { ErpApiResponse } from "@/lib/hq/types";
+import { costOf } from "@/lib/hq/kpi";
 
 /** ERP 상세 — POS 판매·원가·재고 발주 (실데이터, SSOT: erp_engine/pos_import, 라이브: /api/hq/erp). */
 export default function HqErp() {
@@ -42,7 +43,7 @@ export default function HqErp() {
           </thead>
           <tbody>
             {E.cost.menus.map((m) => {
-              const cost = Math.round(m.price * (m.ratio / 100));
+              const cost = costOf(m.price, m.ratio);
               return (
                 <tr key={m.name} className="border-b border-border/50">
                   <td className="py-2">{m.name}</td>
@@ -112,7 +113,7 @@ export default function HqErp() {
           </thead>
           <tbody>
             {E.dessert.highRatio.map((m) => {
-              const cost = Math.round(m.price * (m.ratio / 100));
+              const cost = costOf(m.price, m.ratio);
               return (
                 <tr key={m.name} className="border-b border-border/50">
                   <td className="py-2">{m.name}</td>
