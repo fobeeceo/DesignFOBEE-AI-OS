@@ -30,11 +30,16 @@ docker compose -f AI-HQ/docker-compose.yml run --rm erp python src/erp_engine.py
 `.env.local`(web) / `content-automation-agent/.env`(erp)이 없어도 기동된다(dry-run/데모 모드, `required: false`).
 ⚠️ `docker compose config`는 실제 키 값을 출력한다 — 로그 파일로 리다이렉트 금지, 화면 확인만.
 
-## 3. QA / Audit (배포 전 필수, CLAUDE.md §9·§10)
+## 3. QA / Audit (배포 전 필수, CLAUDE.md §9·§10·§21)
 ```bash
-npm run qa            # lint + type-check + build
+npm run qa            # lint + type-check + build + vitest
 npm run qa:extended   # a11y·SEO·broken-link·image·performance → QA-REPORT.md
 npm run audit          # dead-code·중복·unused-import·broken-route·build·security·env·git → audit-report.md
+npm run verify         # qa → audit → check-docs 순서로 전부 실행, 하나라도 실패하면 중단
+```
+`.git/hooks/pre-commit`가 로컬에서 `npm run verify`를 자동 실행하도록 설치돼 있다(이 저장소를 새로 클론한 환경에는 git이 `.git/hooks/`를 복사하지 않으므로, 새 클론에서 강제하려면 아래를 한 번 실행):
+```bash
+cp scripts/pre-commit-template.sh .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
 ```
 
 ## 4. ERP 실데이터 파이프라인

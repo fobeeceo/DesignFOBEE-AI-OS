@@ -2,7 +2,7 @@
 
 # Audit Report
 
-생성: 2026-07-29T08:37:45.837Z
+생성: 2026-07-29T08:41:53.161Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
@@ -42,17 +42,12 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: 7cb47fd1c751877045e9f2e1afd0b03d9afa6451 feat(core): AI HQ Core 모듈 신설 (6단계) — lib/core/ 로 배치
-- 미커밋 변경: 9건
+- 최근 커밋: af425a1ae9c38588a8f855f1435de0f72dc25fa3 test: 유닛 테스트 인프라 구축 (7단계) — Vitest(TS) + pytest(Python)
+- 미커밋 변경: 4건
 
 ```
-M audit-report.md
- M content-automation-agent/requirements.txt
- M package-lock.json
+M INSTALL.md
  M package.json
-?? content-automation-agent/.coverage
-?? content-automation-agent/conftest.py
-?? content-automation-agent/tests/
-?? lib/hq/kpi.test.ts
-?? vitest.config.ts
+?? scripts/pre-commit-template.sh
+?? scripts/verify-before-commit.js
 ```
