@@ -2,7 +2,7 @@
 
 # Audit Report
 
-생성: 2026-07-29T08:45:48.084Z
+생성: 2026-07-29T08:51:30.914Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
@@ -42,11 +42,11 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: 4f97f3f2475a75d0f539c8cd2926250a7b534ada build(verify): 커밋 전 QA/Audit/문서동기화 자동 검증 게이트 (8단계)
+- 최근 커밋: cc882b3a96996394ffa27cd04fb2992c672f39e8 fix(verify): pre-commit hook auto-stages regenerated reports
 - 미커밋 변경: 3건
 
 ```
-M audit-report.md
- M docs-sync-report.json
-M  scripts/pre-commit-template.sh
+M  CHANGELOG.md
+M  DECISION-LOG.md
+M  TODO.md
 ```

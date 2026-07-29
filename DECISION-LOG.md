@@ -2,6 +2,32 @@
 
 > CEO MASTER INITIALIZATION MISSION §12 산출물. 이후 모든 중요 기술 결정은 여기 append한다. 형식: 날짜·결정·근거·대안 비교(§문제해결규칙: 대안 3개 이상 검토).
 
+## 2026-07-29 — CTO 업무지시(운영 안정화 10단계) 실행 + Supabase 진단 4단계 보고서
+
+### 1~8단계 요약
+1. **API Route 타입 통합**: `lib/hq/types.ts`(ErpData·ErpApiResponse) 신설, route.ts·3개 page.tsx가 공유. `r.json()` 암묵적 any 제거.
+2. **Dashboard 리팩토링**: `lib/hq/kpi.ts`(costOf·highCostMenus·dashboardKpis) 신설, `app/hq/page.tsx`는 표시 전용으로 축소.
+3. **3계층 분리**: `lib/hq/format.ts`(Presentation)·`erpSnapshot.ts`(순수 Data)·`kpi.ts`(Calculation) 분리.
+4. **Discord Morning Brief**: `content-automation-agent/src/discord_brief.py` 신설. ERP KPI·긴급재고·CEO Question은 실데이터, 날씨·AI뉴스·정부지원사업은 WebSearch로 실제 조회한 값을 Input으로 받는 구조(자체 API 호출 안 함, 자격증명 없음), "오늘의 말씀"은 종교 콘텐츠라 자동 생성하지 않음. 오늘 실제 WebSearch 결과로 종단 테스트 완료.
+5. **Agent 구조 분리**: `content-automation-agent/src/agents/`에 Weather·News·Government·Bible·CEO·Dashboard·ERPAgent 7개, 각각 Input/Process/Output docstring 명시.
+6. **AI HQ Core**: 지시서는 `src/core/`를 요청했으나 이 저장소가 `src/` 레이아웃을 쓰지 않아(app/·lib/ 전부 루트) `lib/core/`로 배치(구조 일관성 위한 의도적 변경). logger·config·types·errors·constants·helpers 작성, route.ts에 실제로 배선.
+7. **테스트**: Python(pytest) 22건 — agents 100%·erp_engine 92%·discord_brief 91% 커버리지. TS(vitest 신규 도입) 7건 — kpi.ts 전체. `npm run qa`에 vitest 편입.
+8. **문서 자동화**: 완전 자동 서술 생성은 만들지 않음(정직한 한계 — CHANGELOG/DECISION-LOG의 "왜"는 스크립트가 대신 지어낼 수 없음). 대신 `npm run verify`(qa→audit→check-docs-sync) + 로컬 pre-commit 훅으로 "PASS 아니면 커밋 금지"를 실제 강제 게이트로 전환, 훅이 재생성된 리포트를 자동으로 같은 커밋에 재스테이징하도록 개선.
+
+### 9단계 — Public Repo 정리 점검(Private 전환 전)
+- **Secrets**: `npm run audit` 하드코딩 시크릿 0건(오늘도 재확인). `.env`·`.env.local`·`docs/`(정보공개서 등 민감정보 포함) 전부 `.gitignore` 처리·미추적 확인(`git ls-files docs/` 빈 결과).
+- **Environment**: 코드 참조 11개 = `.env.example` 선언 11개, 누락 0건. 미사용 선언 1건(`N8N_API_KEY`, 즉시 위험 아님).
+- **Actions**: `.github/workflows` 자체가 없음 — GitHub Actions 미사용, 점검 대상 없음.
+- **Webhook**: 저장소 코드/설정에 웹훅 없음(n8n 워크플로는 Notion/Telegram 대상이지 GitHub 웹훅 아님). `docs/`(미추적) 안에만 웹훅 언급 존재, 노출 없음.
+- **Deploy**: `vercel.json` 없음 — Vercel 기본(zero-config) 배포. 브랜치 보호 설정은 GitHub API가 인증을 요구해 이 세션에서 조회 불가(대표님 GitHub 설정에서 직접 확인 필요).
+- **결론**: Private 전환을 막을 만한 노출은 발견되지 않음. Private 전환 자체는 2026-07-28 승인됐으나 이 세션에 GitHub CLI/토큰이 없어 대표님이 직접 실행해야 함(Owner Action Required, 기존 TODO 유지).
+
+### 10단계 — Supabase 연결 실패 진단 보고서
+**① 원인**: `npx prisma db pull`을 로컬 `DATABASE_URL`(Supavisor 풀러, `aws-1-ap-northeast-2.pooler.supabase.com`)로 실행 → `FATAL: tenant/user postgres.edwnvwawckfdarsxobah not found`. 이 에러는 자격증명 오류(비밀번호 틀림)가 아니라 **풀러가 해당 프로젝트 참조(edwnvwawckfdarsxobah) 자체를 인식하지 못함**을 뜻한다 — Supabase에서 프로젝트가 일시정지(pause)되면 나타나는 전형적 패턴과 일치. 원본 업무지시서(2026-07-28)가 이미 "7일 미사용으로 일시정지" 상태를 보고했던 것과 정확히 같은 프로젝트 참조라 동일 문제가 아직 해결되지 않았다고 판단.
+**② 해결방법**: 대표님이 supabase.com 대시보드에서 프로젝트(`edwnvwawckfdarsxobah`, "Design FOBEE AI")를 직접 재개(Resume)해야 한다 — 이 세션에는 Supabase API/대시보드 접근 도구가 전혀 없어 대신 처리 불가. 재개 후에도 Vercel 프로덕션 환경변수(NEXT_PUBLIC_SUPABASE_URL·ANON_KEY 등)가 실제로 설정돼 있는지 별도 확인 필요(브라우저 콘솔에서 "URL and API key are required" 에러로 이미 미설정 가능성 확인됨, 2026-07-28).
+**③ 영향범위**: `/login`·`/signup`·`/admin/leads`(Supabase Auth·Prisma 경유) 등 인증이 필요한 기능 전체가 프로덕션에서 동작 불가 상태로 추정. 무인증 페이지(`/`, `/about`, `/hq` 데모, `/design`)와 `content-automation-agent`(로컬 파일 기반 ERP)는 Supabase에 의존하지 않아 영향 없음 — 오늘 확인한 `/hq` 라이브 대시보드·발주 로직은 전부 정상 작동 중.
+**④ 재발방지**: Supabase 무료/저사용 티어는 일정 기간 미접속 시 자동 일시정지된다 — 근본 재발방지는 (a) 정기적으로 실제 쿼리를 날리는 예약 작업(예: 매일 한 번 가벼운 헬스체크 쿼리)을 두어 자동 정지 임계값에 걸리지 않게 하거나, (b) 유료 플랜으로 전환해 자동 정지 정책 자체를 없애는 것 — 어느 쪽이든 비용 발생 소지가 있어 CEO-CHARTER 승인 대상, 이번 세션에서 임의로 결정하지 않음.
+
 ## 2026-07-29 — GBRICK AI HQ 업무지시서 v1.0(운영 안정화 단계) 10개 Priority 순차 실행
 - **배경**: CEO가 "지금까지 진행된 상황을 기준으로 Claude Code가 승인 없이 순차적으로 진행"하도록 작성한 업무지시서 v1.0을 채팅으로 전달. 기본원칙(기존 기능 삭제 금지·추측 데이터 생성 금지·Placeholder는 Placeholder로·QA→Audit→Build 후 Commit·오류 발견시 수정 후 계속·CEO 승인 없이 연속 진행·모든 작업 DECISION-LOG 기록)을 그대로 따름. CEO-CHARTER §승인규칙 6항목(실데이터삭제·비용발생·외부서비스가입·GitHub공개변경·운영서버파괴적변경·법률/라이선스변경)에 해당하는 것은 손대지 않음.
 - **P1 자동화 스케줄**: `list_scheduled_tasks`로 재확인 → 3건 모두 등록 상태(2026-07-28에 재등록한 것 유지). `auto-order-recommender`는 오늘 09:03경 첫 실행이 실제로 발생해 "신규 항목 없음 → 조용히 종료"를 정확히 수행함을 Notion 레코드 수(15건 유지, 중복 없음)로 검증. 나머지 둘은 오늘 예정 시각이 아직 지나지 않아 결과는 익일 확인.

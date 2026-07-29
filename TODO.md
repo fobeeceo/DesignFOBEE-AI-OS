@@ -2,8 +2,9 @@
 
 > CEO-CHARTER.md §16-B 승인규칙 적용(2026-07-21 최종 갱신): 실제데이터삭제·비용발생·외부서비스가입·GitHub공개변경·운영서버파괴적변경·법률/라이선스변경 6항목만 CEO 승인 대상. 그 외(Dead Code 삭제 포함)는 자율 진행. `[x]`=완료·검증, `[ ]`=대기.
 
-## 긴급 (2026-07-29 발견)
-- [ ] **Supabase 프로젝트 연결 실패 확인(실측)**: `npx prisma db pull`로 DATABASE_URL 직접 연결 테스트 → `FATAL: tenant/user postgres.edwnvwawckfdarsxobah not found`(pooler 레벨에서 프로젝트 자체를 못 찾음, 일시정지 상태와 일치하는 오류). 프로덕션(Vercel) `/login`에서도 Supabase 클라이언트 초기화 에러 재확인. **대표님이 supabase.com 대시보드에서 프로젝트 재개 필요**(Claude Code는 Supabase 접근 도구 자체가 없어 대신 처리 불가). 재개 후 Vercel 환경변수(NEXT_PUBLIC_SUPABASE_URL 등)가 실제로 설정돼 있는지도 같이 확인 필요.
+## 긴급 (2026-07-29 발견, 07-29 재확인)
+- [ ] **Supabase 프로젝트 연결 실패(재확인 완료, 여전히 미해결)**: `npx prisma db pull`로 DATABASE_URL 직접 연결 재테스트 → 동일 에러(`tenant/user postgres.edwnvwawckfdarsxobah not found`). 원인/해결/영향범위/재발방지 4단계 진단은 DECISION-LOG.md 2026-07-29 참조. **대표님이 supabase.com 대시보드에서 프로젝트 재개 필요**(Claude Code는 Supabase 접근 도구 자체가 없어 대신 처리 불가). 재개 후 Vercel 환경변수(NEXT_PUBLIC_SUPABASE_URL 등) 실제 설정 여부도 같이 확인 필요.
+- [ ] **Supabase 자동 일시정지 재발방지 결정 필요**: (a) 매일 가벼운 헬스체크 쿼리를 날리는 예약 작업 추가, 또는 (b) 유료 플랜 전환 — 어느 쪽이든 비용/운영 방식 변경이라 CEO 결정 필요(CEO-CHARTER 승인 대상).
 
 ## CEO 승인 대상 (6항목 규칙 해당)
 - [ ] **저장소 Private 전환**(GitHub 공개여부 변경) — 2026-07-28 CEO 채팅 승인 완료. 단, Claude Code에 GitHub CLI·API 토큰이 없어 대신 실행 불가 — 대표님이 [Settings → Danger Zone → Change visibility](https://github.com/fobeeceo/DesignFOBEE-AI-OS/settings)에서 직접 전환 필요(Owner Action Required).
@@ -30,6 +31,9 @@
 - [x] P8 Supabase 점검: 위 "긴급" 항목 참조 — 연결 실패 실측 확인.
 - [x] P9 QA/Audit/Build: 매 변경 후 `npm run qa`·`npm run audit` PASS 확인, 최종 1회 더 재확인.
 - [x] P10 문서 동기화: `check-docs-sync.js` 0건 확인, CHANGELOG·DECISION-LOG·TODO 갱신.
+
+## CTO 업무지시 — 운영 안정화 10단계 (2026-07-29, 같은 날 후속)
+- [x] 1단계 API Route 타입 통합, 2단계 Dashboard 리팩토링, 3단계 3계층 분리, 4단계 Discord Morning Brief, 5단계 Agent 구조 분리, 6단계 Core(`lib/core/`, src/ 대신 — 사유는 DECISION-LOG 참조), 7단계 테스트(pytest 22건+vitest 7건), 8단계 커밋 검증 게이트(`npm run verify`+pre-commit 훅), 9단계 Public Repo 점검(노출 없음 확인), 10단계 Supabase 4단계 진단 보고서 — 전부 완료. 상세는 CHANGELOG.md·DECISION-LOG.md 2026-07-29 참조.
 
 ## 자율 진행 가능 (승인 불요, CEO 액션 대기 아님)
 (현재 없음)

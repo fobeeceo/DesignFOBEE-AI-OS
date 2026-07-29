@@ -4,6 +4,14 @@
 
 ## [Unreleased]
 
+### CTO 업무지시 — 운영 안정화 10단계 (2026-07-29)
+- **타입/구조**: `lib/hq/types.ts`·`kpi.ts`·`format.ts`로 API 응답·계산·표시 3계층 분리. `lib/core/`(logger·config·errors·types·constants·helpers) 신설, `/api/hq/erp`에 배선.
+- **Discord Morning Brief**: `content-automation-agent/src/discord_brief.py` + `agents/`(Weather·News·Government·Bible·CEO·Dashboard·ERPAgent 7개) 신설. 실WebSearch 데이터로 종단 테스트 완료, 종교 콘텐츠는 자동 생성 안 함.
+- **테스트**: pytest 22건(agents 100%·erp_engine 92%·discord_brief 91%) + vitest 7건(kpi.ts) 신규 도입, `npm run qa`에 편입.
+- **커밋 게이트**: `npm run verify`(qa→audit→check-docs-sync) + pre-commit 훅으로 실제 강제.
+- **Public Repo 점검**: Secrets·Env·Actions·Webhook·Deploy 전수 점검 — Private 전환을 막을 노출 없음 확인(전환 자체는 대표님 액션 대기).
+- **Supabase 진단**: `prisma db pull` 재현 테스트로 연결 실패 확정(pooler가 프로젝트 참조를 인식 못함, 일시정지 상태와 일치) — 원인/해결/영향범위/재발방지 4단계 보고서 DECISION-LOG.md 참조.
+
 ### GBRICK AI HQ 업무지시서 v1.0 실행 — 운영 안정화 10개 Priority (2026-07-29)
 - **SUPPLIER_MASTER v1.3**: 거래처/단위/공급단가/최소주문수량/LeadTime/발주요일/최근단가변경일/비고 9컬럼으로 Google Docs·Notion·`erp_engine.py` 동일 구조 확장(값 없는 항목은 "확인대기").
 - **자동 발주 고도화**: `purchase_orders()`에 부족률·예상금액 계산 추가, `supplier_order_totals()`(거래처별 합계) 신설. `auto-order-recommender`에 승인건 이메일 초안 생성 절차 추가(발송은 항상 사람).
