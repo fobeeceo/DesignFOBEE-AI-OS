@@ -1,14 +1,13 @@
-> **요약**: 총 2건 발견 (Git 미커밋 변경 제외). §6에 따라 이 스크립트는 아무것도 삭제/수정하지 않았다.
+> **요약**: 총 1건 발견 (Git 미커밋 변경 제외). §6에 따라 이 스크립트는 아무것도 삭제/수정하지 않았다.
 
 # Audit Report
 
-생성: 2026-07-29T10:05:47.008Z
+생성: 2026-07-29T10:15:19.348Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
-- 스캔: 34개 컴포넌트
-- 미사용(어디서도 import 안 됨): 1건
-  - components/home/MenuSection.tsx
+- 스캔: 33개 컴포넌트
+- 미사용(어디서도 import 안 됨): 0건
 - ⚠️ §6 규정: 삭제는 CEO 승인 후에만 수행.
 
 ## 2. Duplicate Component
@@ -18,7 +17,7 @@
     - components/design/CompareSlider.tsx
 
 ## 3. Unused Import
-- 스캔: 72개 파일
+- 스캔: 71개 파일
 - 이슈: 0건
 
 ## 4. Broken Route (nav 컴포넌트)
@@ -42,24 +41,21 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: fa11f6a1bbb0d10c816bba8a161c4898eabe887f fix(home): Hero 배경 이미지 404 긴급 복구 (Sprint 1 P0)
-- 미커밋 변경: 16건
+- 최근 커밋: 5dce48c5ea9f5c823dbba715a6c78ae47e68adf0 feat(portfolio): 디자인포비작업사진2 반영 + 은평본점 사진 확정
+- 미커밋 변경: 13건
 
 ```
-M  components/home/Hero.tsx
-M  components/home/PortfolioSection.tsx
-M  lib/portfolio/workGallery.ts
-M  public/images/manifest.json
-A  public/images/portfolio/website/designfobee-cafe-bakery-counter-01-thumb.webp
-A  public/images/portfolio/website/designfobee-cafe-bakery-counter-01.webp
-A  public/images/portfolio/website/designfobee-cafe-counter-shelving-01-thumb.webp
-A  public/images/portfolio/website/designfobee-cafe-counter-shelving-01.webp
-A  public/images/portfolio/website/designfobee-gbrick-storefront-night-01-thumb.webp
-A  public/images/portfolio/website/designfobee-gbrick-storefront-night-01.webp
-A  public/images/portfolio/website/designfobee-kids-lounge-01-thumb.webp
-A  public/images/portfolio/website/designfobee-kids-lounge-01.webp
-A  public/images/portfolio/website/designfobee-kids-lounge-02-thumb.webp
-A  public/images/portfolio/website/designfobee-kids-lounge-02.webp
-A  public/images/portfolio/website/designfobee-retail-corridor-01-thumb.webp
-A  public/images/portfolio/website/designfobee-retail-corridor-01.webp
+M  app/layout.tsx
+M  app/page.tsx
+M  audit-report.md
+D  components/home/MenuSection.tsx
+D  lib/menu/dessertMenu.ts
+D  public/file.svg
+D  public/globe.svg
+D  public/living_room_after.png
+D  public/living_room_before.png
+D  public/next.svg
+A  public/og-image.jpg
+D  public/vercel.svg
+D  public/window.svg
 ```
