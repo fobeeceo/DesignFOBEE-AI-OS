@@ -3,11 +3,11 @@
 import { useEffect, useState } from "react";
 import { ERP_SNAPSHOT, won } from "@/lib/hq/erpSnapshot";
 
-function Stat({ label, value, sub }: { label: string; value: string; sub?: string }) {
+function Stat({ label, value, sub, pending }: { label: string; value: string; sub?: string; pending?: boolean }) {
   return (
-    <div className="rounded-2xl border border-border bg-background p-5">
+    <div className={`rounded-2xl border p-5 ${pending ? "border-dashed border-border/60 bg-muted/20" : "border-border bg-background"}`}>
       <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="mt-1 text-2xl font-bold tracking-tight">{value}</p>
+      <p className={`mt-1 text-2xl font-bold tracking-tight ${pending ? "text-muted-foreground" : ""}`}>{value}</p>
       {sub && <p className="mt-1 text-xs text-muted-foreground">{sub}</p>}
     </div>
   );
@@ -32,10 +32,14 @@ export default function HqDashboard() {
       </div>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Stat label="매출 (순액)" value={won(E.sales.revenue)} sub={`${E.sales.qty.toLocaleString()}잔 판매`} />
+        <Stat label="매출 (집계기간 기준)" value={won(E.sales.revenue)} sub={E.sales.period} />
+        <Stat label="발주 승인 대기" value={`${E.inventory.purchaseOrders.length}건`} sub="ERP 추천 기준 · Notion 승인 큐와 별도 확인 필요" />
+        <Stat label="긴급 재고" value={`${E.inventory.urgentCount}건`} sub={`전체 재고부족 ${E.inventory.shortageCount}건`} />
+        <Stat label="AI 실패 건수" value="연결 필요" sub="Notion 실패/반려 집계 미연동 (TODO)" pending />
+        <Stat label="오늘 일정" value="연결 필요" sub="Google Calendar OAuth 대기 (TODO)" pending />
+        <Stat label="오늘 AI 작업 완료율" value="연결 필요" sub="실행 로그 집계 미구축 (TODO)" pending />
+        <Stat label="전국 매장 현황" value="준비 중" sub="타 매장 POS 데이터 확보 후 제공 예정" pending />
         <Stat label="평균 원가율" value={`${E.cost.avgRatio}%`} sub={`메뉴 ${E.masters.menus}종`} />
-        <Stat label="재고 부족" value={`${E.inventory.shortageCount}건`} sub={`긴급 ${E.inventory.urgentCount}건`} />
-        <Stat label="총 할인" value={won(E.sales.discount)} sub={`상품 ${E.sales.products}종`} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">

@@ -127,25 +127,51 @@ export default function HqErp() {
       </section>
 
       <section className="rounded-2xl border border-border p-5">
-        <h2 className="mb-3 text-sm font-bold">📦 발주 추천 (안전재고 미달 {E.inventory.shortageCount}건)</h2>
+        <h2 className="mb-3 text-sm font-bold">📦 발주서 초안 (안전재고 미달 {E.inventory.shortageCount}건 · Notion &ldquo;AI 발주 승인&rdquo; 승인 대기)</h2>
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border text-left text-xs text-muted-foreground">
-              <th className="py-2">품목</th><th>현재</th><th>적정</th><th>발주추천</th><th>상태</th>
+              <th className="py-2">품목</th><th>현재</th><th>적정</th><th>발주추천</th><th>공급처</th><th>예상금액</th><th>상태</th>
             </tr>
           </thead>
           <tbody>
-            {E.inventory.reorders.map((r) => (
-              <tr key={r.item} className="border-b border-border/50">
+            {E.inventory.purchaseOrders.map((r) => (
+              <tr key={r.id} className="border-b border-border/50">
                 <td className="py-2">{r.item}</td>
                 <td>{r.current}</td>
                 <td>{r.safe}</td>
                 <td className="font-semibold">{r.order}</td>
+                <td className="text-xs">{r.supplier}</td>
+                <td className="text-xs">{r.estimatedCost != null ? won(r.estimatedCost) : "확인불가"}</td>
                 <td>{r.urgent ? <span className="text-red-500">긴급</span> : "필요"}</td>
               </tr>
             ))}
           </tbody>
         </table>
+      </section>
+
+      <section className="rounded-2xl border border-border p-5">
+        <h2 className="mb-3 text-sm font-bold">🧾 거래처별 발주 합계</h2>
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-border text-left text-xs text-muted-foreground">
+              <th className="py-2">거래처</th><th>품목수</th><th>예상금액 합계</th><th>비고</th>
+            </tr>
+          </thead>
+          <tbody>
+            {E.inventory.supplierTotals.map((s) => (
+              <tr key={s.supplier} className="border-b border-border/50">
+                <td className="py-2 text-xs">{s.supplier}</td>
+                <td>{s.itemCount}</td>
+                <td className="font-semibold">{s.totalCost != null ? won(s.totalCost) : "—"}</td>
+                <td className="text-xs text-muted-foreground">{s.note ?? ""}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <p className="mt-2 text-xs text-muted-foreground">
+          SUPPLIER_MASTER v1.3에 공급단가가 아직 없어 대부분 &ldquo;확인불가&rdquo;로 표시됩니다 — 단가 확정 시 자동으로 채워집니다.
+        </p>
       </section>
 
       <p className="text-xs text-muted-foreground">

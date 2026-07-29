@@ -37,9 +37,13 @@ export const ERP_SNAPSHOT = {
       { item: "탄산수", current: 2, safe: 10, order: 8, urgent: false },
     ],
     purchaseOrders: [
-      { id: "PO-2026-07-20-01", item: "딸기라떼소분", current: 0, safe: 6, order: 6, urgent: true, supplier: "미배정(SUPPLIER_MASTER 구조화 대기)", estimatedCost: null, approvalStatus: "대기" },
-      { id: "PO-2026-07-20-02", item: "치즈케익박스", current: 0, safe: 2, order: 2, urgent: true, supplier: "미배정(SUPPLIER_MASTER 구조화 대기)", estimatedCost: null, approvalStatus: "대기" },
-      { id: "PO-2026-07-20-03", item: "초코케익박스", current: 0, safe: 2, order: 2, urgent: true, supplier: "미배정(SUPPLIER_MASTER 구조화 대기)", estimatedCost: null, approvalStatus: "대기" },
+      { id: "PO-2026-07-20-01", item: "딸기라떼소분", current: 0, safe: 6, order: 6, urgent: true, supplier: "본사 제작(자체 제조, 외부 거래처 없음)", estimatedCost: null, approvalStatus: "대기" },
+      { id: "PO-2026-07-20-02", item: "치즈케익박스", current: 0, safe: 2, order: 2, urgent: true, supplier: "제원인터내셔날 (SUPPLIER-001, DESSERT)", estimatedCost: null, approvalStatus: "대기" },
+      { id: "PO-2026-07-20-03", item: "초코케익박스", current: 0, safe: 2, order: 2, urgent: true, supplier: "제원인터내셔날 (SUPPLIER-001, DESSERT)", estimatedCost: null, approvalStatus: "대기" },
+    ],
+    supplierTotals: [
+      { supplier: "제원인터내셔날 (SUPPLIER-001, DESSERT)", itemCount: 2, totalCost: null, note: "확인불가(단가 미확정)" },
+      { supplier: "본사 제작(자체 제조, 외부 거래처 없음)", itemCount: 1, totalCost: null, note: "확인불가(단가 미확정)" },
     ],
   },
   cost: {

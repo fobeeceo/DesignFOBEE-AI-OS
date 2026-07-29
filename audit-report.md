@@ -2,7 +2,7 @@
 
 # Audit Report
 
-생성: 2026-07-29T00:23:21.781Z
+생성: 2026-07-29T01:04:45.500Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
@@ -42,9 +42,13 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: 82e7ed759c7837b28115df99174a6841670d92b3 docs(claude): add §21 Coding Behavior Guidelines to CLAUDE.md
-- 미커밋 변경: 1건
+- 최근 커밋: 25f46c49dc283403cbeddd9d03dcfb6c75af1cd6 feat(erp): SUPPLIER_MASTER v1.2 확정분을 발주서 초안에 연결
+- 미커밋 변경: 5건
 
 ```
-M content-automation-agent/src/erp_engine.py
+M app/api/hq/erp/route.ts
+ M app/hq/erp/page.tsx
+ M app/hq/page.tsx
+ M content-automation-agent/src/erp_engine.py
+ M lib/hq/erpSnapshot.ts
 ```

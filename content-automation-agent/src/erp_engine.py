@@ -55,29 +55,47 @@ def reorder_recommendations() -> list[dict]:
     return sorted(recs, key=lambda r: (-r["긴급"], -r["부족"]))
 
 
-SUPPLIER_MAP = {  # SUPPLIER_MASTER v1.2(2026-07 확정, 대표님 확정분만) — 품목 → 확정 거래처
-    "디카페인원두": "뉴디스코리아 (SUPPLIER-002, BEAN)",
-    "우유": "서울우유 (SUPPLIER-003, MILK-001)",
-    "자몽청": "본사 제작(자체 제조, 외부 거래처 없음)",
-    "자몽에이드소분": "본사 제작(자체 제조, 외부 거래처 없음)",
-    "오미자청": "본사 제작(자체 제조, 외부 거래처 없음)",
-    "딸기라떼소분": "본사 제작(자체 제조, 외부 거래처 없음)",
-    "치즈케익박스": "제원인터내셔날 (SUPPLIER-001, DESSERT)",
-    "초코케익박스": "제원인터내셔날 (SUPPLIER-001, DESSERT)",
-}  # 나머지 품목(오트밀크·일반두유·무당두유·탄산수·컵류·버블티소분)은 SUPPLIER_MASTER v1.2에
-   # 아직 미입력 상태(원문: "그 외 : 미입력, 대표님 확인 대기") — 추측하지 않고 그대로 남긴다.
+_UNKNOWN = "확인대기"
+
+SUPPLIER_MAP = {  # SUPPLIER_MASTER v1.3(2026-07-29, Google Docs·Notion과 동일 컬럼 구조) — 품목 → 거래처 상세.
+    # 공급단가·최소주문수량·LeadTime·발주요일·최근단가변경일은 원본(SUPPLIER_MASTER) 어디에도
+    # 기록된 적이 없어 전부 "확인대기"다 — 추측하지 않는다. 값이 들어오면 이 dict만 갱신하면 된다.
+    "디카페인원두": {"거래처": "뉴디스코리아 (SUPPLIER-002, BEAN)", "단위": _UNKNOWN, "공급단가": None,
+                 "최소주문수량": _UNKNOWN, "leadTime": _UNKNOWN, "발주요일": _UNKNOWN, "최근단가변경일": _UNKNOWN},
+    "우유": {"거래처": "서울우유 (SUPPLIER-003, MILK-001)", "단위": _UNKNOWN, "공급단가": None,
+           "최소주문수량": _UNKNOWN, "leadTime": _UNKNOWN, "발주요일": _UNKNOWN, "최근단가변경일": _UNKNOWN},
+    "자몽청": {"거래처": "본사 제작(자체 제조, 외부 거래처 없음)", "단위": _UNKNOWN, "공급단가": None,
+            "최소주문수량": "N/A", "leadTime": "N/A", "발주요일": "N/A", "최근단가변경일": _UNKNOWN},
+    "자몽에이드소분": {"거래처": "본사 제작(자체 제조, 외부 거래처 없음)", "단위": _UNKNOWN, "공급단가": None,
+                "최소주문수량": "N/A", "leadTime": "N/A", "발주요일": "N/A", "최근단가변경일": _UNKNOWN},
+    "오미자청": {"거래처": "본사 제작(자체 제조, 외부 거래처 없음)", "단위": _UNKNOWN, "공급단가": None,
+             "최소주문수량": "N/A", "leadTime": "N/A", "발주요일": "N/A", "최근단가변경일": _UNKNOWN},
+    "딸기라떼소분": {"거래처": "본사 제작(자체 제조, 외부 거래처 없음)", "단위": _UNKNOWN, "공급단가": None,
+               "최소주문수량": "N/A", "leadTime": "N/A", "발주요일": "N/A", "최근단가변경일": _UNKNOWN},
+    "치즈케익박스": {"거래처": "제원인터내셔날 (SUPPLIER-001, DESSERT)", "단위": _UNKNOWN, "공급단가": None,
+               "최소주문수량": _UNKNOWN, "leadTime": _UNKNOWN, "발주요일": _UNKNOWN, "최근단가변경일": _UNKNOWN},
+    "초코케익박스": {"거래처": "제원인터내셔날 (SUPPLIER-001, DESSERT)", "단위": _UNKNOWN, "공급단가": None,
+               "최소주문수량": _UNKNOWN, "leadTime": _UNKNOWN, "발주요일": _UNKNOWN, "최근단가변경일": _UNKNOWN},
+}  # 나머지 품목(오트밀크·일반두유·무당두유·탄산수·컵류·버블티소분)은 거래처 자체가 SUPPLIER_MASTER에
+   # 미입력 상태 — 아래 _DEFAULT_SUPPLIER로 처리.
+_DEFAULT_SUPPLIER = {"거래처": "미확인(SUPPLIER_MASTER 미입력 — 대표님 확인 대기)", "단위": _UNKNOWN,
+                     "공급단가": None, "최소주문수량": _UNKNOWN, "leadTime": _UNKNOWN,
+                     "발주요일": _UNKNOWN, "최근단가변경일": _UNKNOWN}
 
 
 def purchase_orders() -> list[dict]:
-    """reorder_recommendations()를 발주서 초안으로 변환.
-    공급처는 SUPPLIER_MASTER v1.2(Notion 연결 Google Doc, 2026-07 확정분)에서 확인된 품목만
-    채우고, 나머지는 원문 그대로 "미확인"으로 정직하게 남긴다(추측 금지). 단가가 아직
-    SUPPLIER_MASTER에 없어 예상금액은 계산하지 않는다. 실제 발주 실행(발주서 전송·비용 발생)은
-    이 함수의 책임이 아니다 — CEO 승인 후 사람이 처리한다.
+    """reorder_recommendations()를 발주서 초안으로 변환(SUPPLIER_MASTER v1.3 컬럼 구조 반영).
+    예상금액은 공급단가가 실제로 확인된 품목에서만 계산한다(공급단가 None이면 예상금액도 None —
+    추측 금지). 월사용량은 POS/재고 변동 이력을 아직 수집하지 않아 계산 불가(정직하게 None).
+    발주우선순위는 긴급여부·부족률(실측 재고 데이터 기반)로만 계산한다. 실제 발주 실행(발주서
+    전송·비용 발생)은 이 함수의 책임이 아니다 — CEO 승인 후 사람이 처리한다.
     """
     today = datetime.date.today().isoformat()
     orders = []
     for i, r in enumerate(reorder_recommendations(), start=1):
+        sup = SUPPLIER_MAP.get(r["품목"], _DEFAULT_SUPPLIER)
+        price = sup["공급단가"]
+        shortage_rate = round((r["부족"] / r["적정"]) * 100, 1) if r["적정"] else None
         orders.append({
             "발주ID": f"PO-{today}-{i:02d}",
             "품목": r["품목"],
@@ -85,11 +103,38 @@ def purchase_orders() -> list[dict]:
             "안전재고": r["적정"],
             "발주추천수량": r["발주추천"],
             "긴급": r["긴급"],
-            "공급처": SUPPLIER_MAP.get(r["품목"], "미확인(SUPPLIER_MASTER v1.2 미입력 — 대표님 확인 대기)"),
-            "예상금액": None,
+            "부족률(%)": shortage_rate,
+            "공급처": sup["거래처"],
+            "단위": sup["단위"],
+            "공급단가": price,
+            "최소주문수량": sup["최소주문수량"],
+            "leadTime": sup["leadTime"],
+            "월사용량": None,  # 사용이력 미수집 — 향후 POS/재고 변동 로그 필요(추측 금지)
+            "예상금액": round(price * r["발주추천"]) if isinstance(price, (int, float)) else None,
             "승인상태": "대기",
         })
-    return orders
+    return sorted(orders, key=lambda o: (-o["긴급"], -(o["부족률(%)"] or 0)))
+
+
+def supplier_order_totals() -> list[dict]:
+    """purchase_orders()를 거래처별로 묶어 발주 합계를 낸다.
+    공급단가가 확인된 품목이 하나도 없는 거래처는 금액 대신 "확인불가(단가 미확정)"를 표시한다."""
+    groups: dict[str, dict] = {}
+    for o in purchase_orders():
+        g = groups.setdefault(o["공급처"], {"거래처": o["공급처"], "품목수": 0, "예상금액합계": 0, "금액확인가능": False})
+        g["품목수"] += 1
+        if o["예상금액"] is not None:
+            g["예상금액합계"] += o["예상금액"]
+            g["금액확인가능"] = True
+    out = []
+    for g in groups.values():
+        out.append({
+            "거래처": g["거래처"],
+            "품목수": g["품목수"],
+            "예상금액합계": g["예상금액합계"] if g["금액확인가능"] else None,
+            "비고": None if g["금액확인가능"] else "확인불가(단가 미확정)",
+        })
+    return out
 
 
 def menu_costs() -> list[dict]:
@@ -186,6 +231,7 @@ def daily_report() -> dict:
         "디저트": _dessert_summary(),
         "메뉴엔지니어링": menu_engineering(),
         "발주서초안": purchase_orders(),
+        "발주거래처합계": supplier_order_totals(),
     }
     (OUT / "erp_daily_report.json").write_text(
         json.dumps(report, ensure_ascii=True, indent=2), encoding="utf-8")

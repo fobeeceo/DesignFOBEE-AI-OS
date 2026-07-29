@@ -17,6 +17,7 @@ type DailyReport = {
     발주ID: string; 품목: string; 현재재고: number; 안전재고: number;
     발주추천수량: number; 긴급: boolean; 공급처: string; 예상금액: number | null; 승인상태: string;
   }[];
+  발주거래처합계: { 거래처: string; 품목수: number; 예상금액합계: number | null; 비고: string | null }[];
   평균원가율: number;
   메뉴원가: { 메뉴: string; 판매가: number; 원가율: number }[];
   디저트: {
@@ -112,6 +113,12 @@ async function readLiveData() {
         supplier: o.공급처,
         estimatedCost: o.예상금액,
         approvalStatus: o.승인상태,
+      })),
+      supplierTotals: (report.발주거래처합계 ?? []).map((s) => ({
+        supplier: s.거래처,
+        itemCount: s.품목수,
+        totalCost: s.예상금액합계,
+        note: s.비고,
       })),
     },
     cost: {
