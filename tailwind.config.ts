@@ -46,7 +46,7 @@ const config: Config = {
       },
       fontFamily: {
         sans: ["var(--font-sans)", "sans-serif"],
-        display: ['"Noto Serif KR"', "ui-serif", "Georgia", "serif"],
+        display: ["var(--font-display)", "ui-serif", "Georgia", "serif"],
       },
       boxShadow: {
         lift: "0 1px 2px rgb(33 27 19 / 0.04), 0 8px 24px rgb(33 27 19 / 0.06)",

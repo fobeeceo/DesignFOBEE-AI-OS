@@ -2,7 +2,7 @@
 
 # Audit Report
 
-생성: 2026-07-29T10:59:43.837Z
+생성: 2026-07-29T11:29:08.494Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
@@ -17,7 +17,7 @@
     - components/design/CompareSlider.tsx
 
 ## 3. Unused Import
-- 스캔: 71개 파일
+- 스캔: 72개 파일
 - 이슈: 0건
 
 ## 4. Broken Route (nav 컴포넌트)
@@ -41,13 +41,16 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: a8d6a8adcc3e4b16db14a631df8b44dd57c6421d fix(design): /design 스튜디오 섹션 제목을 "AI 디자인 스튜디오"로 변경
-- 미커밋 변경: 5건
+- 최근 커밋: c1cb4164af76eb69f37142fe6bb2585e445c6fe0 feat(consultation): 인테리어/가맹/AI디자인 상담 완전 분리 (Sprint2 P1)
+- 미커밋 변경: 8건
 
 ```
-M audit-report.md
-M  components/Studio.tsx
-M  components/home/CTASection.tsx
-M  components/home/ContactForm.tsx
-M  components/home/GBrickSection.tsx
+A  app/design/layout.tsx
+M  app/globals.css
+M  components/home/Hero.tsx
+M  components/layout/MobileNav.tsx
+A  lib/fonts.ts
+M  package-lock.json
+M  package.json
+M  tailwind.config.ts
 ```

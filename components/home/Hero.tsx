@@ -1,7 +1,4 @@
-"use client";
-
 import Image from "next/image";
-import { motion } from "framer-motion";
 import { buttonVariants } from "@/components/ui/button";
 
 /**
@@ -27,42 +24,28 @@ export function Hero() {
       <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-black/35" />
 
       <div className="container-px relative mx-auto flex min-h-[88vh] max-w-6xl flex-col justify-end pb-20 pt-32 sm:pb-28">
-        <motion.p
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="text-xs font-semibold uppercase tracking-[0.28em] text-white/80"
-        >
+        <p className="animate-fade-in-up text-xs font-semibold uppercase tracking-[0.28em] text-white/80">
           DesignFOBEE · 26년 공간디자인
-        </motion.p>
+        </p>
 
-        <motion.h1
-          initial={{ opacity: 0, y: 18 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.1 }}
-          className="mt-4 max-w-3xl text-4xl font-bold leading-[1.15] tracking-tight sm:text-5xl lg:text-6xl"
+        <h1
+          className="animate-fade-in-up mt-4 max-w-3xl text-4xl font-bold leading-[1.15] tracking-tight sm:text-5xl lg:text-6xl"
+          style={{ animationDelay: "0.1s" }}
         >
           공간을 넘어,
           <br />
           경험을 디자인합니다
-        </motion.h1>
+        </h1>
 
-        <motion.p
-          initial={{ opacity: 0, y: 18 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.2 }}
-          className="mt-6 max-w-xl text-base leading-relaxed text-white/85 sm:text-lg"
+        <p
+          className="animate-fade-in-up mt-6 max-w-xl text-base leading-relaxed text-white/85 sm:text-lg"
+          style={{ animationDelay: "0.2s" }}
         >
           상업공간·교회·오피스·카페·주거까지 26년. 이제 AI로 사진 한 장이면
           공간 분석·디자인 제안·예상 견적을 미리 받아보세요.
-        </motion.p>
+        </p>
 
-        <motion.div
-          initial={{ opacity: 0, y: 18 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.3 }}
-          className="mt-9 flex flex-col gap-3 sm:flex-row"
-        >
+        <div className="animate-fade-in-up mt-9 flex flex-col gap-3 sm:flex-row" style={{ animationDelay: "0.3s" }}>
           <a
             href="#contact"
             className={buttonVariants({ size: "lg", className: "bg-white !text-primary font-semibold hover:bg-white/90" })}
@@ -79,16 +62,11 @@ export function Hero() {
           >
             AI로 공간 미리보기
           </a>
-        </motion.div>
+        </div>
 
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.7, delay: 0.4 }}
-          className="mt-3 text-xs text-white/60"
-        >
+        <p className="animate-fade-in-up mt-3 text-xs text-white/60" style={{ animationDelay: "0.4s" }}>
           로그인 없이, 30초 만에 무료로 확인할 수 있습니다.
-        </motion.p>
+        </p>
       </div>
     </section>
   );
