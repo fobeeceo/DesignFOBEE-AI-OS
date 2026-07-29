@@ -1,17 +1,15 @@
-const STATS = [
-  { value: "26+", label: "년 공간디자인 경험" },
-  { value: "5", label: "개 전문 분야" },
-  { value: "AI", label: "24시간 상담 시스템" },
-];
+import { STATS } from "@/lib/company/profile";
 
 /**
- * 신뢰 지표. 실제 누적 프로젝트/고객 수치는 데이터 확보 후 갱신.
+ * 신뢰 지표 — lib/company/profile.ts의 STATS(지명원·정보공개서 기반 실수치, /about과 동일 SSOT)를
+ * 그대로 쓴다. 이전엔 "26+/5/AI" 같은 일반적인 문구였는데, 실제로 이미 확보된 프랜차이즈 실적
+ * 수치(7개 매장·3년간 폐점 0건 등)가 있어 그쪽으로 교체(추측 아님 — 기존 /about 데이터 재사용).
  */
 export function TrustSection() {
   return (
     <section className="border-y border-border bg-muted/40 py-16">
       <div className="container-px mx-auto max-w-6xl">
-        <div className="grid grid-cols-3 gap-6 text-center">
+        <div className="grid grid-cols-2 gap-6 text-center sm:grid-cols-4">
           {STATS.map((s) => (
             <div key={s.label}>
               <p className="text-3xl font-bold text-accent sm:text-4xl">{s.value}</p>

@@ -2,7 +2,7 @@
 
 # Audit Report
 
-생성: 2026-07-29T10:15:19.348Z
+생성: 2026-07-29T10:19:52.200Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
@@ -41,21 +41,10 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: 5dce48c5ea9f5c823dbba715a6c78ae47e68adf0 feat(portfolio): 디자인포비작업사진2 반영 + 은평본점 사진 확정
-- 미커밋 변경: 13건
+- 최근 커밋: c00ab13cb240332ec9fd700efbcc32dbd370b071 feat(seo,cleanup): OG 이미지·홈 metadata 추가 + 미사용 자산 정리 (Sprint 1 P2 TOP10)
+- 미커밋 변경: 2건
 
 ```
-M  app/layout.tsx
-M  app/page.tsx
 M  audit-report.md
-D  components/home/MenuSection.tsx
-D  lib/menu/dessertMenu.ts
-D  public/file.svg
-D  public/globe.svg
-D  public/living_room_after.png
-D  public/living_room_before.png
-D  public/next.svg
-A  public/og-image.jpg
-D  public/vercel.svg
-D  public/window.svg
+M  components/home/TrustSection.tsx
 ```
