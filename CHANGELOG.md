@@ -4,6 +4,13 @@
 
 ## [Unreleased]
 
+### GBRICK AI HQ 업무지시서 v1.0 실행 — 운영 안정화 10개 Priority (2026-07-29)
+- **SUPPLIER_MASTER v1.3**: 거래처/단위/공급단가/최소주문수량/LeadTime/발주요일/최근단가변경일/비고 9컬럼으로 Google Docs·Notion·`erp_engine.py` 동일 구조 확장(값 없는 항목은 "확인대기").
+- **자동 발주 고도화**: `purchase_orders()`에 부족률·예상금액 계산 추가, `supplier_order_totals()`(거래처별 합계) 신설. `auto-order-recommender`에 승인건 이메일 초안 생성 절차 추가(발송은 항상 사람).
+- **CEO Dashboard KPI 개편**: `/hq` 첫 화면을 매출·발주승인대기·긴급재고·AI실패건수·오늘일정·AI작업완료율·전국매장현황 7개 KPI로 재구성(미연결 항목은 정직하게 "연결 필요" 표시).
+- **실측 점검(추측 없음)**: Supabase 연결 실패를 `prisma db pull`로 직접 재현 확인(pooler "tenant not found"), Gmail·Calendar는 이 세션 커넥터로 실연결 확인, AI QA/Audit/SEO/Documentation 4개 역할 오늘 재실행해 정상 확인.
+- 상세 경위는 DECISION-LOG.md 2026-07-29 참조.
+
 ### 홈페이지 포트폴리오/회사소개 개편 main 병합·배포 (2026-07-28, CEO 승인)
 - `ai-proposal/3aa3abcb`(2026-07-27 자동구현, 리뷰 대기 중이던 브랜치)를 CEO가 채팅으로 검토·승인 → main에 병합(`21ee28a`) 후 push. 병합 전 `npm run qa`(lint+tsc+build) 재확인 PASS.
 - 변경 내용: `/about` 회사소개 페이지 신설, `lib/company/profile.ts`(회사 프로필 SSOT)·`lib/portfolio/workGallery.ts`(작업 갤러리 16장) 신규 모듈, 홈 디저트 섹션 제거, GBRICK 매장 사진 최종 매핑.

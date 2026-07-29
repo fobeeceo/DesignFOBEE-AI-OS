@@ -2,18 +2,18 @@
 
 # QA Extended Report
 
-생성: 2026-07-23T10:42:40.949Z
+생성: 2026-07-29T01:08:35.760Z
 기준: CLAUDE.md §9
 
 ## 1. Accessibility (jsx-a11y)
-- 스캔 파일: 49
+- 스캔 파일: 51
 - 이슈: 1건
 | 파일 | 라인 | 규칙 | 메시지 |
 |---|---|---|---|
 | components/ui/label.tsx | 8 | jsx-a11y/label-has-associated-control | A form label must be associated with a control. |
 
 ## 2. SEO
-- 스캔 페이지: 16
+- 스캔 페이지: 17
 - robots.ts: ✅ 있음
 - sitemap.ts: ✅ 있음
 - metadata **진짜 공백**(본인+조상 layout 모두 없음): 0건
@@ -30,7 +30,7 @@
   - app/page.tsx
 
 ## 3. Broken Link (내부 링크)
-- 검사한 링크: 18
+- 검사한 링크: 21
 - 깨진 링크: 0건
 
 ## 4. Image
@@ -45,7 +45,7 @@
 - alt 누락 <Image>: 0건
 
 ## 5. Performance (빌드 번들 예산 200kB)
-- 파싱된 라우트: 32
+- 파싱된 라우트: 35
 - 예산 초과 라우트: 0건
 
 > 참고: 이 지표는 First Load JS 번들 크기 기준(빌드 정적 분석)이다. LCP/TBT/CLS 등 런타임 지표는 Lighthouse가 필요하며(서버 구동 필요), 수동 실행: `npx lighthouse http://localhost:3000 --view`.

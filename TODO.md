@@ -2,8 +2,11 @@
 
 > CEO-CHARTER.md §16-B 승인규칙 적용(2026-07-21 최종 갱신): 실제데이터삭제·비용발생·외부서비스가입·GitHub공개변경·운영서버파괴적변경·법률/라이선스변경 6항목만 CEO 승인 대상. 그 외(Dead Code 삭제 포함)는 자율 진행. `[x]`=완료·검증, `[ ]`=대기.
 
+## 긴급 (2026-07-29 발견)
+- [ ] **Supabase 프로젝트 연결 실패 확인(실측)**: `npx prisma db pull`로 DATABASE_URL 직접 연결 테스트 → `FATAL: tenant/user postgres.edwnvwawckfdarsxobah not found`(pooler 레벨에서 프로젝트 자체를 못 찾음, 일시정지 상태와 일치하는 오류). 프로덕션(Vercel) `/login`에서도 Supabase 클라이언트 초기화 에러 재확인. **대표님이 supabase.com 대시보드에서 프로젝트 재개 필요**(Claude Code는 Supabase 접근 도구 자체가 없어 대신 처리 불가). 재개 후 Vercel 환경변수(NEXT_PUBLIC_SUPABASE_URL 등)가 실제로 설정돼 있는지도 같이 확인 필요.
+
 ## CEO 승인 대상 (6항목 규칙 해당)
-- [ ] **저장소 Private 전환**(GitHub 공개여부 변경) — CEO GitHub 계정 작업.
+- [ ] **저장소 Private 전환**(GitHub 공개여부 변경) — 2026-07-28 CEO 채팅 승인 완료. 단, Claude Code에 GitHub CLI·API 토큰이 없어 대신 실행 불가 — 대표님이 [Settings → Danger Zone → Change visibility](https://github.com/fobeeceo/DesignFOBEE-AI-OS/settings)에서 직접 전환 필요(Owner Action Required).
 - [ ] **`prompts/pricing.ts` 실제 단가 교체**(정책/데이터) — 디자인포비 실제 단가 필요.
 - [ ] **API 키 운영/개발 분리**: CEO MASTER 업무지시서 §6 원칙(예: Gemini Dev/Prod 별도 키)과 현재 방식(Vercel 환경별 값 분리, 변수명은 동일)이 다름 — 어느 쪽을 표준으로 할지 결정 필요([INSTALL.md](INSTALL.md) §7). AI CEO(전략) 에이전트 자체 분석 결과 "현재 방식 유지 + CI 검증스크립트 추가"를 권고(DECISION-LOG 참조, 최종 결정은 CEO).
 - [ ] **이메일 실발송 자동화**: 현재 Gmail 연동은 초안(draft) 생성까지만 가능, 실제 발송 기능 없음 — CEO 다이제스트를 완전자동 발송하려면 별도 자격증명/도구가 필요(외부서비스가입 소지).
@@ -16,8 +19,20 @@
 - [x] **`gbrick-ai-os-build`·`ai-proposal-implementer` 스케줄 재등록**(2026-07-28, CEO 채팅 승인): SKILL.md 파일은 남아있었으나 실제 예약이 전부 유실돼 있던 것을 발견 → CEO 확인 후 `mcp__scheduled-tasks__create_scheduled_task`로 동일 내용 그대로 재등록. `gbrick-ai-os-build`(매일 09:30대, main 자동 push 포함)·`ai-proposal-implementer`(매일 10:00대, push 없음) 둘 다 재가동.
 - [x] **`auto-order-recommender` 신설·활성화**(2026-07-28, CEO 채팅 승인): `content-automation-agent/src/erp_engine.py`에 `purchase_orders()` 추가(공급처는 SUPPLIER_MASTER 미구조화로 "미배정" 정직 표기) + Notion "AI 발주 승인" DB 신설(https://app.notion.com/p/e4181883090c4e74b4bbaf3464dbe9fb) + 오늘자 발주서 초안 15건 등록 + 매일 09:00대 스케줄 등록 완료(실주문 없음, Notion 승인 큐 등록까지만).
 
+## GBRICK AI HQ 업무지시서 v1.0 실행 (2026-07-29, CEO 지시·승인 없이 순차 진행)
+- [x] P1 자동화 스케줄 재확인: 3건(gbrick-ai-os-build·ai-proposal-implementer·auto-order-recommender) 전부 등록 상태 확인. auto-order-recommender는 오늘 09:03경 첫 실행 성공(신규 항목 없어 조용히 종료 확인, 중복 생성 없음). 나머지 둘은 등록만 되고 오늘 첫 실행 시각이 아직 안 지나 결과 미확인(내일부터 lastRunAt 확인 가능).
+- [x] P2 SUPPLIER_MASTER 컬럼 고도화: Google Docs(`01_SUPPLIER_MASTER v1.3` 신규, v1.0~1.2 유지)·Notion·`erp_engine.py` 3곳에 거래처/단위/공급단가/최소주문수량/LeadTime/발주요일/최근단가변경일/비고 컬럼 동일 구조로 반영. 단가 등은 원본에 값이 없어 전부 "확인대기"(추측 없음).
+- [x] P3 자동 발주 고도화: `purchase_orders()`에 부족률·예상금액(단가 확인시만) 추가, `supplier_order_totals()` 신설. 이메일 초안 생성은 `auto-order-recommender` SKILL.md에 절차 추가(승인건 대상, Gmail draft만, 발송 금지) — 현재 "승인" 상태 건이 없어 실행 미검증(다음 승인 발생 시 확인).
+- [x] P4 Dashboard KPI 개편: `/hq` 첫 화면을 7개 KPI로 재구성(매출·발주승인대기·긴급재고·AI실패건수·오늘일정·AI작업완료율·전국매장현황). 뒤 3개는 실데이터 연결 전이라 점선+"연결 필요"로 명시.
+- [x] P5 OAuth 점검: Gmail·Google Calendar는 이 세션 커넥터로 실제 연결 확인(캘린더 목록·초안 조회 성공). Notion·GitHub·Vercel 정상. Telegram은 Bot 자체가 없어 미연결. Supabase는 위 "긴급" 항목 참조.
+- [x] P6 GitHub 운영정책: Private 전환은 Owner Action Required로 위에 정리, AI가 직접 설정 변경하지 않음.
+- [x] P7 AI 직원 점검: AI QA·AI Audit·AI SEO Manager·AI Documentation은 오늘 직접 재실행해 정상 확인(npm run qa/qa:extended/audit/check-docs-sync, 신규 이슈 없음 — label.tsx 오탐 1건은 기존에 정리된 것과 동일). 나머지 9개 정규직 역할은 오늘 재실행하지 않음 — [AI-STAFF-POLICY.md](AI-STAFF-POLICY.md) §7(2026-07-23 마지막 검증)이 최신 기준.
+- [x] P8 Supabase 점검: 위 "긴급" 항목 참조 — 연결 실패 실측 확인.
+- [x] P9 QA/Audit/Build: 매 변경 후 `npm run qa`·`npm run audit` PASS 확인, 최종 1회 더 재확인.
+- [x] P10 문서 동기화: `check-docs-sync.js` 0건 확인, CHANGELOG·DECISION-LOG·TODO 갱신.
+
 ## 자율 진행 가능 (승인 불요, CEO 액션 대기 아님)
-(현재 없음 — 2026-07-28 사이클에서 마지막 남은 항목인 "AI 제안함 자동 등록 파이프라인"을 구축 완료함)
+(현재 없음)
 
 ## 완료 (2026-07-26)
 - [x] **`next.config.ts`/`next.config.mjs` 중복 config 파일 정리**: 두 파일이 내용 동일하게 공존 — 실제로는 **Next.js 14.2.35가 `.ts` config를 지원하지 않아**(`next build`가 즉시 에러) `next.config.mjs`만 항상 유효했고 `.ts`는 사용된 적 없는 완전한 Dead Code였음(직접 재현 확인: `.mjs` 삭제 시 `next build`가 "Configuring Next.js via 'next.config.ts' is not supported" 에러로 즉시 실패). Dead `.ts` 삭제, `.mjs` 유지. `npm run build`/`lint` exit 0 재확인.
