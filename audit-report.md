@@ -2,7 +2,7 @@
 
 # Audit Report
 
-생성: 2026-07-30T00:14:15.614Z
+생성: 2026-07-30T00:18:24.233Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
@@ -41,11 +41,11 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: 99709b64691a669b1fb0dc6e2200406d91ace2cb fix(portfolio): 아이폰(Safari)에서 포트폴리오 섹션 전체 미표시 수정
+- 최근 커밋: b3a64bcef4cd9dd38725b4522cd2571735aa0024 fix(home): 신뢰지표 중복 노출 제거(TrustSection 삭제)
 - 미커밋 변경: 3건
 
 ```
-M  app/page.tsx
- M audit-report.md
+M audit-report.md
  D components/home/TrustSection.tsx
+M  lib/portfolio/workGallery.ts
 ```

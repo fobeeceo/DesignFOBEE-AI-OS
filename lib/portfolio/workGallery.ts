@@ -114,12 +114,12 @@ export const WORK_GALLERY: WorkItem[] = [
   },
   {
     slug: "designfobee-kids-lounge-01",
-    category: "교육시설 · 부속공간",
+    category: "교회 · 부속공간",
     caption: "키즈 라운지(교회 부속시설)",
   },
   {
     slug: "designfobee-kids-lounge-02",
-    category: "교육시설 · 부속공간",
+    category: "교회 · 부속공간",
     caption: "키즈 라운지 2(교회 부속시설)",
   },
 ];
