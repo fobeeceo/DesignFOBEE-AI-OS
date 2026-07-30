@@ -19,8 +19,9 @@ export const metadata: Metadata = {
 /**
  * 홈페이지 (STEP 1).
  * 섹션 순서: Hero → Portfolio → Services → About → Process → GBrick → Contact
- * (신뢰지표 26년·7개매장·폐점0건·10년+는 GBrickSection 자체 통계 그리드에 이미 표시되어
- * 있어, 바로 아래 독립 TrustSection에서 같은 숫자를 한 번 더 보여주던 중복을 제거했다.)
+ * (신뢰지표는 GBrickSection 자체 통계 그리드에 이미 표시되어 있어, 바로 아래 독립
+ * TrustSection에서 같은 숫자를 한 번 더 보여주던 중복을 제거했다. 지표는 CEO 업무지시에
+ * 따라 매장 수·폐점 수 등 변동 수치를 제외하고 변하지 않는 지표로 구성되어 있다.)
  */
 export default function HomePage() {
   return (

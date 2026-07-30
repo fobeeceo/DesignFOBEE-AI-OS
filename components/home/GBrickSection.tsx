@@ -7,7 +7,8 @@ import { Coffee } from "lucide-react";
  * GBRICK Coffee 가맹 상담 섹션 — 이전엔 브랜드 소개 2문장 + 홈 상담폼(#contact) 링크뿐이었다.
  * CEO 업무지시(Sprint 2 P1): 가맹 상담을 인테리어 상담과 완전히 분리 — 이 섹션 자체가
  * 독립된 랜딩(실제 매장 사진 + 신뢰 수치) + 전용 폼(variant="franchise")을 갖는다.
- * 통계는 lib/company/profile.ts STATS(지명원·정보공개서 기반 실수치)와 동일 SSOT.
+ * 통계는 lib/company/profile.ts STATS와 동일 SSOT — 매장 수·폐점 수 등 변동 수치는
+ * CEO 업무지시(신뢰지표 개선)로 제외하고 변하지 않는 지표만 노출한다.
  */
 export function GBrickSection() {
   return (
@@ -33,20 +34,20 @@ export function GBrickSection() {
           <div className="flex flex-col gap-6">
             <div className="grid grid-cols-2 gap-4 rounded-2xl border border-border bg-muted/40 p-6 sm:grid-cols-4">
               <div className="text-center">
-                <p className="text-2xl font-bold text-accent">7개</p>
-                <p className="mt-1 text-xs text-muted-foreground">직영·가맹 매장</p>
+                <p className="text-2xl font-bold text-accent">26년</p>
+                <p className="mt-1 text-xs text-muted-foreground">공간을 만들어온 시간</p>
               </div>
               <div className="text-center">
-                <p className="text-2xl font-bold text-accent">0건</p>
-                <p className="mt-1 text-xs text-muted-foreground">3년간 폐점</p>
+                <p className="text-2xl font-bold text-accent">직접 설계·시공</p>
+                <p className="mt-1 text-xs text-muted-foreground">One Stop Service</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-accent">AI 기반 설계</p>
+                <p className="mt-1 text-xs text-muted-foreground">Design AI</p>
               </div>
               <div className="text-center">
                 <p className="text-2xl font-bold text-accent">10년+</p>
-                <p className="mt-1 text-xs text-muted-foreground">평균 운영 기간</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-accent">26년</p>
-                <p className="mt-1 text-xs text-muted-foreground">공간설계 경험</p>
+                <p className="mt-1 text-xs text-muted-foreground">운영 노하우</p>
               </div>
             </div>
             <p className="flex items-center gap-2 text-sm text-muted-foreground">

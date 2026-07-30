@@ -2,11 +2,11 @@
 
 # Audit Report
 
-생성: 2026-07-30T04:22:45.649Z
+생성: 2026-07-30T08:40:36.610Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
-- 스캔: 32개 컴포넌트
+- 스캔: 33개 컴포넌트
 - 미사용(어디서도 import 안 됨): 0건
 - ⚠️ §6 규정: 삭제는 CEO 승인 후에만 수행.
 
@@ -17,7 +17,7 @@
     - components/design/CompareSlider.tsx
 
 ## 3. Unused Import
-- 스캔: 71개 파일
+- 스캔: 72개 파일
 - 이슈: 0건
 
 ## 4. Broken Route (nav 컴포넌트)
@@ -41,19 +41,13 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: d968fe69c6c15fa9d3afbc9dccbec39476277d05 fix(portfolio): 교회 포트폴리오 카테고리 추가(Sprint2 수정지시 P4)
-- 미커밋 변경: 11건
+- 최근 커밋: 7c0d55073f41b2dcc4810db3760209aaf0d8a635 feat(portfolio): 얼굴 마스킹된 예배당 사진 4장 추가 + 누락된 TrustSection 삭제 반영
+- 미커밋 변경: 5건
 
 ```
-M audit-report.md
-D  components/home/TrustSection.tsx
-M  lib/portfolio/workGallery.ts
-A  public/images/portfolio/website/designfobee-church-sanctuary-01-thumb.webp
-A  public/images/portfolio/website/designfobee-church-sanctuary-01.webp
-A  public/images/portfolio/website/designfobee-church-sanctuary-02-thumb.webp
-A  public/images/portfolio/website/designfobee-church-sanctuary-02.webp
-A  public/images/portfolio/website/designfobee-church-worship-team-01-thumb.webp
-A  public/images/portfolio/website/designfobee-church-worship-team-01.webp
-A  public/images/portfolio/website/designfobee-church-worship-team-02-thumb.webp
-A  public/images/portfolio/website/designfobee-church-worship-team-02.webp
+M  app/page.tsx
+M  components/home/ContactForm.tsx
+M  components/home/GBrickSection.tsx
+A  components/ui/select.tsx
+M  lib/company/profile.ts
 ```

@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { leadSchema, type LeadFormValues } from "@/lib/validations/lead.schema";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Select } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import type { CreateLeadResponse } from "@/types/lead";
@@ -14,35 +15,47 @@ type SubmitState = "idle" | "submitting" | "success" | "error";
 
 export type ContactFormVariant = "interior" | "franchise" | "ai_design";
 
+/** CEO 업무지시(상담 신청 개선): 상담 목적을 폼에서 직접 선택하도록 드롭다운 추가. */
+const PURPOSE_OPTIONS = [
+  "가맹 상담",
+  "인테리어 상담",
+  "교회 인테리어",
+  "상업공간",
+  "견적 문의",
+  "기타",
+] as const;
+
+const VARIANT_DEFAULT_PURPOSE: Record<ContactFormVariant, (typeof PURPOSE_OPTIONS)[number]> = {
+  interior: "인테리어 상담",
+  franchise: "가맹 상담",
+  ai_design: "견적 문의",
+};
+
 /**
  * 상담 유형별 설정 — CEO 업무지시(Sprint 2 P1) "인테리어/가맹/AI디자인 상담 완전 분리".
  * 폼 필드(이름·연락처·이메일·문의내용)는 3개 유형이 동일하게 공유하되(중복 검증 로직 방지),
- * source 값·문구·placeholder로 유형을 구분해 CRM(관리자 리드 목록)에서 필터링 가능하게 한다.
+ * source 값·문구로 유형을 구분해 CRM(관리자 리드 목록)에서 필터링 가능하게 한다.
+ * 문의내용 placeholder와 성공/실패 메시지는 CEO 업무지시(상담 신청 개선)에 따라
+ * 3개 유형 공통 문구로 통일했다(상담 목적은 이제 별도 드롭다운으로 구분하므로).
  */
-const VARIANT_CONFIG: Record<
-  ContactFormVariant,
-  { source: string; messagePlaceholder: string; submitLabel: string; successTitle: string; successBody: string }
-> = {
+const MESSAGE_PLACEHOLDER =
+  "문의 내용을 자유롭게 작성해 주세요. 프로젝트 규모, 희망 일정, 상담 목적 등을 함께 작성해 주시면 더욱 정확하게 안내해 드립니다.";
+const SUCCESS_TITLE = "감사합니다.";
+const SUCCESS_BODY = "상담 신청이 정상적으로 접수되었습니다. 담당자가 빠르게 연락드리겠습니다.";
+const ERROR_MESSAGE_FALLBACK = "현재 접수가 지연되고 있습니다.";
+
+const VARIANT_CONFIG: Record<ContactFormVariant, { source: string; submitLabel: string }> = {
   interior: {
     source: "homepage_interior_consultation",
-    messagePlaceholder: "어떤 공간을 계획하고 계신가요? (예: 20평 카페 인테리어)",
     submitLabel: "인테리어 상담 신청하기",
-    successTitle: "인테리어 상담 신청이 접수되었습니다.",
-    successBody: "빠른 시일 내에 담당 디자이너가 연락드리겠습니다.",
   },
   franchise: {
     source: "homepage_franchise_consultation",
-    messagePlaceholder: "희망 지역·개설 예정 시기를 남겨주시면 더 정확히 안내해드려요.",
     submitLabel: "GBRICK Coffee 가맹 상담 신청하기",
-    successTitle: "가맹 상담 신청이 접수되었습니다.",
-    successBody: "가맹 담당자가 정보공개서·창업비용 안내와 함께 연락드리겠습니다.",
   },
   ai_design: {
     source: "homepage_ai_design_consultation",
-    messagePlaceholder: "방금 확인한 AI 디자인에 대해 궁금한 점을 남겨주세요.",
     submitLabel: "이 AI 디자인으로 상담·견적 받기",
-    successTitle: "AI 디자인 상담 신청이 접수되었습니다.",
-    successBody: "방금 확인하신 디자인을 기준으로 전문가가 예상 견적과 함께 연락드리겠습니다.",
   },
 };
 
@@ -54,7 +67,7 @@ const VARIANT_CONFIG: Record<
  */
 export function ContactForm({ variant = "interior" }: { variant?: ContactFormVariant }) {
   const [state, setState] = useState<SubmitState>("idle");
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [purpose, setPurpose] = useState<string>(VARIANT_DEFAULT_PURPOSE[variant]);
   const config = VARIANT_CONFIG[variant];
 
   const {
@@ -69,13 +82,13 @@ export function ContactForm({ variant = "interior" }: { variant?: ContactFormVar
 
   async function onSubmit(values: LeadFormValues) {
     setState("submitting");
-    setErrorMsg(null);
 
     try {
+      const message = `[상담 목적: ${purpose}]${values.message ? `\n${values.message}` : ""}`;
       const res = await fetch("/api/leads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
+        body: JSON.stringify({ ...values, message }),
       });
       const data: CreateLeadResponse = await res.json();
 
@@ -86,16 +99,16 @@ export function ContactForm({ variant = "interior" }: { variant?: ContactFormVar
       setState("success");
       reset();
     } catch (err) {
+      console.error("[ContactForm]", err);
       setState("error");
-      setErrorMsg(err instanceof Error ? err.message : "알 수 없는 오류가 발생했습니다.");
     }
   }
 
   if (state === "success") {
     return (
       <div className="rounded-2xl border border-border bg-muted/40 p-8 text-center">
-        <p className="text-lg font-semibold">{config.successTitle}</p>
-        <p className="mt-2 text-sm text-muted-foreground">{config.successBody}</p>
+        <p className="text-lg font-semibold">{SUCCESS_TITLE}</p>
+        <p className="mt-2 text-sm text-muted-foreground">{SUCCESS_BODY}</p>
         <Button className="mt-6" variant="outline" onClick={() => setState("idle")}>
           다시 작성하기
         </Button>
@@ -124,19 +137,35 @@ export function ContactForm({ variant = "interior" }: { variant?: ContactFormVar
       </div>
 
       <div className="flex flex-col gap-2">
+        <Label htmlFor={`${variant}-purpose`}>상담 목적</Label>
+        <Select
+          id={`${variant}-purpose`}
+          value={purpose}
+          onChange={(e) => setPurpose(e.target.value)}
+        >
+          {PURPOSE_OPTIONS.map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
+        </Select>
+      </div>
+
+      <div className="flex flex-col gap-2">
         <Label htmlFor={`${variant}-message`}>문의 내용</Label>
-        <Textarea id={`${variant}-message`} placeholder={config.messagePlaceholder} {...register("message")} />
+        <Textarea id={`${variant}-message`} placeholder={MESSAGE_PLACEHOLDER} {...register("message")} />
         {errors.message && <p className="text-xs text-red-500">{errors.message.message}</p>}
       </div>
 
-      {state === "error" && errorMsg && (
+      {state === "error" && (
         <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600">
-          <p>{errorMsg}</p>
+          <p>{ERROR_MESSAGE_FALLBACK}</p>
           <p className="mt-1 text-xs">
-            폼 접수가 지연되고 있습니다 — 급하시면 바로 연락 주세요: {" "}
+            급하신 경우{" "}
             <a href="tel:0225171474" className="font-semibold underline">02-517-1474</a>
-            {" · "}
+            {" 또는 "}
             <a href="mailto:ceo@fobee.co.kr" className="font-semibold underline">ceo@fobee.co.kr</a>
+            {" 로 연락 부탁드립니다."}
           </p>
         </div>
       )}

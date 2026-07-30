@@ -25,10 +25,14 @@ export const SERVICES = [
   { title: "주거공간", desc: "삶의 질을 높이는 주거 공간 디자인" },
 ];
 
-/** 출처: PortfolioSection 하단 문구(지명원·정보공개서 기반). */
+/**
+ * 신뢰지표(Statistics) — CEO 업무지시(홈페이지 신뢰지표 개선): 매장 수·폐점 수처럼
+ * 시간이 지나며 바뀌는 숫자는 유지보수 부담과 신뢰도 저하 우려로 제외하고,
+ * 변하지 않는 지표만 사용한다. 대표 승인 없이 새 통계 숫자를 추가하지 않는다.
+ */
 export const STATS = [
   { value: "26년", label: "공간을 만들어온 시간" },
-  { value: "7개", label: "GBRICK Coffee 매장" },
-  { value: "0건", label: "3년간 폐점" },
-  { value: "10년+", label: "평균 매장 운영 기간" },
+  { value: "직접 설계·시공", label: "One Stop Service" },
+  { value: "AI 기반 설계", label: "Design AI" },
+  { value: "10년+", label: "운영 노하우" },
 ];
