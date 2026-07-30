@@ -2,7 +2,7 @@
 
 # Audit Report
 
-생성: 2026-07-30T00:18:24.233Z
+생성: 2026-07-30T04:22:45.649Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
@@ -41,11 +41,19 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: b3a64bcef4cd9dd38725b4522cd2571735aa0024 fix(home): 신뢰지표 중복 노출 제거(TrustSection 삭제)
-- 미커밋 변경: 3건
+- 최근 커밋: d968fe69c6c15fa9d3afbc9dccbec39476277d05 fix(portfolio): 교회 포트폴리오 카테고리 추가(Sprint2 수정지시 P4)
+- 미커밋 변경: 11건
 
 ```
 M audit-report.md
- D components/home/TrustSection.tsx
+D  components/home/TrustSection.tsx
 M  lib/portfolio/workGallery.ts
+A  public/images/portfolio/website/designfobee-church-sanctuary-01-thumb.webp
+A  public/images/portfolio/website/designfobee-church-sanctuary-01.webp
+A  public/images/portfolio/website/designfobee-church-sanctuary-02-thumb.webp
+A  public/images/portfolio/website/designfobee-church-sanctuary-02.webp
+A  public/images/portfolio/website/designfobee-church-worship-team-01-thumb.webp
+A  public/images/portfolio/website/designfobee-church-worship-team-01.webp
+A  public/images/portfolio/website/designfobee-church-worship-team-02-thumb.webp
+A  public/images/portfolio/website/designfobee-church-worship-team-02.webp
 ```

@@ -6,6 +6,10 @@
  * 사진에서 실제로 확인되는 공간 용도만 카테고리/설명으로 기록한다.
  * 2026-07-29 배치는 교회 시설 사진이 다수 포함되어 있었으나, 예배/모임 중 촬영되어 참석자
  * 얼굴이 식별 가능한 사진은 동의 확인 전까지 제외했다(부속 키즈공간 등 사람이 없는 사진만 포함).
+ * 2026-07-30 대표님 지시로 얼굴 마스킹 처리 후 4장 추가: 무대 워십팀 2장은 얼굴 단위
+ * 블러(자동 검출 + 누락분 수동 보정), 객석 전체가 나오는 2장은 참석자 다수·각도가 다양해
+ * 개별 얼굴 검출이 불완전할 위험이 있어 객석 구역 전체를 하나의 블러 처리(무대·십자가·천장은
+ * 원본 그대로)로 대체 — 안전을 우선한 선택.
  */
 export type WorkItem = {
   slug: string;
@@ -121,5 +125,25 @@ export const WORK_GALLERY: WorkItem[] = [
     slug: "designfobee-kids-lounge-02",
     category: "교회 · 부속공간",
     caption: "키즈 라운지 2(교회 부속시설)",
+  },
+  {
+    slug: "designfobee-church-sanctuary-01",
+    category: "교회 · 예배공간",
+    caption: "예배당 전경(참석자 얼굴 마스킹 처리)",
+  },
+  {
+    slug: "designfobee-church-sanctuary-02",
+    category: "교회 · 예배공간",
+    caption: "예배당 전경 2(참석자 얼굴 마스킹 처리)",
+  },
+  {
+    slug: "designfobee-church-worship-team-01",
+    category: "교회 · 예배공간",
+    caption: "예배당 무대(참석자 얼굴 마스킹 처리)",
+  },
+  {
+    slug: "designfobee-church-worship-team-02",
+    category: "교회 · 예배공간",
+    caption: "예배당 무대 2(참석자 얼굴 마스킹 처리)",
   },
 ];
