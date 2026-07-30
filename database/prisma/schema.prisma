@@ -44,21 +44,29 @@ enum ProjectStatus {
 /// 로그인 사용자가 신청한 경우 profile과 연결된다 (STEP 2 이후).
 /// STEP 8: AI 디자인 스튜디오에서 신청한 경우 designImage와 연결된다.
 /// STEP 9: notes로 상담원이 남긴 상담 이력을 조회할 수 있다.
+/// STEP 10: /franchise 가맹상담 전용 필드(전부 nullable) — 다른 source의 리드에는 값이 없다.
 model Lead {
-  id            String       @id @default(cuid())
-  name          String
-  phone         String
-  email         String?
-  message       String?
-  source        String       @default("homepage")
-  status        LeadStatus   @default(NEW)
-  profileId     String?
-  profile       Profile?     @relation(fields: [profileId], references: [id])
-  designImageId String?
-  designImage   DesignImage? @relation(fields: [designImageId], references: [id])
-  notes         LeadNote[]
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
+  id                  String       @id @default(cuid())
+  name                String
+  phone               String
+  email               String?
+  message             String?
+  source              String       @default("homepage")
+  status              LeadStatus   @default(NEW)
+  profileId           String?
+  profile             Profile?     @relation(fields: [profileId], references: [id])
+  designImageId       String?
+  designImage         DesignImage? @relation(fields: [designImageId], references: [id])
+  notes               LeadNote[]
+  preferredRegion     String?
+  plannedTiming       String?
+  expectedInvestment  String?
+  currentOccupation   String?
+  hasStorefront       Boolean?
+  consultationPurpose String?
+  privacyConsent      Boolean      @default(false)
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
 
   @@map("leads")
 }

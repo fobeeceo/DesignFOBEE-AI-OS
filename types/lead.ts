@@ -10,6 +10,14 @@ export interface Lead {
   status: LeadStatus;
   profileId?: string | null;
   designImageId?: string | null;
+  /** STEP 10: /franchise 가맹상담 전용 필드 — 다른 source의 리드는 전부 null. */
+  preferredRegion?: string | null;
+  plannedTiming?: string | null;
+  expectedInvestment?: string | null;
+  currentOccupation?: string | null;
+  hasStorefront?: boolean | null;
+  consultationPurpose?: string | null;
+  privacyConsent: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -24,6 +32,14 @@ export interface CreateLeadInput {
   profileId?: string;
   /** STEP 8: AI 디자인 스튜디오에서 신청한 경우, 첨부할 결과 이미지 */
   designImageId?: string;
+  /** STEP 10: /franchise 가맹상담 전용 필드 (franchiseLeadSchema를 통해서만 채워짐) */
+  preferredRegion?: string;
+  plannedTiming?: string;
+  expectedInvestment?: string;
+  currentOccupation?: string;
+  hasStorefront?: boolean;
+  consultationPurpose?: string;
+  privacyConsent?: boolean;
 }
 
 export interface CreateLeadResponse {

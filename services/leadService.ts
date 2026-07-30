@@ -21,6 +21,22 @@ function serializeLead(lead: any): Lead {
  * (일반 홈페이지 상담 폼은 designImageId 없이 그대로 동작 — 기존 STEP 1 동작 유지)
  */
 export async function createLead(input: CreateLeadInput): Promise<Lead> {
+  const baseData = {
+    name: input.name,
+    phone: input.phone,
+    email: input.email || null,
+    message: input.message || null,
+    source: input.source,
+    profileId: input.profileId || null,
+    preferredRegion: input.preferredRegion || null,
+    plannedTiming: input.plannedTiming || null,
+    expectedInvestment: input.expectedInvestment || null,
+    currentOccupation: input.currentOccupation || null,
+    hasStorefront: input.hasStorefront ?? null,
+    consultationPurpose: input.consultationPurpose || null,
+    privacyConsent: input.privacyConsent ?? false,
+  };
+
   if (input.designImageId) {
     const designImage = await prisma.designImage.findFirst({
       where: input.profileId
@@ -34,33 +50,14 @@ export async function createLead(input: CreateLeadInput): Promise<Lead> {
     }
 
     const [lead] = await prisma.$transaction([
-      prisma.lead.create({
-        data: {
-          name: input.name,
-          phone: input.phone,
-          email: input.email || null,
-          message: input.message || null,
-          source: input.source,
-          profileId: input.profileId || null,
-          designImageId: designImage.id,
-        },
-      }),
+      prisma.lead.create({ data: { ...baseData, designImageId: designImage.id } }),
       prisma.project.update({ where: { id: designImage.projectId }, data: { status: "CONSULTED" } }),
     ]);
 
     return serializeLead(lead);
   }
 
-  const lead = await prisma.lead.create({
-    data: {
-      name: input.name,
-      phone: input.phone,
-      email: input.email || null,
-      message: input.message || null,
-      source: input.source,
-      profileId: input.profileId || null,
-    },
-  });
+  const lead = await prisma.lead.create({ data: baseData });
 
   return serializeLead(lead);
 }

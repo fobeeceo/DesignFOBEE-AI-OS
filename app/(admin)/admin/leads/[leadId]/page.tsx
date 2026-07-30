@@ -31,6 +31,23 @@ export default async function AdminLeadDetailPage({ params }: PageProps) {
   const roomLabel = design ? ROOM_TYPES.find((r) => r.id === design.roomType)?.label ?? design.roomType : null;
   const styleLabel = design ? STYLES.find((s) => s.id === design.style)?.label ?? design.style : null;
 
+  // /franchise 상담 리드만 값이 있으므로, 값이 있는 항목만 표시한다(다른 경로 리드는 섹션 자체를 숨김).
+  const franchiseFields = [
+    { label: "상담 목적", value: lead.consultationPurpose },
+    { label: "창업 희망지역", value: lead.preferredRegion },
+    { label: "창업 예정시기", value: lead.plannedTiming },
+    { label: "예상 투자금", value: lead.expectedInvestment },
+    { label: "현재 직업", value: lead.currentOccupation },
+    {
+      label: "점포 보유",
+      value: lead.hasStorefront === null || lead.hasStorefront === undefined
+        ? null
+        : lead.hasStorefront
+          ? "보유"
+          : "미보유",
+    },
+  ].filter((field): field is { label: string; value: string } => Boolean(field.value));
+
   return (
     <div className="flex flex-col gap-8">
       <div className="flex items-center justify-between">
@@ -75,6 +92,20 @@ export default async function AdminLeadDetailPage({ params }: PageProps) {
               <div className="mt-4 rounded-xl bg-muted/40 p-4 text-sm leading-relaxed">{lead.message}</div>
             )}
           </div>
+
+          {franchiseFields.length > 0 && (
+            <div className="rounded-2xl border border-border p-5">
+              <p className="mb-3 text-xs font-semibold text-accent">가맹상담 정보</p>
+              <dl className="flex flex-col gap-2 text-sm">
+                {franchiseFields.map(({ label, value }) => (
+                  <div key={label} className="flex justify-between gap-4">
+                    <dt className="text-muted-foreground">{label}</dt>
+                    <dd className="text-right font-medium">{value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          )}
 
           {design && (
             <div className="flex flex-col gap-4 rounded-2xl border border-border p-5">

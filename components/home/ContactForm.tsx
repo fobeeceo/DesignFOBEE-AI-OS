@@ -13,7 +13,7 @@ import type { CreateLeadResponse } from "@/types/lead";
 
 type SubmitState = "idle" | "submitting" | "success" | "error";
 
-export type ContactFormVariant = "interior" | "franchise" | "ai_design";
+export type ContactFormVariant = "interior" | "ai_design";
 
 /** CEO 업무지시(상담 신청 개선): 상담 목적을 폼에서 직접 선택하도록 드롭다운 추가. */
 const PURPOSE_OPTIONS = [
@@ -27,7 +27,6 @@ const PURPOSE_OPTIONS = [
 
 const VARIANT_DEFAULT_PURPOSE: Record<ContactFormVariant, (typeof PURPOSE_OPTIONS)[number]> = {
   interior: "인테리어 상담",
-  franchise: "가맹 상담",
   ai_design: "견적 문의",
 };
 
@@ -48,10 +47,6 @@ const VARIANT_CONFIG: Record<ContactFormVariant, { source: string; submitLabel: 
   interior: {
     source: "homepage_interior_consultation",
     submitLabel: "인테리어 상담 신청하기",
-  },
-  franchise: {
-    source: "homepage_franchise_consultation",
-    submitLabel: "GBRICK Coffee 가맹 상담 신청하기",
   },
   ai_design: {
     source: "homepage_ai_design_consultation",

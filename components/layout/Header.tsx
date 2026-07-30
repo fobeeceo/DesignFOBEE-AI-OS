@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { label: "포트폴리오", href: "/#portfolio" },
   { label: "AI 디자인", href: "/design" },
   { label: "GBRICK Coffee", href: "/#gbrick" },
+  { label: "가맹상담", href: "/franchise" },
 ];
 
 /**
@@ -27,7 +28,7 @@ export function Header() {
           DesignFOBEE
         </a>
 
-        <nav className="hidden items-center gap-8 lg:flex">
+        <nav className="hidden items-center gap-6 lg:flex">
           {NAV_ITEMS.map((item) => (
             <a
               key={item.href}
@@ -39,12 +40,15 @@ export function Header() {
           ))}
         </nav>
 
-        <div className="hidden items-center gap-4 lg:flex">
+        <div className="hidden items-center gap-3 lg:flex">
           <a href="/login" className="text-sm font-medium text-muted-foreground hover:text-foreground">
             로그인
           </a>
-          <a href="/design" className={buttonVariants({ size: "sm" })}>
-            AI 디자인 시작하기
+          <a href="/design" className={buttonVariants({ variant: "outline", size: "sm" })}>
+            AI 디자인
+          </a>
+          <a href="/franchise#consult" className={buttonVariants({ size: "sm" })}>
+            가맹상담 신청
           </a>
         </div>
 

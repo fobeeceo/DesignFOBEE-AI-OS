@@ -1,15 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { createClient } from "@/lib/supabase/server";
-import { leadSchema } from "@/lib/validations/lead.schema";
+import { leadSchema, franchiseLeadSchema } from "@/lib/validations/lead.schema";
 import { createLead } from "@/services/leadService";
 import { InteriorDesignError } from "@/agents/interiorDesignAgent";
 import type { CreateLeadResponse } from "@/types/lead";
 
+/** /franchise 상담 폼이 보내는 source — 이 경우에만 확장 스키마로 검증한다. */
+const FRANCHISE_SOURCE = "franchise_page";
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const parsed = leadSchema.parse(body);
+    const parsed =
+      body?.source === FRANCHISE_SOURCE ? franchiseLeadSchema.parse(body) : leadSchema.parse(body);
 
     const supabase = createClient();
     const {
