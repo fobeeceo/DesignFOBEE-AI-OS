@@ -8,7 +8,6 @@ import { AboutSection } from "@/components/home/AboutSection";
 import { ProcessSection } from "@/components/home/ProcessSection";
 import { PortfolioSection } from "@/components/home/PortfolioSection";
 import { GBrickSection } from "@/components/home/GBrickSection";
-import { TrustSection } from "@/components/home/TrustSection";
 import { CTASection } from "@/components/home/CTASection";
 
 export const metadata: Metadata = {
@@ -19,7 +18,9 @@ export const metadata: Metadata = {
 
 /**
  * 홈페이지 (STEP 1).
- * 섹션 순서: Hero → Portfolio → Services → About → Process → GBrick → Trust → Contact
+ * 섹션 순서: Hero → Portfolio → Services → About → Process → GBrick → Contact
+ * (신뢰지표 26년·7개매장·폐점0건·10년+는 GBrickSection 자체 통계 그리드에 이미 표시되어
+ * 있어, 바로 아래 독립 TrustSection에서 같은 숫자를 한 번 더 보여주던 중복을 제거했다.)
  */
 export default function HomePage() {
   return (
@@ -32,7 +33,6 @@ export default function HomePage() {
         <Reveal><AboutSection /></Reveal>
         <Reveal><ProcessSection /></Reveal>
         <Reveal><GBrickSection /></Reveal>
-        <Reveal><TrustSection /></Reveal>
         <Reveal><CTASection /></Reveal>
       </main>
       <Footer />

@@ -2,11 +2,11 @@
 
 # Audit Report
 
-생성: 2026-07-30T00:00:57.653Z
+생성: 2026-07-30T00:14:15.614Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
-- 스캔: 33개 컴포넌트
+- 스캔: 32개 컴포넌트
 - 미사용(어디서도 import 안 됨): 0건
 - ⚠️ §6 규정: 삭제는 CEO 승인 후에만 수행.
 
@@ -17,7 +17,7 @@
     - components/design/CompareSlider.tsx
 
 ## 3. Unused Import
-- 스캔: 72개 파일
+- 스캔: 71개 파일
 - 이슈: 0건
 
 ## 4. Broken Route (nav 컴포넌트)
@@ -41,10 +41,11 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: 6ec92abe87f986694b5f51824afc21c7817e1493 perf(home): Lighthouse Performance 79 → 95 (Sprint2 P3)
-- 미커밋 변경: 2건
+- 최근 커밋: 99709b64691a669b1fb0dc6e2200406d91ace2cb fix(portfolio): 아이폰(Safari)에서 포트폴리오 섹션 전체 미표시 수정
+- 미커밋 변경: 3건
 
 ```
-M audit-report.md
-M  components/home/PortfolioSection.tsx
+M  app/page.tsx
+ M audit-report.md
+ D components/home/TrustSection.tsx
 ```
