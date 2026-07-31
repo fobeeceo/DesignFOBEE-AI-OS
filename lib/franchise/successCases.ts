@@ -18,6 +18,8 @@ export type SuccessCase = {
   location: string;
   summary: string;
   image: string;
+  /** 상담 태그(leadIntelligence.classifyLead 결과)와 매칭해 추천에 사용한다. */
+  tags: string[];
 };
 
 const SUCCESS_CASES: SuccessCase[] = [
@@ -29,6 +31,7 @@ const SUCCESS_CASES: SuccessCase[] = [
     summary:
       "2013년 직영 1호점으로 시작해 공간 자체가 브랜드가 되는 매장 모델을 직접 운영하며 검증했습니다. 이후 모든 가맹점 설계의 기준이 되는 매장입니다.",
     image: "/images/portfolio/website/designfobee-gbrick-storefront-night-01.webp",
+    tags: ["신규창업", "카페", "가맹문의"],
   },
   {
     code: "SUCCESS-002",
@@ -38,6 +41,7 @@ const SUCCESS_CASES: SuccessCase[] = [
     summary:
       "외주 인테리어 업체를 거치지 않고 본사가 설계부터 시공까지 직접 담당했습니다. 상권 특성에 맞춘 공간 구성을 본사가 일관되게 책임집니다.",
     image: "/images/portfolio/gbrick-ansan.jpg",
+    tags: ["상권분석", "인테리어", "신규창업"],
   },
   {
     code: "SUCCESS-003",
@@ -47,8 +51,56 @@ const SUCCESS_CASES: SuccessCase[] = [
     summary:
       "2013년 오픈 이후 장기간 운영을 이어오고 있는 매장입니다. 유행을 따라가는 인테리어가 아닌, 오래 유지되는 공간 설계를 지향합니다.",
     image: "/images/portfolio/gbrick-dandae.jpg",
+    tags: ["업종변경", "투자문의", "카페"],
+  },
+  {
+    code: "SUCCESS-004",
+    title: "교회 공간 설계·시공 사례",
+    category: "공간전문성",
+    location: "교회 예배공간 · 부속 키즈라운지",
+    summary:
+      "예배공간과 부속 시설을 직접 설계·시공했습니다. 교회 카페·부속공간을 검토 중이시라면 상담 시 관련 사례를 함께 안내드립니다.",
+    image: "/images/portfolio/website/designfobee-kids-lounge-01.webp",
+    tags: ["교회카페", "인테리어"],
   },
 ];
+
+/** 태그 매칭 없이도 항상 보여줄 기본 추천 사례(직영 1호점). */
+const DEFAULT_CASE_CODE = "SUCCESS-001";
+
+/**
+ * 상담 태그 기반 성공사례 추천 (CEO 업무지시 6번).
+ * 교회 → 교회 사례 / 카페·신규창업 → GBRICK 매장 사례 / 업종변경 → 관련 사례.
+ * 매칭 결과가 없으면 직영 1호점 사례를 기본으로 안내한다.
+ */
+export function recommendCases(tags: string[], limit = 2): SuccessCase[] {
+  const scored = SUCCESS_CASES.map((item) => ({
+    item,
+    matches: item.tags.filter((tag) => tags.includes(tag)).length,
+  }))
+    .filter((entry) => entry.matches > 0)
+    .sort((a, b) => b.matches - a.matches)
+    .map((entry) => entry.item);
+
+  if (scored.length === 0) {
+    const fallback = SUCCESS_CASES.find((item) => item.code === DEFAULT_CASE_CODE);
+    return fallback ? [fallback] : [];
+  }
+
+  return scored.slice(0, limit);
+}
+
+/** 추천 결과를 Lead에 저장할 때 쓰는 코드 배열 형태. */
+export function recommendCaseCodes(tags: string[], limit = 2): string[] {
+  return recommendCases(tags, limit).map((item) => item.code);
+}
+
+/** 저장된 사례 코드로 다시 사례 객체를 조회한다(관리자 화면 표시용). */
+export function getCasesByCodes(codes: string[]): SuccessCase[] {
+  return codes
+    .map((code) => SUCCESS_CASES.find((item) => item.code === code))
+    .filter((item): item is SuccessCase => Boolean(item));
+}
 
 /**
  * 성공사례 조회 — 추후 09_성공사례DB / DB 연동 시 이 함수만 async 데이터 소스로 교체한다.

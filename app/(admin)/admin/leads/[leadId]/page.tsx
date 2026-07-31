@@ -4,7 +4,15 @@ import { getLeadDetail } from "@/services/crmService";
 import { LeadStatusBadge } from "@/components/admin/LeadStatusBadge";
 import { LeadStatusControl } from "@/components/admin/LeadStatusControl";
 import { LeadNoteForm } from "@/components/admin/LeadNoteForm";
+import { LeadAiPanel } from "@/components/admin/LeadAiPanel";
+import { getCasesByCodes } from "@/lib/franchise/successCases";
 import { ROOM_TYPES, STYLES } from "@/prompts/interiorStyles";
+
+const PRIORITY_LABEL: Record<string, string> = {
+  HIGH: "높음",
+  MEDIUM: "보통",
+  LOW: "낮음",
+};
 
 interface PageProps {
   params: { leadId: string };
@@ -48,6 +56,8 @@ export default async function AdminLeadDetailPage({ params }: PageProps) {
     },
   ].filter((field): field is { label: string; value: string } => Boolean(field.value));
 
+  const recommendedCases = getCasesByCodes(lead.recommendedCases ?? []);
+
   return (
     <div className="flex flex-col gap-8">
       <div className="flex items-center justify-between">
@@ -56,6 +66,11 @@ export default async function AdminLeadDetailPage({ params }: PageProps) {
             ← 리드 목록으로
           </Link>
           <h1 className="mt-1 text-xl font-bold">{lead.name}</h1>
+          {lead.referenceNo && (
+            <p className="mt-0.5 text-xs font-medium tracking-wider text-muted-foreground">
+              접수번호 {lead.referenceNo}
+            </p>
+          )}
         </div>
         <LeadStatusControl leadId={lead.id} currentStatus={lead.status} />
       </div>
@@ -92,6 +107,49 @@ export default async function AdminLeadDetailPage({ params }: PageProps) {
               <div className="mt-4 rounded-xl bg-muted/40 p-4 text-sm leading-relaxed">{lead.message}</div>
             )}
           </div>
+
+          {lead.fitScore != null && (
+            <div className="rounded-2xl border border-border p-5">
+              <div className="mb-3 flex items-center justify-between">
+                <p className="text-xs font-semibold text-accent">AI 진단</p>
+                {lead.priority && (
+                  <span className="rounded-full border border-border px-3 py-1 text-xs font-semibold">
+                    우선순위 {PRIORITY_LABEL[lead.priority] ?? lead.priority}
+                  </span>
+                )}
+              </div>
+              <p className="text-2xl font-bold text-accent">{lead.fitScore}점</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                창업 적합도(참고 지표) — 가맹 승인 여부를 결정하는 심사 결과가 아닙니다.
+              </p>
+
+              {lead.tags && lead.tags.length > 0 && (
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {lead.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="rounded-full bg-muted/60 px-3 py-1 text-xs font-medium text-muted-foreground"
+                    >
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {recommendedCases.length > 0 && (
+                <div className="mt-4 border-t border-border pt-3">
+                  <p className="text-xs text-muted-foreground">추천 성공사례</p>
+                  <ul className="mt-2 flex flex-col gap-1">
+                    {recommendedCases.map((item) => (
+                      <li key={item.code} className="text-sm">
+                        <span className="font-medium">{item.code}</span> · {item.title}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
 
           {franchiseFields.length > 0 && (
             <div className="rounded-2xl border border-border p-5">
@@ -136,6 +194,13 @@ export default async function AdminLeadDetailPage({ params }: PageProps) {
         </div>
 
         <div className="flex flex-col gap-4">
+          <LeadAiPanel
+            leadId={lead.id}
+            initialSummary={lead.aiSummary}
+            initialNextAction={lead.nextAction}
+            initialMemo={lead.aiMemo}
+          />
+
           <p className="text-xs font-semibold text-accent">상담 메모</p>
           <LeadNoteForm leadId={lead.id} />
 

@@ -2,11 +2,11 @@
 
 # Audit Report
 
-생성: 2026-07-30T12:19:39.443Z
+생성: 2026-07-31T00:17:48.639Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
-- 스캔: 43개 컴포넌트
+- 스캔: 44개 컴포넌트
 - 미사용(어디서도 import 안 됨): 0건
 - ⚠️ §6 규정: 삭제는 CEO 승인 후에만 수행.
 
@@ -17,7 +17,7 @@
     - components/design/CompareSlider.tsx
 
 ## 3. Unused Import
-- 스캔: 84개 파일
+- 스캔: 85개 파일
 - 이슈: 0건
 
 ## 4. Broken Route (nav 컴포넌트)
@@ -41,33 +41,24 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: 93d8119708ae2f701458d20ee4f22962c11155dd fix(home): 신뢰지표 개선 + 상담 신청 폼 개선(CEO 업무지시)
-- 미커밋 변경: 25건
+- 최근 커밋: fd280ff0a8a008f979d8f3b8b0fe4ccb506c6a03 feat(franchise): GBRICK Coffee 가맹상담 전용 랜딩 페이지 구축(CEO 업무지시)
+- 미커밋 변경: 16건
 
 ```
 M  app/(admin)/admin/leads/[leadId]/page.tsx
+M  app/api/admin/leads/[leadId]/route.ts
 M  app/api/leads/route.ts
-A  app/franchise/page.tsx
-A  app/privacy/page.tsx
-A  components/franchise/Advantages.tsx
-A  components/franchise/ConsultForm.tsx
-A  components/franchise/FAQ.tsx
-A  components/franchise/FloatingCTA.tsx
-A  components/franchise/FranchiseHero.tsx
-A  components/franchise/PrivacyAgreement.tsx
-A  components/franchise/Process.tsx
-A  components/franchise/SuccessCases.tsx
-A  components/franchise/ThankYouModal.tsx
-A  components/franchise/TrustSection.tsx
-M  components/home/ContactForm.tsx
-M  components/home/GBrickSection.tsx
-M  components/layout/Header.tsx
-A  database/prisma/migrations/20260730080000_add_franchise_lead_fields/migration.sql
-A  database/prisma/migrations/migration_lock.toml
+A  components/admin/LeadAiPanel.tsx
+M  components/franchise/ConsultForm.tsx
+M  components/franchise/ThankYouModal.tsx
+A  database/prisma/migrations/20260731090000_add_franchise_ai_fields/migration.sql
 M  database/prisma/schema.prisma
-A  lib/franchise/content.ts
-A  lib/franchise/successCases.ts
-M  lib/validations/lead.schema.ts
+A  lib/franchise/constants.ts
+A  lib/franchise/leadIntelligence.test.ts
+A  lib/franchise/leadIntelligence.ts
+M  lib/franchise/successCases.ts
+M  lib/validations/crm.schema.ts
+M  services/crmService.ts
 M  services/leadService.ts
 M  types/lead.ts
 ```

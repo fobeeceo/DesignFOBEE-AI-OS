@@ -15,12 +15,10 @@ import { Button } from "@/components/ui/button";
 import { PrivacyAgreement } from "@/components/franchise/PrivacyAgreement";
 import { ThankYouModal } from "@/components/franchise/ThankYouModal";
 import { COMPANY } from "@/lib/company/profile";
-import type { CreateLeadResponse } from "@/types/lead";
+import { FRANCHISE_SOURCE } from "@/lib/franchise/constants";
+import type { CreateLeadResponse, LeadDiagnosisResult } from "@/types/lead";
 
 type SubmitState = "idle" | "submitting" | "success" | "error";
-
-/** CRM에서 가맹상담 리드를 구분하는 값 — app/api/leads/route.ts의 FRANCHISE_SOURCE와 일치해야 한다. */
-const FRANCHISE_SOURCE = "franchise_page";
 
 const REGIONS = [
   "서울", "경기", "인천", "강원", "대전", "세종", "충남", "충북",
@@ -53,6 +51,7 @@ const STOREFRONT_OPTIONS = [
  */
 export function ConsultForm() {
   const [state, setState] = useState<SubmitState>("idle");
+  const [diagnosis, setDiagnosis] = useState<LeadDiagnosisResult | undefined>();
 
   const {
     register,
@@ -79,6 +78,7 @@ export function ConsultForm() {
         throw new Error(data.error ?? "상담 신청에 실패했습니다.");
       }
 
+      setDiagnosis(data.diagnosis);
       setState("success");
       reset();
     } catch (err) {
@@ -229,7 +229,11 @@ export function ConsultForm() {
         </Button>
       </form>
 
-      <ThankYouModal open={state === "success"} onClose={() => setState("idle")} />
+      <ThankYouModal
+        open={state === "success"}
+        diagnosis={diagnosis}
+        onClose={() => setState("idle")}
+      />
     </>
   );
 }

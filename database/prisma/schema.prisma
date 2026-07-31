@@ -24,6 +24,13 @@ enum LeadStatus {
   CLOSED
 }
 
+/// STEP 11: AI가 예상투자금·창업시기·점포보유여부로 자동 계산하는 상담 우선순위.
+enum LeadPriority {
+  HIGH
+  MEDIUM
+  LOW
+}
+
 enum AuthProvider {
   EMAIL
   GOOGLE
@@ -65,9 +72,27 @@ model Lead {
   hasStorefront       Boolean?
   consultationPurpose String?
   privacyConsent      Boolean      @default(false)
+
+  /// STEP 11 (Franchise AI v2.0) — AI 진단 결과. 저장 시 서버에서 자동 계산한다.
+  /// 접수번호(GBR-YYYYMMDD-NNNN)는 관리자가 전화 상담 중 바로 검색하는 키다.
+  referenceNo         String?       @unique
+  fitScore            Int?
+  priority            LeadPriority?
+  tags                String[]      @default([])
+  recommendedCases    String[]      @default([])
+  /// 관리자가 상담 후 직접 기록하는 영역(AI 초안 → 사람이 보정).
+  aiSummary           String?
+  nextAction          String?
+  aiMemo              String?
+
   createdAt           DateTime     @default(now())
   updatedAt           DateTime     @updatedAt
 
+  // CEO Dashboard 집계(월별·지역별·우선순위별·경로별) 조회를 위한 인덱스.
+  @@index([createdAt])
+  @@index([source])
+  @@index([priority])
+  @@index([preferredRegion])
   @@map("leads")
 }
 

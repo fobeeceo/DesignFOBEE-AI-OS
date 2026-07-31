@@ -51,6 +51,8 @@ export async function listLeads(params: ListLeadsParams): Promise<LeadListResult
       { name: { contains: params.q, mode: "insensitive" } },
       { phone: { contains: params.q } },
       { email: { contains: params.q, mode: "insensitive" } },
+      // STEP 11: 전화 상담 중 접수번호(GBR-YYYYMMDD-NNNN)로 바로 찾을 수 있게 한다.
+      { referenceNo: { contains: params.q, mode: "insensitive" } },
     ];
   }
 
@@ -145,4 +147,96 @@ export async function addLeadNote(
   });
 
   return serializeNote(note);
+}
+
+/**
+ * STEP 11: 관리자가 AI 상담 요약 영역(상담 요약·다음 액션·AI 메모)을 저장한다.
+ * AI가 만든 초안을 사람이 확인·수정하는 것을 전제로 하며, 보낸 필드만 갱신한다.
+ */
+export async function updateLeadAiMemo(
+  leadId: string,
+  input: { aiSummary?: string; nextAction?: string; aiMemo?: string }
+): Promise<Lead> {
+  const data: Record<string, string | null> = {};
+  if (input.aiSummary !== undefined) data.aiSummary = input.aiSummary.trim() || null;
+  if (input.nextAction !== undefined) data.nextAction = input.nextAction.trim() || null;
+  if (input.aiMemo !== undefined) data.aiMemo = input.aiMemo.trim() || null;
+
+  const lead = await prisma.lead.update({ where: { id: leadId }, data });
+
+  return serializeLead(lead);
+}
+
+export interface LeadStats {
+  totalThisMonth: number;
+  totalAllTime: number;
+  convertedAllTime: number;
+  /** 전환율(%) — 전체 리드 대비 CONVERTED 비율, 소수 첫째 자리. */
+  conversionRate: number;
+  byRegion: { region: string; count: number }[];
+  byTiming: { timing: string; count: number }[];
+  byPriority: { priority: string; count: number }[];
+}
+
+/**
+ * STEP 11: CEO Dashboard용 상담 집계.
+ * 이번 달 상담 / 지역별 / 창업예정시기 / 우선순위 / 전환율을 한 번에 조회한다.
+ * (Lead 테이블에 createdAt·source·priority·preferredRegion 인덱스를 두어 집계 비용을 낮췄다.)
+ */
+export async function getLeadStats(source?: string): Promise<LeadStats> {
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const where = source ? { source } : {};
+
+  const [totalThisMonth, totalAllTime, convertedAllTime, regionRows, timingRows, priorityRows] =
+    await prisma.$transaction([
+      prisma.lead.count({ where: { ...where, createdAt: { gte: monthStart } } }),
+      prisma.lead.count({ where }),
+      prisma.lead.count({ where: { ...where, status: "CONVERTED" } }),
+      prisma.lead.groupBy({
+        by: ["preferredRegion"],
+        where,
+        _count: { _all: true },
+        orderBy: { preferredRegion: "asc" },
+      }),
+      prisma.lead.groupBy({
+        by: ["plannedTiming"],
+        where,
+        _count: { _all: true },
+        orderBy: { plannedTiming: "asc" },
+      }),
+      prisma.lead.groupBy({
+        by: ["priority"],
+        where,
+        _count: { _all: true },
+        orderBy: { priority: "asc" },
+      }),
+    ]);
+
+  // groupBy 결과에서 값이 없는(null) 버킷은 빼고 건수 내림차순으로 정렬한다.
+  const buckets = (rows: any[], key: string): { value: string; count: number }[] =>
+    rows
+      .filter((row) => row[key] != null)
+      .map((row) => ({ value: String(row[key]), count: row._count._all }))
+      .sort((a, b) => b.count - a.count);
+
+  return {
+    totalThisMonth,
+    totalAllTime,
+    convertedAllTime,
+    conversionRate:
+      totalAllTime === 0 ? 0 : Math.round((convertedAllTime / totalAllTime) * 1000) / 10,
+    byRegion: buckets(regionRows, "preferredRegion").map(({ value, count }) => ({
+      region: value,
+      count,
+    })),
+    byTiming: buckets(timingRows, "plannedTiming").map(({ value, count }) => ({
+      timing: value,
+      count,
+    })),
+    byPriority: buckets(priorityRows, "priority").map(({ value, count }) => ({
+      priority: value,
+      count,
+    })),
+  };
 }

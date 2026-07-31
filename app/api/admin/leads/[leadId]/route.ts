@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { requireAdmin, AdminAuthError } from "@/lib/auth/requireAdmin";
-import { leadStatusUpdateSchema } from "@/lib/validations/crm.schema";
-import { getLeadDetail, updateLeadStatus } from "@/services/crmService";
+import { leadStatusUpdateSchema, leadAiMemoSchema } from "@/lib/validations/crm.schema";
+import { getLeadDetail, updateLeadStatus, updateLeadAiMemo } from "@/services/crmService";
 
 interface RouteParams {
   params: { leadId: string };
@@ -39,12 +39,21 @@ export async function GET(_req: NextRequest, { params }: RouteParams) {
 /**
  * PATCH /api/admin/leads/[leadId]
  * STEP 9: 리드 상태 변경 (NEW → CONTACTED → CONVERTED/CLOSED).
+ * STEP 11: status 없이 AI 상담 요약 필드만 보내면 해당 필드를 저장한다.
  */
 export async function PATCH(req: NextRequest, { params }: RouteParams) {
   try {
     await requireAdmin();
 
     const body = await req.json();
+
+    if (body?.status === undefined) {
+      const memo = leadAiMemoSchema.parse(body);
+      const lead = await updateLeadAiMemo(params.leadId, memo);
+
+      return NextResponse.json({ success: true, lead });
+    }
+
     const parsed = leadStatusUpdateSchema.parse(body);
 
     const lead = await updateLeadStatus(params.leadId, parsed.status);

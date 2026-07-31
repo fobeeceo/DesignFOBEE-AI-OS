@@ -1,5 +1,8 @@
 export type LeadStatus = "NEW" | "CONTACTED" | "CONVERTED" | "CLOSED";
 
+/** STEP 11: AI가 자동 계산하는 상담 응대 우선순위. */
+export type LeadPriority = "HIGH" | "MEDIUM" | "LOW";
+
 export interface Lead {
   id: string;
   name: string;
@@ -18,6 +21,15 @@ export interface Lead {
   hasStorefront?: boolean | null;
   consultationPurpose?: string | null;
   privacyConsent: boolean;
+  /** STEP 11 (Franchise AI v2.0): 저장 시 서버가 자동 계산하는 값 + 관리자 기록 영역. */
+  referenceNo?: string | null;
+  fitScore?: number | null;
+  priority?: LeadPriority | null;
+  tags?: string[];
+  recommendedCases?: string[];
+  aiSummary?: string | null;
+  nextAction?: string | null;
+  aiMemo?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -42,9 +54,27 @@ export interface CreateLeadInput {
   privacyConsent?: boolean;
 }
 
+/** 신청 완료 화면에 보여줄 AI 진단 결과 + 추천 성공사례. */
+export interface LeadDiagnosisResult {
+  referenceNo?: string | null;
+  fitScore: number;
+  stars: number;
+  headline: string;
+  description: string;
+  recommendedCases: {
+    code: string;
+    title: string;
+    location: string;
+    summary: string;
+    image: string;
+  }[];
+}
+
 export interface CreateLeadResponse {
   success: boolean;
   leadId?: string;
+  /** STEP 11: 가맹상담(source=franchise_page)일 때만 채워진다. */
+  diagnosis?: LeadDiagnosisResult;
   error?: string;
 }
 

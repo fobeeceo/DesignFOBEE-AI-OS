@@ -4,10 +4,10 @@ import { createClient } from "@/lib/supabase/server";
 import { leadSchema, franchiseLeadSchema } from "@/lib/validations/lead.schema";
 import { createLead } from "@/services/leadService";
 import { InteriorDesignError } from "@/agents/interiorDesignAgent";
+import { FRANCHISE_SOURCE } from "@/lib/franchise/constants";
+import { describeFit } from "@/lib/franchise/leadIntelligence";
+import { getCasesByCodes } from "@/lib/franchise/successCases";
 import type { CreateLeadResponse } from "@/types/lead";
-
-/** /franchise 상담 폼이 보내는 source — 이 경우에만 확장 스키마로 검증한다. */
-const FRANCHISE_SOURCE = "franchise_page";
 
 export async function POST(req: NextRequest) {
   try {
@@ -22,8 +22,25 @@ export async function POST(req: NextRequest) {
 
     const lead = await createLead({ ...parsed, profileId: user?.id });
 
+    // 가맹상담이면 접수번호·AI 적합도·추천 성공사례를 완료 화면에 함께 돌려준다.
+    const diagnosis =
+      lead.fitScore != null
+        ? {
+            referenceNo: lead.referenceNo,
+            fitScore: lead.fitScore,
+            ...describeFit(lead.fitScore),
+            recommendedCases: getCasesByCodes(lead.recommendedCases ?? []).map((item) => ({
+              code: item.code,
+              title: item.title,
+              location: item.location,
+              summary: item.summary,
+              image: item.image,
+            })),
+          }
+        : undefined;
+
     return NextResponse.json<CreateLeadResponse>(
-      { success: true, leadId: lead.id },
+      { success: true, leadId: lead.id, diagnosis },
       { status: 201 }
     );
   } catch (error) {
