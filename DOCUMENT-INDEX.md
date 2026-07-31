@@ -57,6 +57,9 @@
 ## CHANGELOG
 - [CHANGELOG.md](CHANGELOG.md) — 전체 변경이력(활성, Priority 단위 추적)
 
+## Backlog
+- [BACKLOG.md](BACKLOG.md) — 활성 백로그(2026-07-31 신설). RC/Soft Launch 중 나온 아이디어는 즉시 구현하지 않고 여기에 기록만 한다. `docs/master/BACKLOG.md`는 frozen·Git 미추적.
+
 ## 운영 런북
 - [MIGRATION-RUNBOOK.md](MIGRATION-RUNBOOK.md) — DB 마이그레이션 실행 절차(백업·롤백·위험요소·검증 체크리스트, 2026-07-31 신설). 대표 승인 전까지 Migration 실행 금지.
 - [PROJECT-STORY-GUIDE.md](PROJECT-STORY-GUIDE.md) — 프로젝트 스토리 입력 가이드(2026-07-31 신설). `lib/projects/stories.ts` 한 곳만 채우면 홈·상세·SEO·sitemap이 자동 연결된다.

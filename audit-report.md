@@ -2,7 +2,7 @@
 
 # Audit Report
 
-생성: 2026-07-31T02:51:46.199Z
+생성: 2026-07-31T06:06:13.089Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
@@ -41,12 +41,11 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: 5a59d6d9e4637643dd4cc63fdb8dc885dc2d1c1f fix(rc1): 배포 도메인 SSOT화 + iOS 폼 확대 방지 + 스토리 구조 확장
-- 미커밋 변경: 4건
+- 최근 커밋: 33033cdb5bca821381df89ada7fbab43bd0d9755 fix(seo): 주요 4개 페이지 canonical 누락 보완 (RC1 STEP 10)
+- 미커밋 변경: 3건
 
 ```
-M  app/about/page.tsx
-M  app/franchise/page.tsx
-M  app/page.tsx
-M  app/privacy/page.tsx
+A  BACKLOG.md
+M  DOCUMENT-INDEX.md
+M  lib/site.ts
 ```
