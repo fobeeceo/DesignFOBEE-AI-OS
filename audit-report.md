@@ -2,7 +2,7 @@
 
 # Audit Report
 
-생성: 2026-07-31T10:26:42.514Z
+생성: 2026-07-31T10:30:49.455Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
@@ -41,10 +41,9 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: cab78f9a33588567486725d008a4eb3817a95f50 chore(deploy): 배포 도메인 fobee.co.kr 확정 + Backlog 신설
-- 미커밋 변경: 2건
+- 최근 커밋: ab3d4e0b72c2f49d860b12ee754dbd9705a2613a fix(home): 시공 실적 수치 정정 — 공개 사진 25건 → 누적 실적 약 250건
+- 미커밋 변경: 1건
 
 ```
 M  components/home/ProofSection.tsx
-M  lib/company/profile.ts
 ```

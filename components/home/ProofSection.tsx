@@ -75,18 +75,17 @@ export function ProofSection() {
         </div>
 
         <div className="mt-12">
-          {/* 위 카드의 '약 250건'은 전체 실적(업무지명원)이고, 아래 숫자는 홈페이지에 공개한
-              사진 수다. 두 숫자가 서로 모순돼 보이지 않도록 기준을 명확히 표기한다. */}
-          <p className="text-sm font-semibold text-foreground">
-            홈페이지에 공개한 사례 {WORK_GALLERY.length}건
-          </p>
+          {/* 건수를 표기하지 않는 이유: 위 카드의 '약 250건'(전체 실적)과 공개 사진 수(25건)가
+              나란히 보이면 실적을 축소한 것처럼 오해된다. 분야만 보여주고 실제 사진은
+              바로 아래 포트폴리오에서 확인하도록 한다. */}
+          <p className="text-sm font-semibold text-foreground">주요 시공 분야</p>
           <div className="mt-4 flex flex-wrap gap-3">
             {fields.map((item) => (
               <span
                 key={item.field}
                 className="rounded-full border border-border px-4 py-2 text-sm text-muted-foreground"
               >
-                {item.field} <span className="font-semibold text-foreground">{item.count}건</span>
+                {item.field}
               </span>
             ))}
           </div>
