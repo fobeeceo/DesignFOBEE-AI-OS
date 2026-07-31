@@ -6,6 +6,7 @@ import { Hero } from "@/components/home/Hero";
 import { ServicesSection } from "@/components/home/ServicesSection";
 import { AboutSection } from "@/components/home/AboutSection";
 import { CeoSection } from "@/components/home/CeoSection";
+import { ProofSection } from "@/components/home/ProofSection";
 import { ChurchSection } from "@/components/home/ChurchSection";
 import { ProcessSection } from "@/components/home/ProcessSection";
 import { PortfolioSection } from "@/components/home/PortfolioSection";
@@ -31,6 +32,7 @@ export default function HomePage() {
       <Header />
       <main>
         <Hero />
+        <Reveal><ProofSection /></Reveal>
         <Reveal><PortfolioSection /></Reveal>
         <Reveal><ServicesSection /></Reveal>
         <Reveal><AboutSection /></Reveal>

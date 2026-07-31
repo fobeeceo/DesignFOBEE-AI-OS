@@ -2,11 +2,11 @@
 
 # Audit Report
 
-생성: 2026-07-31T01:16:31.468Z
+생성: 2026-07-31T01:24:27.152Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
-- 스캔: 46개 컴포넌트
+- 스캔: 47개 컴포넌트
 - 미사용(어디서도 import 안 됨): 0건
 - ⚠️ §6 규정: 삭제는 CEO 승인 후에만 수행.
 
@@ -17,7 +17,7 @@
     - components/design/CompareSlider.tsx
 
 ## 3. Unused Import
-- 스캔: 87개 파일
+- 스캔: 88개 파일
 - 이슈: 0건
 
 ## 4. Broken Route (nav 컴포넌트)
@@ -41,12 +41,10 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: eba611fc1f5d36a73f90f968c309afd92aecb791 docs: MIGRATION-RUNBOOK.md를 DOCUMENT-INDEX에 등록 (문서 동기화 규칙 준수)
-- 미커밋 변경: 4건
+- 최근 커밋: 9480fd035a541631b034f050d96460157ccf2fcc feat(home): 대표 소개 + 교회 인테리어 전문성 섹션 추가(신뢰도 강화 P3·P5)
+- 미커밋 변경: 2건
 
 ```
 M  app/page.tsx
-A  components/home/CeoSection.tsx
-A  components/home/ChurchSection.tsx
-M  lib/company/profile.ts
+A  components/home/ProofSection.tsx
 ```
