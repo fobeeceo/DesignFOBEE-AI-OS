@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { randomBytes } from "crypto";
 import { getNaverAuthUrl } from "@/lib/auth/naver";
+import { SITE_URL } from "@/lib/site";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
 /**
  * GET /api/auth/naver

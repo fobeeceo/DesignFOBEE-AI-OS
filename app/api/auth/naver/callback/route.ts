@@ -3,8 +3,8 @@ import { exchangeNaverCode, fetchNaverProfile } from "@/lib/auth/naver";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { upsertProfile } from "@/services/profileService";
+import { SITE_URL } from "@/lib/site";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
 /**
  * GET /api/auth/naver/callback

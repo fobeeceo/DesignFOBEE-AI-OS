@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { SectionHeading } from "@/components/ui/section-heading";
-import { getFeaturedStories, hasStories } from "@/lib/projects/stories";
+import { getCategoryLabel, getFeaturedStories, hasStories } from "@/lib/projects/stories";
 
 /**
  * 프로젝트 스토리 요약 — 홈에는 요약만, 전체 내용은 /projects/[slug]에서 보여준다
@@ -41,7 +41,7 @@ export function StoriesSection() {
                 />
               </div>
               <div className="p-5">
-                <p className="text-xs font-semibold text-accent">{story.category}</p>
+                <p className="text-xs font-semibold text-accent">{getCategoryLabel(story)}</p>
                 <h3 className="mt-1 font-semibold">{story.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                   {story.summary}

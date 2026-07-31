@@ -54,7 +54,9 @@ export function Header() {
 
         <button
           aria-label="메뉴 열기"
-          className="lg:hidden"
+          // -m-2 p-2로 아이콘 크기는 그대로 두고 터치 영역만 24px → 40px로 넓힌다
+          // (모바일에서 햄버거 버튼이 눌리지 않는 문제 방지).
+          className="-m-2 p-2 lg:hidden"
           onClick={() => setOpen(true)}
         >
           <Menu className="h-6 w-6" />

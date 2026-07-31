@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { FOUNDED_YEAR, yearsSince } from "@/lib/company/profile";
+import { SITE_URL } from "@/lib/site";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://designfobee.com";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

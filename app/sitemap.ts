@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getAllStorySlugs } from "@/lib/projects/stories";
+import { SITE_URL } from "@/lib/site";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://designfobee.com";
 
 /**
  * 프로젝트 스토리 URL은 lib/projects/stories.ts에서 자동으로 가져온다.

@@ -2,7 +2,7 @@
 
 # Audit Report
 
-생성: 2026-07-31T02:14:54.733Z
+생성: 2026-07-31T02:45:06.685Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
@@ -41,16 +41,23 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: 10d6b7685f7a6cc8e6479e38b1c549f805e558c8 refactor: 연차 표기 전면 자동 계산 전환 — 하드코딩 금지 원칙(대표 결정)
-- 미커밋 변경: 8건
+- 최근 커밋: 5ade435c625b563e75c1d06ff82bbb50a600dc57 feat(projects): 프로젝트 스토리 시스템 설계 — 구조만 구축, 내용 미포함
+- 미커밋 변경: 15건
 
 ```
-M  CLAUDE.md
-M  DOCUMENT-INDEX.md
-A  PROJECT-STORY-GUIDE.md
-M  app/page.tsx
-A  app/projects/[slug]/page.tsx
+M  PROJECT-STORY-GUIDE.md
+M  app/api/auth/naver/callback/route.ts
+M  app/api/auth/naver/route.ts
+M  app/layout.tsx
+M  app/projects/[slug]/page.tsx
+M  app/robots.ts
 M  app/sitemap.ts
-A  components/home/StoriesSection.tsx
-A  lib/projects/stories.ts
+M  audit-report.md
+M  components/home/StoriesSection.tsx
+M  components/layout/Header.tsx
+M  components/ui/input.tsx
+M  components/ui/select.tsx
+M  components/ui/textarea.tsx
+M  lib/projects/stories.ts
+A  lib/site.ts
 ```

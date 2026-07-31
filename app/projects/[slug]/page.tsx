@@ -9,6 +9,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { COMPANY } from "@/lib/company/profile";
 import {
   getAllStorySlugs,
+  getCategoryLabel,
   getGalleryForStory,
   getStoryBySlug,
 } from "@/lib/projects/stories";
@@ -30,7 +31,7 @@ export function generateMetadata({ params }: PageProps): Metadata {
   const story = getStoryBySlug(params.slug);
   if (!story) return {};
 
-  const title = `${story.title} — ${story.category} 인테리어 시공사례`;
+  const title = `${story.title} — ${getCategoryLabel(story)} 인테리어 시공사례`;
   const description = story.summary;
   const url = `/projects/${story.slug}`;
   const image = `/images/portfolio/website/${story.coverSlug}.webp`;
@@ -38,7 +39,7 @@ export function generateMetadata({ params }: PageProps): Metadata {
   return {
     title,
     description,
-    keywords: [story.category, story.location, "인테리어", "시공사례", ...(story.keywords ?? [])],
+    keywords: [getCategoryLabel(story), story.location, "인테리어", "시공사례", ...(story.keywords ?? [])],
     alternates: { canonical: url },
     openGraph: {
       title,
@@ -93,7 +94,7 @@ export default function ProjectStoryPage({ params }: PageProps) {
         <section className="py-16 sm:py-20">
           <div className="container-px mx-auto max-w-3xl">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
-              {story.category}
+              {getCategoryLabel(story)}
             </p>
             <h1 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">{story.title}</h1>
             <p className="mt-3 text-sm text-muted-foreground">
