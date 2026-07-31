@@ -17,6 +17,7 @@ export const metadata: Metadata = {
   title: "GBRICK Coffee 가맹상담 — 공간이 경쟁력이 되는 카페",
   description:
     `GBRICK Coffee 가맹 상담. ${yearsSince(FOUNDED_YEAR)}년 공간디자인 노하우로 설계부터 시공·브랜딩·운영·교육까지 본사가 직접 함께합니다. 무료 가맹상담을 신청하세요.`,
+  alternates: { canonical: "/franchise" },
 };
 
 /**

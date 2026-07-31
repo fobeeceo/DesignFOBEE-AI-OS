@@ -16,6 +16,7 @@ import { WORK_GALLERY } from "@/lib/portfolio/workGallery";
 export const metadata: Metadata = {
   title: "회사소개",
   description: `${COMPANY.name} — ${COMPANY.founded} 설립, ${yearsSince(FOUNDED_YEAR)}년간 상업공간·오피스·교회 등을 직접 설계·시공해온 공간디자인 전문기업입니다.`,
+  alternates: { canonical: "/about" },
 };
 
 export default function AboutPage() {

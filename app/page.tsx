@@ -19,6 +19,7 @@ export const metadata: Metadata = {
   title: `DesignFOBEE — ${yearsSince(FOUNDED_YEAR)}년 공간디자인 × AI 공간 설계`,
   description:
     `상업공간·교회·오피스·카페·주거까지 ${yearsSince(FOUNDED_YEAR)}년간 직접 설계·시공해온 디자인포비. GBRICK Coffee 브랜드 공간부터 AI 공간 분석·디자인 제안·예상 견적까지 한 번에 확인하세요.`,
+  alternates: { canonical: "/" },
 };
 
 /**

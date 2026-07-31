@@ -7,6 +7,7 @@ import { COMPANY } from "@/lib/company/profile";
 export const metadata: Metadata = {
   title: "개인정보처리방침",
   description: `${COMPANY.name} 개인정보처리방침 — 상담 신청 시 수집하는 개인정보의 항목·목적·보유기간과 정보주체의 권리를 안내합니다.`,
+  alternates: { canonical: "/privacy" },
 };
 
 const SECTIONS = [

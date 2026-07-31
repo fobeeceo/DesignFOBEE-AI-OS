@@ -2,7 +2,7 @@
 
 # Audit Report
 
-생성: 2026-07-31T02:45:06.685Z
+생성: 2026-07-31T02:51:46.199Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
@@ -41,23 +41,12 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: 5ade435c625b563e75c1d06ff82bbb50a600dc57 feat(projects): 프로젝트 스토리 시스템 설계 — 구조만 구축, 내용 미포함
-- 미커밋 변경: 15건
+- 최근 커밋: 5a59d6d9e4637643dd4cc63fdb8dc885dc2d1c1f fix(rc1): 배포 도메인 SSOT화 + iOS 폼 확대 방지 + 스토리 구조 확장
+- 미커밋 변경: 4건
 
 ```
-M  PROJECT-STORY-GUIDE.md
-M  app/api/auth/naver/callback/route.ts
-M  app/api/auth/naver/route.ts
-M  app/layout.tsx
-M  app/projects/[slug]/page.tsx
-M  app/robots.ts
-M  app/sitemap.ts
-M  audit-report.md
-M  components/home/StoriesSection.tsx
-M  components/layout/Header.tsx
-M  components/ui/input.tsx
-M  components/ui/select.tsx
-M  components/ui/textarea.tsx
-M  lib/projects/stories.ts
-A  lib/site.ts
+M  app/about/page.tsx
+M  app/franchise/page.tsx
+M  app/page.tsx
+M  app/privacy/page.tsx
 ```
