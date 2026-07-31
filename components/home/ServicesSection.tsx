@@ -1,6 +1,6 @@
 import { SectionHeading } from "@/components/ui/section-heading";
 import { Building2, Church, GraduationCap, Briefcase, Home } from "lucide-react";
-import { SERVICES as SERVICE_DATA } from "@/lib/company/profile";
+import { FOUNDED_YEAR, SERVICES as SERVICE_DATA, yearsSince } from "@/lib/company/profile";
 
 const ICONS = [Building2, Church, GraduationCap, Briefcase, Home];
 const SERVICES = SERVICE_DATA.map((s, i) => ({ ...s, icon: ICONS[i] }));
@@ -15,7 +15,7 @@ export function ServicesSection() {
         <SectionHeading
           eyebrow="Our Services"
           title="공간을 넘어, 경험을 디자인합니다"
-          description="26년간 쌓아온 노하우로 상업공간부터 주거공간까지, 목적에 맞는 공간을 설계하고 시공합니다."
+          description={`${yearsSince(FOUNDED_YEAR)}년간 쌓아온 노하우로 상업공간부터 주거공간까지, 목적에 맞는 공간을 설계하고 시공합니다.`}
         />
 
         <div className="mt-14 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">

@@ -1,14 +1,14 @@
 import Image from "next/image";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { buttonVariants } from "@/components/ui/button";
-import { STATS } from "@/lib/company/profile";
+import { FOUNDED_YEAR, getStats, yearsSince } from "@/lib/company/profile";
 import { Coffee } from "lucide-react";
 
 /**
  * 홈페이지 GBRICK Coffee 요약 섹션.
  * CEO 업무지시(가맹상담 시스템 구축): 상담 폼을 여기서 제거하고 전용 랜딩(/franchise)으로
  * 유도만 한다 — 이 섹션은 브랜드 요약, /franchise는 상담 전환을 담당하도록 역할을 분리했다.
- * 통계는 lib/company/profile.ts STATS 재사용(SSOT) — 매장 수·폐점 수 등 변동 수치는 쓰지 않는다.
+ * 통계는 lib/company/profile.ts getStats() 재사용(SSOT) — 매장 수·폐점 수 등 변동 수치는 쓰지 않는다.
  */
 export function GBrickSection() {
   return (
@@ -17,7 +17,7 @@ export function GBrickSection() {
         <SectionHeading
           eyebrow="Franchise"
           title="GBRICK Coffee 가맹 상담"
-          description="공간과 커피를 결합한 브랜드. 고객은 커피가 아니라 좋은 공간을 경험하러 옵니다 — 26년 공간디자인 노하우가 매장 설계에 그대로 들어갑니다."
+          description={`공간과 커피를 결합한 브랜드. 고객은 커피가 아니라 좋은 공간을 경험하러 옵니다 — ${yearsSince(FOUNDED_YEAR)}년 공간디자인 노하우가 매장 설계에 그대로 들어갑니다.`}
         />
 
         <div className="mt-12 grid gap-10 lg:grid-cols-2 lg:items-center">
@@ -33,7 +33,7 @@ export function GBrickSection() {
 
           <div className="flex flex-col gap-6">
             <div className="grid grid-cols-2 gap-4 rounded-2xl border border-border bg-muted/40 p-6 sm:grid-cols-4">
-              {STATS.map((stat) => (
+              {getStats().map((stat) => (
                 <div key={stat.label} className="text-center">
                   <p className="text-2xl font-bold text-accent">{stat.value}</p>
                   <p className="mt-1 text-xs text-muted-foreground">{stat.label}</p>

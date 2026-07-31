@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { buttonVariants } from "@/components/ui/button";
+import { FOUNDED_YEAR, yearsSince } from "@/lib/company/profile";
 
 /**
  * 가맹상담 랜딩 Hero — 저가 커피가 아닌 "공간 중심 브랜드" 포지셔닝을 첫 화면에서 명확히 한다.
@@ -29,7 +30,8 @@ export function FranchiseHero() {
         </h1>
         <p className="mt-6 max-w-2xl text-sm leading-relaxed text-white/90 sm:text-base">
           GBRICK Coffee는 설계부터 시공, 브랜딩, 운영, 교육까지 본사가 함께합니다.
-          26년간 상업공간을 직접 설계·시공해온 디자인포비가 매장을 직접 만듭니다.
+          {yearsSince(FOUNDED_YEAR)}년간 상업공간을 직접 설계·시공해온 디자인포비가 매장을 직접
+          만듭니다.
         </p>
         <div className="mt-10 flex flex-col gap-3 sm:flex-row">
           <a href="#consult" className={buttonVariants({ size: "lg" })}>

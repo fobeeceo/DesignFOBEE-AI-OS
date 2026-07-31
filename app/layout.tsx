@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { FOUNDED_YEAR, yearsSince } from "@/lib/company/profile";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://designfobee.com";
 
@@ -10,7 +11,7 @@ export const metadata: Metadata = {
     template: "%s | DesignFOBEE",
   },
   description:
-    "26년 공간디자인 경험과 AI가 결합된 공간 브랜딩 기업, 디자인포비. 사진 한 장으로 AI 공간 분석, 디자인 제안, 예상 견적을 받아보세요.",
+    `${yearsSince(FOUNDED_YEAR)}년 공간디자인 경험과 AI가 결합된 공간 브랜딩 기업, 디자인포비. 사진 한 장으로 AI 공간 분석, 디자인 제안, 예상 견적을 받아보세요.`,
   keywords: ["공간디자인", "인테리어", "공간브랜딩", "AI 인테리어", "디자인포비", "GBRICK Coffee"],
   openGraph: {
     type: "website",
@@ -18,13 +19,13 @@ export const metadata: Metadata = {
     url: SITE_URL,
     siteName: "DesignFOBEE",
     title: "DesignFOBEE — AI가 설계하는 당신의 공간",
-    description: "26년 공간디자인 경험 × AI. 사진 한 장으로 시작하는 공간 설계.",
+    description: `${yearsSince(FOUNDED_YEAR)}년 공간디자인 경험 × AI. 사진 한 장으로 시작하는 공간 설계.`,
     images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "GBRICK Coffee 은평본점 야간 매장 외관" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "DesignFOBEE — AI가 설계하는 당신의 공간",
-    description: "26년 공간디자인 경험 × AI. 사진 한 장으로 시작하는 공간 설계.",
+    description: `${yearsSince(FOUNDED_YEAR)}년 공간디자인 경험 × AI. 사진 한 장으로 시작하는 공간 설계.`,
     images: ["/og-image.jpg"],
   },
   robots: {

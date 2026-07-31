@@ -5,6 +5,7 @@ import Image from "next/image";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { buttonVariants } from "@/components/ui/button";
 import { WORK_GALLERY } from "@/lib/portfolio/workGallery";
+import { FOUNDED_YEAR, yearsSince } from "@/lib/company/profile";
 
 /**
  * GBRICK Coffee 직영·가맹점 — 출처: 지명원·정보공개서.
@@ -86,7 +87,7 @@ export function PortfolioSection() {
       <div className="container-px mx-auto max-w-6xl">
         <SectionHeading
           eyebrow="Portfolio"
-          title="26년의 경험이 만든 공간들"
+          title={`${yearsSince(FOUNDED_YEAR)}년의 경험이 만든 공간들`}
           description="GBRICK Coffee 매장을 비롯해 카페·리테일·오피스 등 다양한 공간을 직접 설계·시공해왔습니다."
         />
 

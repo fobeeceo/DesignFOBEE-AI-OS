@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { buttonVariants } from "@/components/ui/button";
+import { FOUNDED_YEAR, yearsSince } from "@/lib/company/profile";
 
 /**
  * 홈 첫 화면 — 브랜드 먼저(공간디자인 26년) + 실제 공간사진 풀블리드.
@@ -25,7 +26,7 @@ export function Hero() {
 
       <div className="container-px relative mx-auto flex min-h-[88vh] max-w-6xl flex-col justify-end pb-20 pt-32 sm:pb-28">
         <p className="animate-fade-in-up text-xs font-semibold uppercase tracking-[0.28em] text-white/80">
-          DesignFOBEE · 26년 공간디자인
+          DesignFOBEE · {yearsSince(FOUNDED_YEAR)}년 공간디자인
         </p>
 
         <h1
@@ -41,7 +42,7 @@ export function Hero() {
           className="animate-fade-in-up mt-6 max-w-xl text-base leading-relaxed text-white/85 sm:text-lg"
           style={{ animationDelay: "0.2s" }}
         >
-          상업공간·교회·오피스·카페·주거까지 26년. 이제 AI로 사진 한 장이면
+          상업공간·교회·오피스·카페·주거까지 {yearsSince(FOUNDED_YEAR)}년. 이제 AI로 사진 한 장이면
           공간 분석·디자인 제안·예상 견적을 미리 받아보세요.
         </p>
 

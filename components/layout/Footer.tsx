@@ -1,3 +1,5 @@
+import { FOUNDED_YEAR, yearsSince } from "@/lib/company/profile";
+
 const YEAR = new Date().getFullYear();
 
 /**
@@ -12,7 +14,7 @@ export function Footer() {
           <div>
             <p className="text-lg font-bold">DesignFOBEE</p>
             <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
-              26년간 공간을 디자인해온 공간 브랜딩 기업.
+              {yearsSince(FOUNDED_YEAR)}년간 공간을 디자인해온 공간 브랜딩 기업.
               <br />
               사람의 경험을 디자인합니다.
             </p>

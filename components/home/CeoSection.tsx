@@ -1,5 +1,5 @@
 import { SectionHeading } from "@/components/ui/section-heading";
-import { CEO_PROFILE, COMPANY } from "@/lib/company/profile";
+import { CEO_PROFILE, COMPANY, FOUNDED_YEAR, yearsSince } from "@/lib/company/profile";
 
 /**
  * 대표 소개 — CEO 업무지시(홈페이지 신뢰도 강화 Priority 3).
@@ -12,7 +12,7 @@ export function CeoSection() {
       <div className="container-px mx-auto max-w-6xl">
         <SectionHeading
           eyebrow="Founder"
-          title="26년간 현장을 지켜온 사람"
+          title={`${yearsSince(FOUNDED_YEAR)}년간 현장을 지켜온 사람`}
           description={CEO_PROFILE.intro}
         />
 

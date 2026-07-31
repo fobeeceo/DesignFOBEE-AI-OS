@@ -1,5 +1,5 @@
 import { SectionHeading } from "@/components/ui/section-heading";
-import { MILESTONES } from "@/lib/company/profile";
+import { FOUNDED_YEAR, MILESTONES, yearsSince } from "@/lib/company/profile";
 
 /**
  * 디자인포비 회사 소개(연혁). SSOT: 사업자등록증·전문건설업 등록증(2000/2009), 지명원 연혁(2013).
@@ -10,7 +10,7 @@ export function AboutSection() {
       <div className="container-px mx-auto max-w-6xl">
         <SectionHeading
           eyebrow="About Us"
-          title="26년, 공간을 직접 만들어온 시간"
+          title={`${yearsSince(FOUNDED_YEAR)}년, 공간을 직접 만들어온 시간`}
           description="주식회사 디자인포비는 2000년 설립된 공간디자인 전문기업입니다. 2009년 실내건축공사업 등록을 마치고 상업공간·오피스·교회 등 다양한 공간을 직접 설계·시공해왔습니다. 예쁜 공간을 만드는 것을 넘어, 그 공간에서 사람들이 더 나은 경험을 하도록 돕는 것이 저희의 일입니다."
         />
 

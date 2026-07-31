@@ -3,12 +3,19 @@ import Image from "next/image";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { SectionHeading } from "@/components/ui/section-heading";
-import { COMPANY, MILESTONES, SERVICES, STATS } from "@/lib/company/profile";
+import {
+  COMPANY,
+  MILESTONES,
+  SERVICES,
+  FOUNDED_YEAR,
+  getStats,
+  yearsSince,
+} from "@/lib/company/profile";
 import { WORK_GALLERY } from "@/lib/portfolio/workGallery";
 
 export const metadata: Metadata = {
   title: "회사소개",
-  description: `${COMPANY.name} — ${COMPANY.founded} 설립, 26년간 상업공간·오피스·교회 등을 직접 설계·시공해온 공간디자인 전문기업입니다.`,
+  description: `${COMPANY.name} — ${COMPANY.founded} 설립, ${yearsSince(FOUNDED_YEAR)}년간 상업공간·오피스·교회 등을 직접 설계·시공해온 공간디자인 전문기업입니다.`,
 };
 
 export default function AboutPage() {
@@ -38,7 +45,7 @@ export default function AboutPage() {
         <section className="py-16 sm:py-20">
           <div className="container-px mx-auto max-w-6xl">
             <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
-              {STATS.map((s) => (
+              {getStats().map((s) => (
                 <div key={s.label} className="text-center">
                   <p className="text-3xl font-bold text-accent sm:text-4xl">{s.value}</p>
                   <p className="mt-1 text-xs text-muted-foreground sm:text-sm">{s.label}</p>
@@ -51,7 +58,10 @@ export default function AboutPage() {
         {/* 연혁 */}
         <section className="bg-muted/40 py-20 sm:py-28">
           <div className="container-px mx-auto max-w-6xl">
-            <SectionHeading eyebrow="History" title="26년의 발자취" />
+            <SectionHeading
+              eyebrow="History"
+              title={`${yearsSince(FOUNDED_YEAR)}년의 발자취`}
+            />
             <div className="relative mt-14 space-y-8 border-l border-border pl-8 sm:pl-10">
               {MILESTONES.map((m) => (
                 <div key={m.year} className="relative">

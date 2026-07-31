@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { buttonVariants } from "@/components/ui/button";
+import { FOUNDED_YEAR, yearsSince } from "@/lib/company/profile";
 
 /**
  * 교회 인테리어 전문성 — CEO 업무지시(홈페이지 신뢰도 강화 Priority 5) "별도 구성".
@@ -35,7 +36,7 @@ export function ChurchSection() {
         <SectionHeading
           eyebrow="Church"
           title="교회 공간, 따로 배우지 않았습니다"
-          description="26년간 상업공간과 함께 교회 예배공간·부속시설을 직접 설계하고 시공해왔습니다. 공간의 용도와 공동체의 사용 방식을 먼저 이해하고 설계합니다."
+          description={`${yearsSince(FOUNDED_YEAR)}년간 상업공간과 함께 교회 예배공간·부속시설을 직접 설계하고 시공해왔습니다. 공간의 용도와 공동체의 사용 방식을 먼저 이해하고 설계합니다.`}
         />
 
         <div className="mt-12 grid gap-4 sm:grid-cols-3">

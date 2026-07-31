@@ -1,5 +1,5 @@
 import { SectionHeading } from "@/components/ui/section-heading";
-import { COMPANY } from "@/lib/company/profile";
+import { COMPANY, FOUNDED_YEAR, LICENSE_YEAR, yearsSince } from "@/lib/company/profile";
 import { WORK_GALLERY } from "@/lib/portfolio/workGallery";
 
 /**
@@ -10,13 +10,6 @@ import { WORK_GALLERY } from "@/lib/portfolio/workGallery";
  *    사진이 추가되거나 해가 바뀌어도 화면의 숫자가 실제와 어긋나지 않는다
  *    (매장 수·폐점 수처럼 사람이 관리해야 하는 수치를 쓰지 않는 이유와 같은 원칙).
  */
-
-const FOUNDED_YEAR = Number(COMPANY.founded.slice(0, 4)); // 2000.10.27 → 2000
-const LICENSE_YEAR = 2009; // 실내건축공사업 등록(설계·시공 직접 수행 시작)
-
-function yearsSince(year: number) {
-  return new Date().getFullYear() - year;
-}
 
 /** 갤러리 카테고리("카페 · 라운지" → "카페")별 실제 시공 사례 건수. */
 function countByField() {
