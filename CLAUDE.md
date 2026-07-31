@@ -46,6 +46,14 @@ main은 항상 배포 가능 상태. push 전 Lint·Type Check·Build·QA·Audit
 ## 14. Development Rules
 읽기 쉬운 코드·중복 최소화·재사용·모듈화·확장 설계·환경변수 분리·보안 우선·성능 우선·유지보수 우선.
 
+## 14-A. Content Integrity Rules (대표 결정 2026-07-31, 절대 불변)
+① **모든 신뢰 지표는 자동 계산이 기본. 하드코딩 금지** — 연차는 창업 연도에서, 실적 건수는 실제 데이터 배열에서 계산한다(`lib/company/profile.ts`의 `FOUNDED_YEAR`·`yearsSince()`). 화면에 숫자를 넣기 전 "6개월 뒤에도 저절로 맞는가?"를 확인한다.
+② **실제 자료가 없으면 AI가 생성하지 않는다** — 빈 상태를 인정하거나 다른 실제 자료로 대체한다.
+③ 모든 프로젝트는 착공 전 → 시공 중 → 완공 후 사진 촬영을 표준 절차로 수행한다(Drive `12_SOP/SOP-009`).
+④ 프로젝트 스토리는 홈페이지에 요약, 상세 페이지에 전체를 제공한다.
+⑤ **실제 리뷰는 출처가 확인 가능한 자료만 사용** — 창작·가공 후기, 가짜 고객명 절대 금지.
+⑥ 동일 데이터가 두 곳 이상 존재하지 않게 한다(SSOT). 새 하드코딩을 만들지 않는다.
+
 ## 15. Media Rules
 One Source Multi Use — 원본 하나를 Google Blog·Naver Blog·Instagram·Threads·Facebook·TikTok·YouTube Shorts로 자동 변환.
 

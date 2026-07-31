@@ -2,11 +2,11 @@
 
 # Audit Report
 
-생성: 2026-07-31T01:39:20.948Z
+생성: 2026-07-31T02:14:54.733Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
-- 스캔: 47개 컴포넌트
+- 스캔: 48개 컴포넌트
 - 미사용(어디서도 import 안 됨): 0건
 - ⚠️ §6 규정: 삭제는 CEO 승인 후에만 수행.
 
@@ -17,7 +17,7 @@
     - components/design/CompareSlider.tsx
 
 ## 3. Unused Import
-- 스캔: 88개 파일
+- 스캔: 90개 파일
 - 이슈: 0건
 
 ## 4. Broken Route (nav 컴포넌트)
@@ -41,25 +41,16 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: fa81bd3dbcffac92cff5b7d4b6e30af4fd010d55 feat(home): '기록으로 증명' 섹션 추가 — 후기 대체 전략(대표 결정 P2)
-- 미커밋 변경: 17건
+- 최근 커밋: 10d6b7685f7a6cc8e6479e38b1c549f805e558c8 refactor: 연차 표기 전면 자동 계산 전환 — 하드코딩 금지 원칙(대표 결정)
+- 미커밋 변경: 8건
 
 ```
-M  app/about/page.tsx
-M  app/franchise/page.tsx
-M  app/layout.tsx
+M  CLAUDE.md
+M  DOCUMENT-INDEX.md
+A  PROJECT-STORY-GUIDE.md
 M  app/page.tsx
-M  components/franchise/FranchiseHero.tsx
-M  components/franchise/TrustSection.tsx
-M  components/home/AboutSection.tsx
-M  components/home/CeoSection.tsx
-M  components/home/ChurchSection.tsx
-M  components/home/GBrickSection.tsx
-M  components/home/Hero.tsx
-M  components/home/PortfolioSection.tsx
-M  components/home/ProofSection.tsx
-M  components/home/ServicesSection.tsx
-M  components/layout/Footer.tsx
-M  lib/company/profile.ts
-M  lib/franchise/content.ts
+A  app/projects/[slug]/page.tsx
+M  app/sitemap.ts
+A  components/home/StoriesSection.tsx
+A  lib/projects/stories.ts
 ```

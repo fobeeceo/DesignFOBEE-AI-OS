@@ -59,6 +59,7 @@
 
 ## 운영 런북
 - [MIGRATION-RUNBOOK.md](MIGRATION-RUNBOOK.md) — DB 마이그레이션 실행 절차(백업·롤백·위험요소·검증 체크리스트, 2026-07-31 신설). 대표 승인 전까지 Migration 실행 금지.
+- [PROJECT-STORY-GUIDE.md](PROJECT-STORY-GUIDE.md) — 프로젝트 스토리 입력 가이드(2026-07-31 신설). `lib/projects/stories.ts` 한 곳만 채우면 홈·상세·SEO·sitemap이 자동 연결된다.
 
 ## QA / Audit (생성 산출물)
 - [QA-REPORT.md](QA-REPORT.md) — `npm run qa:extended` 산출물(재실행 시 갱신)
