@@ -2,11 +2,11 @@
 
 # Audit Report
 
-생성: 2026-07-31T00:31:17.811Z
+생성: 2026-07-31T01:16:31.468Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
-- 스캔: 44개 컴포넌트
+- 스캔: 46개 컴포넌트
 - 미사용(어디서도 import 안 됨): 0건
 - ⚠️ §6 규정: 삭제는 CEO 승인 후에만 수행.
 
@@ -17,7 +17,7 @@
     - components/design/CompareSlider.tsx
 
 ## 3. Unused Import
-- 스캔: 85개 파일
+- 스캔: 87개 파일
 - 이슈: 0건
 
 ## 4. Broken Route (nav 컴포넌트)
@@ -41,9 +41,12 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: ce11c2c46f2f1186f7704b8ed963b205d1d6d8e4 fix(a11y): FloatingCTA 숨김 상태 탭 이동 차단 + Migration 런북 추가
-- 미커밋 변경: 1건
+- 최근 커밋: eba611fc1f5d36a73f90f968c309afd92aecb791 docs: MIGRATION-RUNBOOK.md를 DOCUMENT-INDEX에 등록 (문서 동기화 규칙 준수)
+- 미커밋 변경: 4건
 
 ```
-M  DOCUMENT-INDEX.md
+M  app/page.tsx
+A  components/home/CeoSection.tsx
+A  components/home/ChurchSection.tsx
+M  lib/company/profile.ts
 ```

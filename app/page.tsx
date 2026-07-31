@@ -5,6 +5,8 @@ import Reveal from "@/components/Reveal";
 import { Hero } from "@/components/home/Hero";
 import { ServicesSection } from "@/components/home/ServicesSection";
 import { AboutSection } from "@/components/home/AboutSection";
+import { CeoSection } from "@/components/home/CeoSection";
+import { ChurchSection } from "@/components/home/ChurchSection";
 import { ProcessSection } from "@/components/home/ProcessSection";
 import { PortfolioSection } from "@/components/home/PortfolioSection";
 import { GBrickSection } from "@/components/home/GBrickSection";
@@ -32,6 +34,8 @@ export default function HomePage() {
         <Reveal><PortfolioSection /></Reveal>
         <Reveal><ServicesSection /></Reveal>
         <Reveal><AboutSection /></Reveal>
+        <Reveal><CeoSection /></Reveal>
+        <Reveal><ChurchSection /></Reveal>
         <Reveal><ProcessSection /></Reveal>
         <Reveal><GBrickSection /></Reveal>
         <Reveal><CTASection /></Reveal>
