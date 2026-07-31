@@ -2,7 +2,7 @@
 
 # Audit Report
 
-생성: 2026-07-31T00:17:48.639Z
+생성: 2026-07-31T00:28:57.650Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
@@ -41,24 +41,10 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: fd280ff0a8a008f979d8f3b8b0fe4ccb506c6a03 feat(franchise): GBRICK Coffee 가맹상담 전용 랜딩 페이지 구축(CEO 업무지시)
-- 미커밋 변경: 16건
+- 최근 커밋: 0f2967c85d1a6a2c5d653deb0f51711320817879 feat(franchise): GBRICK Franchise AI v2.0 - 상담 자동 분석·접수번호·CRM 확장
+- 미커밋 변경: 2건
 
 ```
-M  app/(admin)/admin/leads/[leadId]/page.tsx
-M  app/api/admin/leads/[leadId]/route.ts
-M  app/api/leads/route.ts
-A  components/admin/LeadAiPanel.tsx
-M  components/franchise/ConsultForm.tsx
-M  components/franchise/ThankYouModal.tsx
-A  database/prisma/migrations/20260731090000_add_franchise_ai_fields/migration.sql
-M  database/prisma/schema.prisma
-A  lib/franchise/constants.ts
-A  lib/franchise/leadIntelligence.test.ts
-A  lib/franchise/leadIntelligence.ts
-M  lib/franchise/successCases.ts
-M  lib/validations/crm.schema.ts
-M  services/crmService.ts
-M  services/leadService.ts
-M  types/lead.ts
+A  MIGRATION-RUNBOOK.md
+M  components/franchise/FloatingCTA.tsx
 ```

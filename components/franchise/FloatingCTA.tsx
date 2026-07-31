@@ -41,15 +41,19 @@ export function FloatingCTA() {
         visible ? "opacity-100" : "pointer-events-none opacity-0"
       )}
     >
+      {/* 숨김 상태에서는 탭 이동 대상에서도 빼야 한다(aria-hidden 안에 포커스 가능한 요소가
+          남아 있으면 키보드 사용자가 보이지 않는 버튼에 포커스된다). */}
       <div className="flex gap-2 border-t border-border bg-background/95 p-3 backdrop-blur sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
         <a
           href={`tel:${COMPANY.phone.replace(/-/g, "")}`}
+          tabIndex={visible ? undefined : -1}
           className={buttonVariants({ variant: "outline", size: "lg", className: "flex-1 sm:hidden" })}
         >
           전화 상담
         </a>
         <a
           href="#consult"
+          tabIndex={visible ? undefined : -1}
           className={buttonVariants({ size: "lg", className: "flex-1 shadow-lg sm:flex-none" })}
         >
           무료 가맹상담 신청
