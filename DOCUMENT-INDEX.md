@@ -57,6 +57,9 @@
 ## CHANGELOG
 - [CHANGELOG.md](CHANGELOG.md) — 전체 변경이력(활성, Priority 단위 추적)
 
+## 운영 런북
+- [MIGRATION-RUNBOOK.md](MIGRATION-RUNBOOK.md) — DB 마이그레이션 실행 절차(백업·롤백·위험요소·검증 체크리스트, 2026-07-31 신설). 대표 승인 전까지 Migration 실행 금지.
+
 ## QA / Audit (생성 산출물)
 - [QA-REPORT.md](QA-REPORT.md) — `npm run qa:extended` 산출물(재실행 시 갱신)
 - [audit-report.md](audit-report.md) — `npm run audit` 산출물(재실행 시 갱신)

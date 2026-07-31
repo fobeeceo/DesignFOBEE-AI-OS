@@ -2,7 +2,7 @@
 
 # Audit Report
 
-생성: 2026-07-31T00:28:57.650Z
+생성: 2026-07-31T00:31:17.811Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
@@ -41,10 +41,9 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: 0f2967c85d1a6a2c5d653deb0f51711320817879 feat(franchise): GBRICK Franchise AI v2.0 - 상담 자동 분석·접수번호·CRM 확장
-- 미커밋 변경: 2건
+- 최근 커밋: ce11c2c46f2f1186f7704b8ed963b205d1d6d8e4 fix(a11y): FloatingCTA 숨김 상태 탭 이동 차단 + Migration 런북 추가
+- 미커밋 변경: 1건
 
 ```
-A  MIGRATION-RUNBOOK.md
-M  components/franchise/FloatingCTA.tsx
+M  DOCUMENT-INDEX.md
 ```
