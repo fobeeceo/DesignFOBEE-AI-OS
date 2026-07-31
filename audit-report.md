@@ -2,7 +2,7 @@
 
 # Audit Report
 
-생성: 2026-07-31T06:06:13.089Z
+생성: 2026-07-31T10:26:42.514Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
@@ -41,11 +41,10 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: 33033cdb5bca821381df89ada7fbab43bd0d9755 fix(seo): 주요 4개 페이지 canonical 누락 보완 (RC1 STEP 10)
-- 미커밋 변경: 3건
+- 최근 커밋: cab78f9a33588567486725d008a4eb3817a95f50 chore(deploy): 배포 도메인 fobee.co.kr 확정 + Backlog 신설
+- 미커밋 변경: 2건
 
 ```
-A  BACKLOG.md
-M  DOCUMENT-INDEX.md
-M  lib/site.ts
+M  components/home/ProofSection.tsx
+M  lib/company/profile.ts
 ```

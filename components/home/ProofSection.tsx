@@ -1,5 +1,11 @@
 import { SectionHeading } from "@/components/ui/section-heading";
-import { COMPANY, FOUNDED_YEAR, LICENSE_YEAR, yearsSince } from "@/lib/company/profile";
+import {
+  COMPANY,
+  FOUNDED_YEAR,
+  LICENSE_YEAR,
+  TOTAL_PROJECTS,
+  yearsSince,
+} from "@/lib/company/profile";
 import { WORK_GALLERY } from "@/lib/portfolio/workGallery";
 
 /**
@@ -38,9 +44,9 @@ export function ProofSection() {
       source: `${LICENSE_YEAR}년 실내건축공사업 등록증`,
     },
     {
-      value: `${WORK_GALLERY.length}건`,
-      label: "공개된 실제 시공 사례",
-      source: "아래 포트폴리오에서 전부 확인 가능",
+      value: `약 ${TOTAL_PROJECTS}건`,
+      label: "누적 시공 프로젝트",
+      source: `${FOUNDED_YEAR}년 이후 · 업무지명원 시공사례 기준`,
     },
     {
       value: `${fields.length}개 분야`,
@@ -69,7 +75,11 @@ export function ProofSection() {
         </div>
 
         <div className="mt-12">
-          <p className="text-sm font-semibold text-foreground">분야별 시공 실적</p>
+          {/* 위 카드의 '약 250건'은 전체 실적(업무지명원)이고, 아래 숫자는 홈페이지에 공개한
+              사진 수다. 두 숫자가 서로 모순돼 보이지 않도록 기준을 명확히 표기한다. */}
+          <p className="text-sm font-semibold text-foreground">
+            홈페이지에 공개한 사례 {WORK_GALLERY.length}건
+          </p>
           <div className="mt-4 flex flex-wrap gap-3">
             {fields.map((item) => (
               <span
@@ -81,7 +91,7 @@ export function ProofSection() {
             ))}
           </div>
           <p className="mt-4 text-xs text-muted-foreground">
-            ※ 홈페이지에 공개한 사진 기준입니다. 촬영·공개 동의를 받지 못한 현장은 포함하지 않았습니다.
+            ※ 전체 시공 실적 중 촬영·공개 동의를 받은 현장만 홈페이지에 공개하고 있습니다.
           </p>
         </div>
       </div>
