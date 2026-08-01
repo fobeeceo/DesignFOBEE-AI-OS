@@ -2,11 +2,11 @@
 
 # Audit Report
 
-생성: 2026-08-01T01:16:40.116Z
+생성: 2026-08-01T03:32:40.590Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
-- 스캔: 48개 컴포넌트
+- 스캔: 49개 컴포넌트
 - 미사용(어디서도 import 안 됨): 0건
 - ⚠️ §6 규정: 삭제는 CEO 승인 후에만 수행.
 
@@ -17,7 +17,7 @@
     - components/design/CompareSlider.tsx
 
 ## 3. Unused Import
-- 스캔: 90개 파일
+- 스캔: 93개 파일
 - 이슈: 0건
 
 ## 4. Broken Route (nav 컴포넌트)
@@ -41,11 +41,13 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: 3c322353017a0b34e738a9f84fd237a9c1833d05 fix(home): 분야별 건수 제거 — 250건과 숫자 충돌 해소
-- 미커밋 변경: 3건
+- 최근 커밋: 84e965dc51db4c8d535c6cf21c0e3798bc6dc8c8 fix(ui): iOS Safari에서 섹션이 투명하게 남아 이미지가 안 보이던 문제 수정
+- 미커밋 변경: 5건
 
 ```
-M  app/globals.css
-M  components/Reveal.tsx
-M  components/home/Hero.tsx
+A  app/api/franchise-diagnosis/route.ts
+A  app/franchise/diagnosis/page.tsx
+A  components/franchise/DiagnosisClient.tsx
+M  components/franchise/Process.tsx
+A  lib/franchise/diagnosisData.ts
 ```

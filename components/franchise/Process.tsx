@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { buttonVariants } from "@/components/ui/button";
 import { FRANCHISE_PROCESS } from "@/lib/franchise/content";
@@ -26,10 +27,12 @@ export function Process() {
           ))}
         </ol>
 
+        {/* 상담 폼(#consult)이 아니라 자가진단 페이지로 보낸다 —
+            상담 전에 창업 가능성을 먼저 점검하시도록 하는 것이 이 버튼의 목적이다. */}
         <div className="mt-12 flex justify-center">
-          <a href="#consult" className={buttonVariants({ size: "lg" })}>
+          <Link href="/franchise/diagnosis" className={buttonVariants({ size: "lg" })}>
             창업 가능성 진단받기
-          </a>
+          </Link>
         </div>
       </div>
     </section>
