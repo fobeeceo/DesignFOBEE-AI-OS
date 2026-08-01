@@ -2,7 +2,7 @@
 
 # Audit Report
 
-생성: 2026-07-31T10:30:49.455Z
+생성: 2026-08-01T01:16:40.116Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
@@ -41,9 +41,11 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: ab3d4e0b72c2f49d860b12ee754dbd9705a2613a fix(home): 시공 실적 수치 정정 — 공개 사진 25건 → 누적 실적 약 250건
-- 미커밋 변경: 1건
+- 최근 커밋: 3c322353017a0b34e738a9f84fd237a9c1833d05 fix(home): 분야별 건수 제거 — 250건과 숫자 충돌 해소
+- 미커밋 변경: 3건
 
 ```
-M  components/home/ProofSection.tsx
+M  app/globals.css
+M  components/Reveal.tsx
+M  components/home/Hero.tsx
 ```

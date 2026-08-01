@@ -9,7 +9,7 @@ import { FOUNDED_YEAR, yearsSince } from "@/lib/company/profile";
  */
 export function Hero() {
   return (
-    <section id="top" className="relative min-h-[88vh] w-full overflow-hidden bg-primary text-white">
+    <section id="top" className="relative hero-min-h w-full overflow-hidden bg-primary text-white">
       {/* 풀블리드 공간 사진 — gbrick-eunpyeong.jpg는 2026-07-28 삭제됨(은평본점 사진 미확보).
           2026-07-29 대표님이 새 사진(디자인포비작업사진2 IMG_8205)을 은평본점 야간 외관으로
           직접 확인해주셔서, 임시로 썼던 안산점 사진 대신 이 확정 본점 사진으로 교체. */}
@@ -24,7 +24,7 @@ export function Hero() {
       {/* 가독성 오버레이 */}
       <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-black/35" />
 
-      <div className="container-px relative mx-auto flex min-h-[88vh] max-w-6xl flex-col justify-end pb-20 pt-32 sm:pb-28">
+      <div className="container-px relative mx-auto flex hero-min-h max-w-6xl flex-col justify-end pb-20 pt-32 sm:pb-28">
         <p className="animate-fade-in-up text-xs font-semibold uppercase tracking-[0.28em] text-white/80">
           DesignFOBEE · {yearsSince(FOUNDED_YEAR)}년 공간디자인
         </p>

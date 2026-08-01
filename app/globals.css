@@ -34,23 +34,46 @@ body {
   @apply px-5 sm:px-8 lg:px-12;
 }
 
-/* ── AI Studio 스크롤 리빌 (Reveal 컴포넌트가 사용) ── */
+/* ── 스크롤 리빌 (Reveal 컴포넌트가 사용) ──
+   ⚠️ 기본값에 opacity:0 을 두지 않는다.
+   이전에는 opacity:0 으로 숨겼다가 IntersectionObserver 콜백이 오면 보여주는 구조였는데,
+   iOS Safari는 스크롤 중 주소창이 접히며 뷰포트 높이가 실시간으로 바뀌어 콜백이
+   발화하지 않는 경우가 있었다. 그러면 섹션이 투명한 채로 남아 "이미지가 안 보이는" 증상이 났다.
+   지금은 "숨겼다 나타내기"가 아니라 "보이는 상태에서 살짝 올라오기"만 한다 —
+   JS가 실패하든 관찰이 안 되든 콘텐츠는 항상 보인다. */
 .reveal {
-  opacity: 0;
-  transform: translateY(28px);
-  transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateY(16px);
+  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
 }
 .reveal.is-visible {
-  opacity: 1;
-  transform: translateY(0);
+  transform: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .reveal {
-    opacity: 1;
+  .reveal,
+  .reveal.is-visible {
     transform: none;
     transition: none;
+  }
+}
+
+/* aspect-ratio 미지원 브라우저(iOS 15 미만) 폴백 —
+   fill 이미지의 부모가 높이 0으로 무너져 이미지가 사라지는 것을 막는다. */
+@supports not (aspect-ratio: 1 / 1) {
+  [class*="aspect-"] {
+    min-height: 220px;
+  }
+}
+
+/* Hero 최소 높이 — iOS Safari의 vh는 주소창 높이를 빼지 않아 화면이 잘린다.
+   svh(small viewport height)를 지원하면 그쪽을 쓰고, 아니면 vh로 떨어진다. */
+.hero-min-h {
+  min-height: 88vh;
+}
+@supports (height: 100svh) {
+  .hero-min-h {
+    min-height: 88svh;
   }
 }
 
