@@ -3,6 +3,9 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import { getSuccessCases } from "@/lib/franchise/successCases";
 
 /**
+ * 운영 중인 매장이 늘어나면 다시 쓸 수 있는 컴포넌트.
+ * 2026-08-01 「운영 중인 매장」 섹션으로 교체되며 참조 해제.
+ *
  * 가맹 성공사례 — 데이터는 lib/franchise/successCases.ts(추후 09_성공사례DB 연동 예정).
  * 검증된 실제 매장 사실과 실사진만 사용하며, 가상 후기·미검증 수치는 표시하지 않는다.
  */

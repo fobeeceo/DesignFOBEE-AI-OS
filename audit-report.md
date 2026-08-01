@@ -2,7 +2,7 @@
 
 # Audit Report
 
-생성: 2026-08-01T11:53:56.199Z
+생성: 2026-08-02T00:01:27.783Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
@@ -42,12 +42,10 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: 8e50c9d5c333ecd17293778062a2302e475e306b fix(erp)+feat(franchise): 매장 로스터 정정 및 STEP 3 가맹 페이지 보강
-- 미커밋 변경: 4건
+- 최근 커밋: 834ca5d3ae1c16b677d5b2bb1ad4e37b1af9776b feat(franchise): 교회 사례 별도 섹션 복원 + STEP 4 창업 비용 공개
+- 미커밋 변경: 2건
 
 ```
-M  app/franchise/page.tsx
-M  components/franchise/FAQ.tsx
-A  components/franchise/SpaceExpertise.tsx
-M  lib/franchise/content.ts
+M  components/franchise/SuccessCases.tsx
+A  database/prisma/migrations/0_init/migration.sql
 ```
