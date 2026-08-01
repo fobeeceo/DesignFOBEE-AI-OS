@@ -15,7 +15,8 @@ import { FOUNDED_YEAR, yearsSince } from "@/lib/company/profile";
 const GBRICK_STORES = [
   { name: "GBRICK Coffee 은평본점", location: "서울 은평구", meta: "직영 1호점 · 2013", image: "/images/portfolio/website/designfobee-gbrick-storefront-night-01.webp" },
   { name: "GBRICK Coffee 안산점", location: "경기 안산시", meta: "가맹점 시공", image: "/images/portfolio/gbrick-ansan.jpg" },
-  { name: "GBRICK Coffee 단대점", location: "경기 성남시", meta: "2013", image: "/images/portfolio/gbrick-dandae.jpg" },
+  // 폐점 매장 — 카드에서 제외한다(2026-08-01 대표 지시). 데이터·사진은 남겨두고 노출만 막는다.
+  { name: "GBRICK Coffee 단대점", location: "경기 성남시", meta: "2013", image: "/images/portfolio/gbrick-dandae.jpg", hidden: true },
   { name: "GBRICK Coffee 삼송점", location: "경기 고양시 삼송", meta: "가맹점 시공", image: "/images/portfolio/gbrick-samsong.jpg" },
   { name: "GBRICK Coffee 신길점", location: "경기", meta: "가맹점 시공", image: "/images/portfolio/gbrick-singil.jpg" },
 ];
@@ -27,7 +28,7 @@ const GBRICK_STORES = [
 type Project = { name: string; category: string; image?: string; location?: string; meta?: string };
 
 const PROJECTS: Project[] = [
-  ...GBRICK_STORES.map((s) => ({ name: s.name, category: "카페 · 커피전문점", image: s.image, location: s.location, meta: s.meta })),
+  ...GBRICK_STORES.filter((s) => !s.hidden).map((s) => ({ name: s.name, category: "카페 · 커피전문점", image: s.image, location: s.location, meta: s.meta })),
   ...WORK_GALLERY.map((item) => ({
     name: item.caption,
     category: item.category,

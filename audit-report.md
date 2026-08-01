@@ -2,7 +2,7 @@
 
 # Audit Report
 
-생성: 2026-08-01T03:32:40.590Z
+생성: 2026-08-01T05:57:04.071Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
@@ -33,21 +33,18 @@
 - npm audit(production): critical 0, high 2, moderate 0, low 0
 
 ## 7. Environment Variable
-- 코드에서 참조: 11개
-- .env.example 선언: 11개
+- 코드에서 참조: 14개
+- .env.example 선언: 14개
 - .env.example 누락(코드는 참조하나 예제엔 없음): 0건
 - .env.example 미사용(예제엔 있으나 코드가 참조 안 함): 1건
   - N8N_API_KEY
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: 84e965dc51db4c8d535c6cf21c0e3798bc6dc8c8 fix(ui): iOS Safari에서 섹션이 투명하게 남아 이미지가 안 보이던 문제 수정
-- 미커밋 변경: 5건
+- 최근 커밋: 8920a9f9d958966e9225eafeb0d9965a9d8c1f28 merge: feat/lead-email-fallback → main (상담 문의 유실 방지 이메일 안전장치)
+- 미커밋 변경: 2건
 
 ```
-A  app/api/franchise-diagnosis/route.ts
-A  app/franchise/diagnosis/page.tsx
-A  components/franchise/DiagnosisClient.tsx
-M  components/franchise/Process.tsx
-A  lib/franchise/diagnosisData.ts
+M  components/home/PortfolioSection.tsx
+M  lib/franchise/successCases.ts
 ```

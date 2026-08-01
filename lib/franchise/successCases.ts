@@ -20,6 +20,12 @@ export type SuccessCase = {
   image: string;
   /** 상담 태그(leadIntelligence.classifyLead 결과)와 매칭해 추천에 사용한다. */
   tags: string[];
+  /**
+   * 노출 중단 사례. 폐점 등으로 더 이상 사실이 아닌 사례를 데이터는 남긴 채 감출 때 쓴다.
+   * 목록·추천에서 빠지지만 getCasesByCodes()로는 계속 조회된다 —
+   * 이미 이 코드가 저장된 과거 상담 기록이 관리자 화면에서 깨지면 안 되기 때문이다.
+   */
+  hidden?: boolean;
 };
 
 const SUCCESS_CASES: SuccessCase[] = [
@@ -52,6 +58,9 @@ const SUCCESS_CASES: SuccessCase[] = [
       "2013년 오픈 이후 장기간 운영을 이어오고 있는 매장입니다. 유행을 따라가는 인테리어가 아닌, 오래 유지되는 공간 설계를 지향합니다.",
     image: "/images/portfolio/gbrick-dandae.jpg",
     tags: ["업종변경", "투자문의", "카페"],
+    // 폐점 매장 — 노출 중단(2026-08-01 대표 지시).
+    // "운영성공"·"운영을 이어오고 있는"은 현재 사실과 다르다. 다시 노출하려면 문구부터 고쳐야 한다.
+    hidden: true,
   },
   {
     code: "SUCCESS-004",
@@ -74,7 +83,7 @@ const DEFAULT_CASE_CODE = "SUCCESS-001";
  * 매칭 결과가 없으면 직영 1호점 사례를 기본으로 안내한다.
  */
 export function recommendCases(tags: string[], limit = 2): SuccessCase[] {
-  const scored = SUCCESS_CASES.map((item) => ({
+  const scored = getSuccessCases().map((item) => ({
     item,
     matches: item.tags.filter((tag) => tags.includes(tag)).length,
   }))
@@ -103,9 +112,10 @@ export function getCasesByCodes(codes: string[]): SuccessCase[] {
 }
 
 /**
- * 성공사례 조회 — 추후 09_성공사례DB / DB 연동 시 이 함수만 async 데이터 소스로 교체한다.
+ * 노출용 성공사례 조회 — hidden 사례는 제외한다.
+ * 추후 09_성공사례DB / DB 연동 시 이 함수만 async 데이터 소스로 교체한다.
  * (호출부는 배열만 사용하므로 시그니처 변경 없이 전환 가능)
  */
 export function getSuccessCases(): SuccessCase[] {
-  return SUCCESS_CASES;
+  return SUCCESS_CASES.filter((item) => !item.hidden);
 }
