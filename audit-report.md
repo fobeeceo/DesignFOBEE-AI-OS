@@ -2,11 +2,11 @@
 
 # Audit Report
 
-생성: 2026-08-01T11:43:24.798Z
+생성: 2026-08-01T11:53:56.199Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
-- 스캔: 50개 컴포넌트
+- 스캔: 51개 컴포넌트
 - 미사용(어디서도 import 안 됨): 1건
   - components/franchise/SuccessCases.tsx
 - ⚠️ §6 규정: 삭제는 CEO 승인 후에만 수행.
@@ -18,7 +18,7 @@
     - components/design/CompareSlider.tsx
 
 ## 3. Unused Import
-- 스캔: 94개 파일
+- 스캔: 95개 파일
 - 이슈: 0건
 
 ## 4. Broken Route (nav 컴포넌트)
@@ -42,17 +42,12 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: 40d36c8f5f6a706ada8d87802313029ec28c338a fix(content): STEP 2 — 폐점 매장 정리 및 매장 현황 정정
-- 미커밋 변경: 9건
+- 최근 커밋: 8e50c9d5c333ecd17293778062a2302e475e306b fix(erp)+feat(franchise): 매장 로스터 정정 및 STEP 3 가맹 페이지 보강
+- 미커밋 변경: 4건
 
 ```
-M  agents/marketerAgent.ts
 M  app/franchise/page.tsx
-M  app/hq/[section]/page.tsx
- M audit-report.md
-A  components/franchise/OperatingStores.tsx
- M docs-sync-report.json
-M  lib/company/profile.ts
+M  components/franchise/FAQ.tsx
+A  components/franchise/SpaceExpertise.tsx
 M  lib/franchise/content.ts
-M  lib/hq/erpSnapshot.ts
 ```
