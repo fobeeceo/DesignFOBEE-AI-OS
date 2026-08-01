@@ -2,7 +2,7 @@
 
 # Audit Report
 
-생성: 2026-08-01T05:57:04.071Z
+생성: 2026-08-01T09:07:24.077Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
@@ -41,10 +41,11 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: 8920a9f9d958966e9225eafeb0d9965a9d8c1f28 merge: feat/lead-email-fallback → main (상담 문의 유실 방지 이메일 안전장치)
-- 미커밋 변경: 2건
+- 최근 커밋: 9c4551de33c640414ca4d989f007a194f0cf8051 fix(content): 폐점한 단대점 노출 중단 — 포트폴리오 카드 + 성공사례
+- 미커밋 변경: 3건
 
 ```
+M  app/sitemap.ts
 M  components/home/PortfolioSection.tsx
 M  lib/franchise/successCases.ts
 ```

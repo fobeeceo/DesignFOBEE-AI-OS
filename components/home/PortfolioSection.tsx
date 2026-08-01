@@ -8,17 +8,27 @@ import { WORK_GALLERY } from "@/lib/portfolio/workGallery";
 import { FOUNDED_YEAR, yearsSince } from "@/lib/company/profile";
 
 /**
- * GBRICK Coffee 직영·가맹점 — 출처: 지명원·정보공개서.
- * 매장별 사진 매핑은 2026-07-28 CEO 최종 확인 기준. 은평본점 사진은 2026-07-29 대표님이
- * "디자인포비작업사진2"(야간 매장 외관 IMG_8205)를 본점으로 직접 확인해주셔서 반영.
+ * GBRICK Coffee 직영·가맹점 — 출처: 지명원·정보공개서 + 2026-08-01 대표 매장 현황 확정.
+ * 은평본점 사진은 2026-07-29 대표님이 "디자인포비작업사진2"(야간 외관 IMG_8205)로 직접 확인.
+ *
+ * ⚠️ 포트폴리오는 "우리가 이 공간을 설계·시공했다"는 사실만 말한다(2026-08-01 대표 지시).
+ *    지금도 영업 중인지는 여기서 말하지 않는다 — 폐점해도 시공한 사실은 변하지 않지만,
+ *    현재형으로 쓰면 폐점 매장을 영업 중인 것처럼 오인시키기 때문이다.
+ *    운영 성과는 가맹 성공사례(lib/franchise/successCases.ts)에서만 다룬다.
  */
 const GBRICK_STORES = [
-  { name: "GBRICK Coffee 은평본점", location: "서울 은평구", meta: "직영 1호점 · 2013", image: "/images/portfolio/website/designfobee-gbrick-storefront-night-01.webp" },
-  { name: "GBRICK Coffee 안산점", location: "경기 안산시", meta: "가맹점 시공", image: "/images/portfolio/gbrick-ansan.jpg" },
+  { name: "GBRICK Coffee 은평본점", location: "서울 은평구", meta: "2013 설계·시공", image: "/images/portfolio/website/designfobee-gbrick-storefront-night-01.webp" },
+  // 안산점과 신길점은 동일 매장이다(2026-08-01 대표 확인). 사진 2장은 같은 공간의 다른 각도라
+  // 두 매장인 것처럼 각각 카드로 두지 않고, 안산점 한 곳의 시공 사진으로 묶는다.
+  { name: "GBRICK Coffee 안산점", location: "경기 안산시", meta: "설계·시공", image: "/images/portfolio/gbrick-singil.jpg" },
+  { name: "GBRICK Coffee 안산점 — 브랜드 월", location: "경기 안산시", meta: "설계·시공", image: "/images/portfolio/gbrick-ansan.jpg" },
   // 폐점 매장 — 카드에서 제외한다(2026-08-01 대표 지시). 데이터·사진은 남겨두고 노출만 막는다.
-  { name: "GBRICK Coffee 단대점", location: "경기 성남시", meta: "2013", image: "/images/portfolio/gbrick-dandae.jpg", hidden: true },
-  { name: "GBRICK Coffee 삼송점", location: "경기 고양시 삼송", meta: "가맹점 시공", image: "/images/portfolio/gbrick-samsong.jpg" },
-  { name: "GBRICK Coffee 신길점", location: "경기", meta: "가맹점 시공", image: "/images/portfolio/gbrick-singil.jpg" },
+  // 단대점: 2013 오픈 → 2023 승계 → 2024 폐점(승계 실패).
+  { name: "GBRICK Coffee 단대점", location: "경기 성남시", meta: "2013 설계·시공", image: "/images/portfolio/gbrick-dandae.jpg", hidden: true },
+  // 삼송점은 실재하지 않는 매장이다(2026-08-01 대표 확인, 원흥점의 착오).
+  // gbrick-samsong.jpg에도 GBRICK 브랜딩이 없어 시공 근거를 확인할 수 없어 노출을 막는다.
+  // 원흥점 사진으로 확인되면 이름을 고쳐 되살릴 수 있도록 파일과 항목은 남긴다.
+  { name: "GBRICK Coffee 삼송점", location: "경기 고양시 삼송", meta: "설계·시공", image: "/images/portfolio/gbrick-samsong.jpg", hidden: true },
 ];
 
 /**
