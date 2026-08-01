@@ -8,6 +8,12 @@ import { FOUNDED_YEAR, yearsSince } from "@/lib/company/profile";
 
 export const FRANCHISE_ADVANTAGES = [
   {
+    // 맨 앞에 둔다(2026-08-01 대표 지시). 가맹 확장 속도보다 성공률을 먼저 말하는 것이
+    // GBRICK이 다른 브랜드와 갈리는 지점이라, 다른 강점보다 먼저 읽혀야 한다.
+    title: "수를 늘리지 않습니다",
+    desc: "GBRICK은 가맹점 수보다 가맹점 성공률을 먼저 봅니다. 잘못된 가맹 하나가 좋은 가맹 열을 어렵게 만들기 때문입니다. 그래서 상담 전에 창업 가능성 진단을 먼저 권해드립니다.",
+  },
+  {
     title: "공간 디자인",
     desc: `${yearsSince(FOUNDED_YEAR)}년 공간디자인 노하우를 매장 설계에 그대로 적용합니다.`,
   },
@@ -33,6 +39,39 @@ export const FRANCHISE_ADVANTAGES = [
   },
 ];
 
+/**
+ * 운영 중인 매장 — 폐점한 곳을 성공사례로 쓰지 않기 위해, 실제로 영업 중인 매장만 싣는다.
+ * (매장 현황 SSOT: lib/hq/erpSnapshot.ts STORES, 대표 확인 2026-08-01)
+ *
+ * ⚠️ 연차는 하드코딩하지 않고 `since`에서 계산한다. 해가 바뀌면 저절로 맞춰진다.
+ * ⚠️ 가맹점 수·평균 매출액은 쓰지 않는다(대표 지시).
+ * ⚠️ 사진은 아직 없다. 다른 매장 사진을 돌려쓰지 않고 글로만 둔다 —
+ *    실제 자료가 없으면 만들어 채우지 않는다는 원칙(CLAUDE.md §14-A)에 따른다.
+ */
+export const OPERATING_STORE_STORIES = [
+  {
+    name: "인덕원점",
+    meta: "35평",
+    /** 점주가 안산에서 GBRICK을 시작한 해. 매장이 아니라 사람의 연차를 센다. */
+    since: 2015,
+    story: (years: number) =>
+      `2015년 안산에서 시작한 점주님이 2019년 인덕원으로 자리를 옮겨 ${years}년째 운영하고 있습니다.`,
+  },
+  {
+    name: "은평본점",
+    meta: "45평 · 직영",
+    since: 2013,
+    story: (years: number) => `2013년 문을 연 1호점입니다. ${years}년째 같은 자리에 있습니다.`,
+  },
+  {
+    name: "덕은점",
+    meta: "15평",
+    since: 2021,
+    story: (years: number) =>
+      `작은 매장도 오래갈 수 있다는 것을 보여주는 곳입니다. 2021년 오픈 이후 ${years}년째 운영 중입니다.`,
+  },
+];
+
 export const FRANCHISE_PROCESS = [
   { step: "01", title: "상담 신청", desc: "온라인 신청 후 전문 컨설턴트가 연락드립니다." },
   { step: "02", title: "상권 분석", desc: "희망 지역의 상권과 입지 조건을 함께 검토합니다." },
@@ -45,6 +84,12 @@ export const FRANCHISE_PROCESS = [
 ];
 
 export const FRANCHISE_FAQ = [
+  {
+    // 맨 위에 둔다(2026-08-01 대표 지시) — 예비 창업자가 가장 먼저 묻는 항목이다.
+    // 1.65%는 2024년 기준 차액가맹금 비율이다. 평균 매출액 자체는 쓰지 않는다.
+    q: "월 로열티가 있나요?",
+    a: "정액 로열티는 없습니다. 필수 품목 공급을 통한 차액가맹금만 발생하며, 2024년 기준 가맹점 평균 매출의 1.65% 수준입니다.",
+  },
   {
     q: "GBRICK Coffee는 저가 커피 브랜드인가요?",
     a: "아닙니다. GBRICK Coffee는 가격 경쟁이 아닌 공간 경험을 중심으로 하는 브랜드입니다. 고객이 머무는 공간의 완성도를 우선합니다.",

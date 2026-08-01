@@ -1,13 +1,14 @@
-> **요약**: 총 1건 발견 (Git 미커밋 변경 제외). §6에 따라 이 스크립트는 아무것도 삭제/수정하지 않았다.
+> **요약**: 총 2건 발견 (Git 미커밋 변경 제외). §6에 따라 이 스크립트는 아무것도 삭제/수정하지 않았다.
 
 # Audit Report
 
-생성: 2026-08-01T09:07:24.077Z
+생성: 2026-08-01T11:43:24.798Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
-- 스캔: 49개 컴포넌트
-- 미사용(어디서도 import 안 됨): 0건
+- 스캔: 50개 컴포넌트
+- 미사용(어디서도 import 안 됨): 1건
+  - components/franchise/SuccessCases.tsx
 - ⚠️ §6 규정: 삭제는 CEO 승인 후에만 수행.
 
 ## 2. Duplicate Component
@@ -17,7 +18,7 @@
     - components/design/CompareSlider.tsx
 
 ## 3. Unused Import
-- 스캔: 93개 파일
+- 스캔: 94개 파일
 - 이슈: 0건
 
 ## 4. Broken Route (nav 컴포넌트)
@@ -41,11 +42,17 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: 9c4551de33c640414ca4d989f007a194f0cf8051 fix(content): 폐점한 단대점 노출 중단 — 포트폴리오 카드 + 성공사례
-- 미커밋 변경: 3건
+- 최근 커밋: 40d36c8f5f6a706ada8d87802313029ec28c338a fix(content): STEP 2 — 폐점 매장 정리 및 매장 현황 정정
+- 미커밋 변경: 9건
 
 ```
-M  app/sitemap.ts
-M  components/home/PortfolioSection.tsx
-M  lib/franchise/successCases.ts
+M  agents/marketerAgent.ts
+M  app/franchise/page.tsx
+M  app/hq/[section]/page.tsx
+ M audit-report.md
+A  components/franchise/OperatingStores.tsx
+ M docs-sync-report.json
+M  lib/company/profile.ts
+M  lib/franchise/content.ts
+M  lib/hq/erpSnapshot.ts
 ```

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { HQ_MENU, ERP_SNAPSHOT, STORES, AI_STAFF } from "@/lib/hq/erpSnapshot";
+import { HQ_MENU, ERP_SNAPSHOT, STORES, OPERATING_STORES, CLOSED_STORES, AI_STAFF } from "@/lib/hq/erpSnapshot";
 import { won } from "@/lib/hq/format";
 import type { ErpApiResponse } from "@/lib/hq/types";
 
@@ -62,11 +62,13 @@ export default function HqSection({ params }: { params: { section: string } }) {
 
       {params.section === "franchise" && (
         <div className="rounded-2xl border border-border p-5">
-          <h2 className="mb-3 text-sm font-bold">전국 가맹/직영점 ({STORES.length}개 · 3년 폐점 0건)</h2>
+          <h2 className="mb-3 text-sm font-bold">
+            전국 가맹/직영점 — 운영 {OPERATING_STORES.length}곳 · 종료 {CLOSED_STORES.length}곳
+          </h2>
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border text-left text-xs text-muted-foreground">
-                <th className="py-2">매장</th><th>유형</th><th>지역</th><th>개점</th><th>데이터</th>
+                <th className="py-2">매장</th><th>유형</th><th>지역</th><th>면적</th><th>개점</th><th>상태</th><th>POS</th>
               </tr>
             </thead>
             <tbody>
@@ -75,12 +77,25 @@ export default function HqSection({ params }: { params: { section: string } }) {
                   <td className="py-2 font-medium">{s.name}</td>
                   <td>{s.type}</td>
                   <td className="text-muted-foreground">{s.region}</td>
+                  <td className="text-muted-foreground">{s.area}</td>
                   <td className="text-muted-foreground">{s.open}</td>
-                  <td>{s.live ? <span className="text-accent font-semibold">POS 연결</span> : <span className="text-muted-foreground">대기</span>}</td>
+                  <td>
+                    {s.live
+                      ? <span className="font-semibold text-accent">운영</span>
+                      : <span className="text-muted-foreground" title={s.closed}>종료</span>}
+                  </td>
+                  <td>{s.pos ? <span className="font-semibold text-accent">연결</span> : <span className="text-muted-foreground">대기</span>}</td>
                 </tr>
               ))}
             </tbody>
           </table>
+
+          {/* 폐점 사유는 승계 심사 기준 수립의 근거라 표 아래에 그대로 남긴다(GFS-012). */}
+          <ul className="mt-4 space-y-1 text-xs text-muted-foreground">
+            {CLOSED_STORES.map((s) => (
+              <li key={s.name}>· {s.name} — {s.closed}</li>
+            ))}
+          </ul>
           <p className="mt-3 text-xs text-muted-foreground">본점 실적: {won(E.sales.revenue)} · {E.sales.qty.toLocaleString()}잔 ({E.sales.period}). 타 매장은 POS 업로드 연결 시 자동 집계.</p>
         </div>
       )}

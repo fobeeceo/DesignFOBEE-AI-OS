@@ -136,16 +136,46 @@ export const AI_STAFF = {
   ],
 } as const;
 
-/** 가맹/직영점 로스터 (SSOT: Franchise KB 정보공개서 2024-07-18). 본점만 POS 실데이터 연결됨. */
-export const STORES = [
-  { name: "은평본점", type: "직영", region: "서울 은평구", open: "2013-11-11", live: true },
-  { name: "단대점", type: "가맹", region: "경기 성남시", open: "2013-12-23", live: false },
-  { name: "월곳점", type: "가맹", region: "경기 김포시", open: "2017-06-20", live: false },
-  { name: "가좌점", type: "가맹", region: "경기 고양시", open: "2018-04-10", live: false },
-  { name: "인덕원점", type: "가맹", region: "경기 의왕시", open: "2019-06-30", live: false },
-  { name: "덕은점", type: "가맹", region: "경기 고양 덕양", open: "2021-05-15", live: false },
-  { name: "신원점", type: "가맹", region: "경기", open: "2023-03-25", live: false },
-] as const;
+/**
+ * 가맹/직영점 로스터 (SSOT: 대표 확인 2026-08-01).
+ *
+ * ⚠️ `live`(운영 여부)와 `pos`(POS 실데이터 연결)를 분리한다.
+ *    이전에는 `live` 하나로 두 가지를 겸했는데, 운영 중인 매장을 live로 바꾸면
+ *    POS가 붙지 않은 매장까지 "POS 연결"로 표시되어 버린다. 실제 POS 연결은 본점뿐이다.
+ *
+ * region·open이 "—"인 항목은 대표 확인 시 값이 나오지 않은 것이다. 추측해서 채우지 않는다.
+ */
+export type Store = {
+  name: string;
+  type: "직영" | "가맹";
+  region: string;
+  area: string;
+  open: string;
+  /** 현재 영업 중인가 */
+  live: boolean;
+  /** POS 실데이터가 연결되어 자동 집계되는가 */
+  pos: boolean;
+  /** 폐점 사유 — live가 false일 때만 채운다. */
+  closed?: string;
+};
+
+export const STORES: Store[] = [
+  { name: "은평본점", type: "직영", region: "서울 은평구", area: "45평", open: "2013-11-11", live: true, pos: true },
+  { name: "김포월곶점", type: "가맹", region: "경기 김포시", area: "65평(실시공 15평)", open: "2017-06-20", live: true, pos: false },
+  { name: "일산가좌점", type: "가맹", region: "경기 고양시", area: "65평", open: "2018-04-10", live: true, pos: false },
+  { name: "인덕원점", type: "가맹", region: "경기 의왕시", area: "35평", open: "2019-06-30", live: true, pos: false },
+  { name: "덕은점", type: "가맹", region: "경기 고양 덕양", area: "15평", open: "2021-05-15", live: true, pos: false },
+
+  { name: "안산점", type: "가맹", region: "경기 안산시", area: "—", open: "2015", live: false, pos: false, closed: "2019 양도 후 브랜드 이탈 — 같은 자리에서 다른 간판 영업 중" },
+  { name: "단대점", type: "가맹", region: "경기 성남시", area: "—", open: "2013-12-23", live: false, pos: false, closed: "2023 승계 → 2024 폐점(승계 실패)" },
+  { name: "원흥점", type: "가맹", region: "—", area: "30평", open: "—", live: false, pos: false, closed: "점주 독립 브랜드 전환" },
+  { name: "동백점", type: "가맹", region: "—", area: "45평(1층 30 + 2층 15)", open: "—", live: false, pos: false, closed: "2년 운영 후 개인 사정" },
+  { name: "신원점", type: "가맹", region: "경기", area: "—", open: "2023-03-25", live: false, pos: false, closed: "건물주 임대료 협상 결렬" },
+];
+
+/** 현재 운영 중인 매장. 대시보드 집계는 이 값을 쓴다. */
+export const OPERATING_STORES = STORES.filter((s) => s.live);
+export const CLOSED_STORES = STORES.filter((s) => !s.live);
 
 export const HQ_MENU = [
   { key: "", label: "CEO Dashboard", icon: "📊" },

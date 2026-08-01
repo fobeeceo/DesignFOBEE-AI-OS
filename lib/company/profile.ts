@@ -14,6 +14,8 @@ export const COMPANY = {
 export const FOUNDED_YEAR = Number(COMPANY.founded.slice(0, 4));
 /** 실내건축공사업 등록(설계·시공 직접 수행 시작) 연도. */
 export const LICENSE_YEAR = 2009;
+/** GBRICK Coffee 직영 1호점(은평본점) 오픈 연도 — 2013-11-11. 카페 운영 노하우 연차의 기준. */
+export const GBRICK_FOUNDED_YEAR = 2013;
 
 /**
  * 누적 시공 프로젝트 수 — 업무지명원 시공사례 기준(대표 확인 2026-07-31).
@@ -87,6 +89,7 @@ export function getStats() {
     { value: `${yearsSince(FOUNDED_YEAR)}년`, label: "공간을 만들어온 시간" },
     { value: "직접 설계·시공", label: "One Stop Service" },
     { value: "AI 기반 설계", label: "Design AI" },
-    { value: "10년+", label: "운영 노하우" },
+    // 직영 1호점 오픈(2013-11-11) 기준 자동 계산 — 해가 바뀌면 저절로 맞춰진다.
+    { value: `${yearsSince(GBRICK_FOUNDED_YEAR)}년+`, label: "운영 노하우" },
   ];
 }

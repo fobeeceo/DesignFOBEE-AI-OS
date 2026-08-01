@@ -6,7 +6,7 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import { FranchiseHero } from "@/components/franchise/FranchiseHero";
 import { TrustSection } from "@/components/franchise/TrustSection";
 import { Advantages } from "@/components/franchise/Advantages";
-import { SuccessCases } from "@/components/franchise/SuccessCases";
+import { OperatingStores } from "@/components/franchise/OperatingStores";
 import { Process } from "@/components/franchise/Process";
 import { FAQ } from "@/components/franchise/FAQ";
 import { ConsultForm } from "@/components/franchise/ConsultForm";
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
 /**
  * GBRICK Coffee 가맹상담 전용 랜딩 페이지.
  * 홈페이지 GBrickSection(브랜드 요약)과 역할을 분리해, 이 페이지는 가맹 상담 전환만 담당한다.
- * 섹션 순서: Hero → 신뢰지표 → 차별성 → 성공사례 → 창업절차 → FAQ → 상담폼(+FloatingCTA)
+ * 섹션 순서: Hero → 신뢰지표 → 차별성 → 운영 중인 매장 → 창업절차 → FAQ → 상담폼(+FloatingCTA)
  */
 export default function FranchisePage() {
   return (
@@ -35,9 +35,8 @@ export default function FranchisePage() {
         <Reveal>
           <Advantages />
         </Reveal>
-        <Reveal>
-          <SuccessCases />
-        </Reveal>
+        {/* Reveal로 감싸지 않는다(대표 지시) — JS가 실패해도 매장 이야기는 보여야 한다. */}
+        <OperatingStores />
         <Reveal>
           <Process />
         </Reveal>
