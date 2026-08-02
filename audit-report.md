@@ -2,7 +2,7 @@
 
 # Audit Report
 
-생성: 2026-08-02T12:28:45.185Z
+생성: 2026-08-02T12:32:30.045Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
@@ -42,9 +42,10 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: 32ce612a95f06da6aa894e427044bdc0294201c0 chore(db): 마이그레이션 베이스라인 추가 + SuccessCases 보존 주석
-- 미커밋 변경: 1건
+- 최근 커밋: 3e19f2bae965ff55174aa5ff0e0f55f0ba906207 fix(seo): canonical·sitemap을 실제 서빙 호스트(www)에 맞춘다
+- 미커밋 변경: 2건
 
 ```
-M  lib/site.ts
+M  AGENTS.md
+M  CLAUDE.md
 ```
