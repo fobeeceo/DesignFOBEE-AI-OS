@@ -2,7 +2,7 @@
 
 # Audit Report
 
-생성: 2026-08-02T00:01:27.783Z
+생성: 2026-08-02T12:28:45.185Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
@@ -42,10 +42,9 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: 834ca5d3ae1c16b677d5b2bb1ad4e37b1af9776b feat(franchise): 교회 사례 별도 섹션 복원 + STEP 4 창업 비용 공개
-- 미커밋 변경: 2건
+- 최근 커밋: 32ce612a95f06da6aa894e427044bdc0294201c0 chore(db): 마이그레이션 베이스라인 추가 + SuccessCases 보존 주석
+- 미커밋 변경: 1건
 
 ```
-M  components/franchise/SuccessCases.tsx
-A  database/prisma/migrations/0_init/migration.sql
+M  lib/site.ts
 ```

@@ -9,7 +9,13 @@
  * 브랜드 분석 결과 이 사이트는 DesignFOBEE 기업 홈페이지로 확정되었다.
  * GBRICK Coffee 전용 사이트는 gbrickcoffee.com으로 별도 구축 예정(Backlog).
  *
+ * ⚠️ www를 정본으로 쓴다(2026-08-02). Vercel이 www.fobee.co.kr을 대표 도메인으로 잡고
+ *    있어 apex(fobee.co.kr)로 들어오면 308로 www에 넘긴다. 그런데 canonical·sitemap은
+ *    apex를 가리키고 있어, 검색엔진에 "정본은 apex인데 실제로는 www로 넘어가는" 신호가
+ *    나가고 있었다. 실제 서빙 호스트에 맞춘다.
+ *    Vercel 대표 도메인을 apex로 바꾸면 이 값도 apex로 되돌릴 것.
+ *
  * 운영 환경에서는 Vercel 환경변수 NEXT_PUBLIC_SITE_URL을 반드시 설정한다.
  * (미설정 시 아래 기본값이 쓰이므로 도메인이 바뀌면 이 상수도 함께 갱신할 것)
  */
-export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://fobee.co.kr";
+export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.fobee.co.kr";
