@@ -20,13 +20,24 @@ function scrub(text: string): string {
   return text.replace(/:\/\/([^:@\s]+):([^@\s]+)@/g, "://$1:****@");
 }
 
+/**
+ * 접속 문자열의 "형태"만 본다. 비밀번호가 섞여 나올 수 있는 경로(path)는 반환하지 않는다.
+ * 값이 깨졌을 때 어디가 깨졌는지 판단할 최소 정보만 남긴다.
+ */
 function urlShape(raw: string | undefined) {
   if (!raw) return null;
+  const startsOk = raw.startsWith("postgresql://") || raw.startsWith("postgres://");
   try {
     const u = new URL(raw);
-    return { host: u.hostname, port: u.port, db: u.pathname.slice(1), params: u.search };
+    return {
+      startsWithProtocol: startsOk,
+      host: u.hostname || "(비어 있음)",
+      port: u.port || "(비어 있음)",
+      params: u.search,
+      length: raw.length,
+    };
   } catch {
-    return { parseError: true };
+    return { startsWithProtocol: startsOk, parseError: true, length: raw.length };
   }
 }
 
@@ -44,6 +55,7 @@ export async function GET(req: NextRequest) {
       RESEND_API_KEY: Boolean(process.env.RESEND_API_KEY),
     },
     databaseUrlShape: urlShape(process.env.DATABASE_URL),
+    directUrlShape: urlShape(process.env.DIRECT_URL),
   };
 
   // 1) Supabase 클라이언트 생성
