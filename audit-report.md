@@ -2,7 +2,7 @@
 
 # Audit Report
 
-생성: 2026-08-02T12:32:30.045Z
+생성: 2026-08-02T14:20:43.052Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
@@ -18,7 +18,7 @@
     - components/design/CompareSlider.tsx
 
 ## 3. Unused Import
-- 스캔: 95개 파일
+- 스캔: 96개 파일
 - 이슈: 0건
 
 ## 4. Broken Route (nav 컴포넌트)
@@ -42,10 +42,9 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: 3e19f2bae965ff55174aa5ff0e0f55f0ba906207 fix(seo): canonical·sitemap을 실제 서빙 호스트(www)에 맞춘다
-- 미커밋 변경: 2건
+- 최근 커밋: 64274ad9f8d140d37a1b7d41a5fd950dc8d04ff4 docs: CLAUDE.md §0 신설 — 경영철학과 의사결정 7원칙
+- 미커밋 변경: 1건
 
 ```
-M  AGENTS.md
-M  CLAUDE.md
+A  app/api/_diag/route.ts
 ```
