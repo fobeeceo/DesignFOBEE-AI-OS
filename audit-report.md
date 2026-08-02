@@ -2,7 +2,7 @@
 
 # Audit Report
 
-생성: 2026-08-02T15:09:49.610Z
+생성: 2026-08-02T22:15:37.592Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
@@ -42,9 +42,9 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: 27b29c8aac6c39629f10fb30933bbb7a0f5e0176 chore(diag): 접속 문자열 형태만 노출하도록 마스킹 강화 + DIRECT_URL 추가
+- 최근 커밋: 4d80a915551a136f4c44108ce94c021e4b3a1a7a chore(diag): 임시 진단 엔드포인트 제거
 - 미커밋 변경: 1건
 
 ```
-D  app/api/diag-tmp/route.ts
+M  lib/hq/erpSnapshot.ts
 ```

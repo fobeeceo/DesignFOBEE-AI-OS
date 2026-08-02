@@ -144,6 +144,10 @@ export const AI_STAFF = {
  *    POS가 붙지 않은 매장까지 "POS 연결"로 표시되어 버린다. 실제 POS 연결은 본점뿐이다.
  *
  * region·open이 "—"인 항목은 대표 확인 시 값이 나오지 않은 것이다. 추측해서 채우지 않는다.
+ *
+ * open에 "(추정)"이 붙은 항목은 대표 기억에 의한 개략 연도다(2026-08-02).
+ * 가맹계약서 확인 후 정확한 날짜로 바꾸고 "(추정)"을 뗀다.
+ * 확정값과 섞이지 않도록 표기를 남겨둔다 — 모르는 것을 아는 것처럼 쓰지 않는다(CLAUDE.md §0-2 원칙 3).
  */
 export type Store = {
   name: string;
@@ -168,8 +172,8 @@ export const STORES: Store[] = [
 
   { name: "안산점", type: "가맹", region: "경기 안산시", area: "—", open: "2015", live: false, pos: false, closed: "2019 양도 후 브랜드 이탈 — 같은 자리에서 다른 간판 영업 중" },
   { name: "단대점", type: "가맹", region: "경기 성남시", area: "—", open: "2013-12-23", live: false, pos: false, closed: "2023 승계 → 2024 폐점(승계 실패)" },
-  { name: "원흥점", type: "가맹", region: "—", area: "30평", open: "—", live: false, pos: false, closed: "점주 독립 브랜드 전환" },
-  { name: "동백점", type: "가맹", region: "—", area: "45평(1층 30 + 2층 15)", open: "—", live: false, pos: false, closed: "2년 운영 후 개인 사정" },
+  { name: "원흥점", type: "가맹", region: "경기 고양시 원흥동", area: "30평", open: "2019(추정)", live: false, pos: false, closed: "점주 독립 브랜드 전환" },
+  { name: "동백점", type: "가맹", region: "경기 용인시 동백동", area: "45평(1층 30 + 2층 15)", open: "2018(추정)", live: false, pos: false, closed: "2년 운영 후 개인 사정" },
   { name: "신원점", type: "가맹", region: "경기", area: "—", open: "2023-03-25", live: false, pos: false, closed: "건물주 임대료 협상 결렬" },
 ];
 
