@@ -2,7 +2,7 @@
 
 # Audit Report
 
-생성: 2026-08-06T01:39:18.881Z
+생성: 2026-08-06T01:53:43.595Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
@@ -42,10 +42,12 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: 961be3ddee27048137dbda0f038d2eb74f77ef0b fix(erp): 원흥점·동백점 지역 반영, 개점 연도는 추정 표기로 남긴다
-- 미커밋 변경: 2건
+- 최근 커밋: e216fc990d8f99f1bacacaa84d91a3ac190ceb94 feat(franchise): 보증금 방침 확정 반영 — 대외는 "현재 없음"만, 내부 문서 신설
+- 미커밋 변경: 4건
 
 ```
+M  audit-report.md
+M  docs-sync-report.json
 M  lib/franchise/content.ts
 M  lib/franchise/diagnosisData.ts
 ```
