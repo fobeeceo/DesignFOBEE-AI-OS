@@ -2,7 +2,7 @@
 
 # Audit Report
 
-생성: 2026-08-02T22:15:37.592Z
+생성: 2026-08-06T01:39:18.881Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
@@ -42,9 +42,10 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: 4d80a915551a136f4c44108ce94c021e4b3a1a7a chore(diag): 임시 진단 엔드포인트 제거
-- 미커밋 변경: 1건
+- 최근 커밋: 961be3ddee27048137dbda0f038d2eb74f77ef0b fix(erp): 원흥점·동백점 지역 반영, 개점 연도는 추정 표기로 남긴다
+- 미커밋 변경: 2건
 
 ```
-M  lib/hq/erpSnapshot.ts
+M  lib/franchise/content.ts
+M  lib/franchise/diagnosisData.ts
 ```
