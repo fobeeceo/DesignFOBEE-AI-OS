@@ -38,3 +38,33 @@ export const franchiseLeadSchema = leadSchema.extend({
 });
 
 export type FranchiseLeadFormValues = z.infer<typeof franchiseLeadSchema>;
+
+/**
+ * /consult 공간 상담 전용 스키마.
+ *
+ * 기존 leads 테이블을 재사용하되 source='space_consult'로 구분한다.
+ * 공간 상담 고유 항목(공간 유형·현재 상태·면적)은 별도 컬럼을 더 만들지 않고
+ * message에 정리해 붙인다 — 상담 1건에 컬럼 3개를 더 만들 만큼 조회 요구가 없고,
+ * 컬럼이 늘수록 CRM 화면과 마이그레이션 부담이 함께 늘기 때문이다.
+ *
+ * ⚠️ 파일은 여기서 검증하지 않는다. FormData의 File은 zod로 다루기 번거로워
+ *    라우트에서 별도 함수(validateDrawings)로 검사한다.
+ */
+export const spaceConsultSchema = z.object({
+  name: z.string().min(2, "이름은 2자 이상 입력해주세요.").max(30, "이름이 너무 깁니다."),
+  phone: z
+    .string()
+    .regex(/^01[0-9]-?\d{3,4}-?\d{4}$/, "올바른 휴대폰 번호를 입력해주세요."),
+  email: z.string().email("올바른 이메일 형식이 아닙니다.").optional().or(z.literal("")),
+  spaceType: z.string().min(1, "공간 유형을 선택해주세요.").max(30),
+  spaceState: z.string().min(1, "현재 상태를 선택해주세요.").max(30),
+  area: z.string().max(50).optional().or(z.literal("")),
+  region: z.string().min(1, "지역을 입력해주세요.").max(50),
+  timing: z.string().max(30).optional().or(z.literal("")),
+  message: z.string().max(1000, "내용은 1000자 이내로 입력해주세요.").optional().or(z.literal("")),
+  privacyConsent: z.literal(true, {
+    errorMap: () => ({ message: "개인정보 수집·이용에 동의해주세요." }),
+  }),
+});
+
+export type SpaceConsultValues = z.infer<typeof spaceConsultSchema>;

@@ -16,6 +16,9 @@ docs/
 
 # 임시/테스트 파일
 __delete_test.txt
+# 진단·검증용 일회성 스크립트와 그 출력. 저장소에 남기지 않는다.
+*.tmp.mjs
+diag.tmp.json
 
 # CEO 다이제스트(매번 새 파일, DECISION-LOG/CHANGELOG가 영구 기록이라 날짜별 산출물은 미추적)
 ceo-digest-*.md

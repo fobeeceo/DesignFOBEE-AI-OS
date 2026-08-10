@@ -1,8 +1,15 @@
 {
-  "checkedAt": "2026-08-06T01:53:44.081Z",
-  "rootMdCount": 26,
-  "issueCount": 1,
+  "checkedAt": "2026-08-10T13:28:39.342Z",
+  "rootMdCount": 27,
+  "issueCount": 2,
   "issues": [
+    {
+      "type": "색인누락",
+      "files": [
+        "AI-DEV-RULES.md"
+      ],
+      "detail": "DOCUMENT-INDEX.md에 등록 안 된 루트 .md 파일"
+    },
     {
       "type": "CHANGELOG_오래됨",
       "files": [],

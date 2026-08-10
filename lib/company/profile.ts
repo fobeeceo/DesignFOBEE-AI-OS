@@ -8,6 +8,8 @@ export const COMPANY = {
   founded: "2000.10.27",
   phone: "02-517-1474",
   email: "ceo@fobee.co.kr",
+  /** 출처: 대표 제공 fobee-space-consult.html 푸터 (2026-08-10). */
+  address: "서울특별시 은평구 연서로48길 12",
 };
 
 /** 창업 연도(2000). founded 문자열에서 파생해 한 곳에서만 관리한다. */

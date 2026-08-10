@@ -1,27 +1,24 @@
-import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { createClient } from "@supabase/supabase-js";
 
 /**
- * 서버 전용 관리자(Service Role) 클라이언트.
- * 절대 클라이언트 번들에 포함되면 안 된다 — "use client" 파일에서 import 금지.
- * 용도: Naver 커스텀 로그인 시 사용자 생성/세션 발급, 관리자 페이지(STEP 10) 등.
+ * 서비스 롤 Supabase 클라이언트 — 비공개 버킷 쓰기·서명 링크 발급 전용.
+ *
+ * ⚠️ 절대 클라이언트 컴포넌트에서 import 하지 않는다. 이 키는 RLS를 우회한다.
+ *    서버 라우트(app/api/**)에서만 쓴다.
+ * ⚠️ 키가 없으면 여기서 바로 던진다. 조용히 실패하면 도면이 저장되지 않은 채
+ *    접수만 성공한 것처럼 보이기 때문이다.
  */
 export function createAdminClient() {
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  if (!serviceRoleKey) {
+  if (!url || !serviceKey) {
     throw new Error(
-      "SUPABASE_SERVICE_ROLE_KEY가 설정되지 않았습니다. .env.local을 확인하세요."
+      "Supabase 관리자 클라이언트 설정 없음 — NEXT_PUBLIC_SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY 확인 필요"
     );
   }
 
-  return createSupabaseClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    serviceRoleKey,
-    {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    }
-  );
+  return createClient(url, serviceKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
 }

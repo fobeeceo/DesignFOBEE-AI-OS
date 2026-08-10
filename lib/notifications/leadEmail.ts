@@ -24,6 +24,21 @@ export interface LeadNotificationContext {
   referenceNo?: string | null;
   /** 저장 실패 사유(오류 메시지). 실패 메일 본문에 넣어 원인 파악을 돕는다. */
   failureReason?: string;
+  /**
+   * 공간 상담 도면 열람 링크(기한 30일).
+   * 도면은 비공개 버킷에 있어 원본 URL로는 열리지 않으므로, 서명 링크를 만들어 넣는다.
+   */
+  attachmentLinks?: { path: string; url: string }[];
+}
+
+/** 서명 링크 유효기간 안내 문구 — 링크가 언제 닫히는지 메일에서 바로 알 수 있게 한다. */
+const LINK_TTL_NOTE = "링크는 30일 후 만료됩니다. 필요한 도면은 미리 내려받아 주세요.";
+
+/** 경로에서 사람이 읽을 파일명만 뽑는다. */
+function fileNameOf(path: string): string {
+  const base = path.split("/").pop() ?? path;
+  // 업로드 시 붙인 "01-<uuid>." 접두사를 걷어낸다.
+  return base.replace(/^\d{2}-[0-9a-f-]{36}\./i, "도면.");
 }
 
 /** HTML 특수문자 이스케이프 — 상담자가 넣은 텍스트가 메일에서 태그로 해석되지 않게 한다. */
@@ -86,7 +101,13 @@ export function buildText(input: CreateLeadInput, context: LeadNotificationConte
         .filter(Boolean)
         .join("\n");
 
-  return [header, "", ...lines, "", `수신 시각: ${new Date().toISOString()}`].join("\n");
+  const links = context.attachmentLinks ?? [];
+  const attachBlock =
+    links.length > 0
+      ? ["", `첨부 도면 ${links.length}건 (${LINK_TTL_NOTE})`, ...links.map((l, i) => `  ${i + 1}. ${fileNameOf(l.path)} — ${l.url}`)]
+      : [];
+
+  return [header, "", ...lines, ...attachBlock, "", `수신 시각: ${new Date().toISOString()}`].join("\n");
 }
 
 export function buildHtml(input: CreateLeadInput, context: LeadNotificationContext): string {
@@ -106,9 +127,29 @@ export function buildHtml(input: CreateLeadInput, context: LeadNotificationConte
          ${context.failureReason ? `<div style="margin-top:6px;font-size:12px">실패 사유: ${escapeHtml(context.failureReason)}</div>` : ""}
        </div>`;
 
+  const links = context.attachmentLinks ?? [];
+  const attachBlock =
+    links.length === 0
+      ? ""
+      : `<div style="margin:20px 0 0;padding:14px 16px;border:1px solid #ddd;border-radius:8px;background:#fafafa">
+           <div style="font-weight:600;margin-bottom:8px">첨부 도면 ${links.length}건</div>
+           <ol style="margin:0;padding-left:18px">
+             ${links
+               .map(
+                 (l) =>
+                   `<li style="margin-bottom:6px"><a href="${escapeHtml(l.url)}" style="color:#b0562f">${escapeHtml(
+                     fileNameOf(l.path)
+                   )}</a></li>`
+               )
+               .join("")}
+           </ol>
+           <div style="margin-top:10px;font-size:12px;color:#888">${escapeHtml(LINK_TTL_NOTE)}</div>
+         </div>`;
+
   return `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;line-height:1.6;color:#111">
       ${banner}
       <table style="border-collapse:collapse">${rows}</table>
+      ${attachBlock}
       <p style="margin:16px 0 0;font-size:12px;color:#888">수신 시각: ${escapeHtml(new Date().toISOString())}</p>
     </div>`;
 }

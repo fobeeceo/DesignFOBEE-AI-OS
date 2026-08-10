@@ -100,6 +100,7 @@ export async function createLead(input: CreateLeadInput): Promise<Lead> {
     hasStorefront: input.hasStorefront ?? null,
     consultationPurpose: input.consultationPurpose || null,
     privacyConsent: input.privacyConsent ?? false,
+    attachments: input.attachments ?? [],
     ...intelligence,
   };
 

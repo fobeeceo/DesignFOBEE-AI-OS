@@ -73,6 +73,11 @@ model Lead {
   consultationPurpose String?
   privacyConsent      Boolean      @default(false)
 
+  /// 공간 상담(/consult)에서 받은 도면 파일의 Storage 경로.
+  /// ⚠️ 공개 URL이 아니라 비공개 버킷의 "경로"만 저장한다. 열람은 서명 링크로만 한다.
+  ///    DB가 유출되어도 경로만으로는 파일을 열 수 없어야 하기 때문이다.
+  attachments         String[]     @default([])
+
   /// STEP 11 (Franchise AI v2.0) — AI 진단 결과. 저장 시 서버에서 자동 계산한다.
   /// 접수번호(GBR-YYYYMMDD-NNNN)는 관리자가 전화 상담 중 바로 검색하는 키다.
   referenceNo         String?       @unique
