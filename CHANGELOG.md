@@ -4,6 +4,17 @@
 
 ## [Unreleased]
 
+### 헤르메스(Hermes) — AI HQ 전달 계층 신설 (2026-08-11)
+- 대표 지시로 신설. 역할은 4가지 전부(내부 알림 라우터·대외 응대 초안·에이전트 배분·외부 소식 전달)로 확정.
+- **설계**: 4가지 업무(①내부신호 ②대외응대 ③부서배분 ④외부소식)를 각각 다른 알림 코드로 만들지 않고, 전부 하나의 **봉투(Envelope) → 라우팅 → 발송대기함(Outbox)** 파이프라인으로 합류시켰다.
+- **신규 코드**: `agents/hermesAgent.ts`(통합 진입점), `lib/hermes/{types,channels,signals,reply,directory,briefing}.ts`, `app/api/hq/hermes/route.ts`(GET 채널현황 / POST 발송대기함).
+- **발송하지 않는다**: `Outbox.delivered`가 타입 수준에서 `false` 리터럴이다 — "보냈다"고 쓸 수 있는 코드 경로 자체가 없다(AI-STAFF-POLICY §4).
+- **채널은 선언이 아니라 판정**: 환경변수를 매 호출 시점에 확인해 `available`/`reason`을 만든다. 현재 실측 결과 이메일(Resend)만 조건부 가용, Discord·Notion·Telegram·카카오는 사유와 함께 `false`(§0-2 원칙 2). 긴급 건에 한해 우선 채널이 전부 막히면 남은 채널을 `fallback`으로 연다.
+- **대외 응대는 LLM을 쓰지 않는다**: 생성 모델은 공개하지 않기로 한 수치(가맹점 수·평균 매출)를 문맥에 맞게 지어낼 수 있다. CLAUDE.md §0-5 표를 `lib/franchise/publicFacts.ts`로 코드화하고 인용 가능한 문장만 조립한다. 창업비용 인용 시 "이보다 높을 수 있습니다" 단서와 법정고지가 자동으로 붙는다(§0-2 원칙 3).
+- **SSOT 정리**: 법정고지 문구가 `marketerAgent.ts`와 중복될 상황이라 `publicFacts.ts` 한 곳으로 모으고 마케터가 import하도록 바꿨다(§14-A ⑥). 연차는 `yearsSince()` 계산값이라 해가 바뀌어도 저절로 맞는다(§0-2 원칙 5).
+- **인사**: `AI_STAFF`에 "헤르메스(전령)" 등록, 상태 **수습** — 11조건 중 Docker 운영검증·Notion 조직도·Training Center·평가기준 4건 미충족이라 정규직으로 올리지 않았다(AI-STAFF-POLICY §2).
+- **검증**: `npm run qa` exit 0 · `npm run audit` exit 0 · vitest 54건 PASS(헤르메스 20건 신규) · 실제 실행으로 봉투 8건 생성 확인. Docker 운영환경 반영은 미실행.
+
 ### CTO 업무지시 — 운영 안정화 10단계 (2026-07-29)
 - **타입/구조**: `lib/hq/types.ts`·`kpi.ts`·`format.ts`로 API 응답·계산·표시 3계층 분리. `lib/core/`(logger·config·errors·types·constants·helpers) 신설, `/api/hq/erp`에 배선.
 - **Discord Morning Brief**: `content-automation-agent/src/discord_brief.py` + `agents/`(Weather·News·Government·Bible·CEO·Dashboard·ERPAgent 7개) 신설. 실WebSearch 데이터로 종단 테스트 완료, 종교 콘텐츠는 자동 생성 안 함.

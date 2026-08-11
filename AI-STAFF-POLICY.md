@@ -71,6 +71,7 @@ AI 직원은 제안까지만 한다. 실제 실행(코드 반영·메뉴 변경�
 | AI 콘텐츠 | ❌ | N/A | N/A | N/A | N/A | N/A | N/A | ✅(초안으로 조정) | N/A | N/A | N/A | **은퇴 대상 아님, 초안 유지** — `generate_osmu.py`(Media Director 정규직)와 산출물 중복 확인, 정본을 Media Director로 지정(삭제 대신 표준지정, DECISION-LOG 참조) |
 | **AI Documentation** | ✅ `scripts/check-docs-sync.js`(신규 코드화) | N/A | ✅ | ✅ | N/A | N/A | N/A(npm 스크립트) | ❌(도구성 역할, QA/Audit과 동일 사유) | ✅ | ✅ | ✅(통과) | **정규직** |
 | AI 견적 | ✅ | N/A | ❌ **가격 placeholder**(TODO.md — 실단가 CEO승인 대기) | ✅(실사용중) | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | **개선중** |
+| **헤르메스(전령)** | ✅ `agents/hermesAgent.ts` + `lib/hermes/**` | ✅ `/api/hq/hermes` | ✅ ERP 실스냅샷·실문의 | ✅ 봉투 8건 생성 실행확인 | ✅ | ✅ | ❌ 미실행 | ❌ 미등록 | ✅ | ❌ | ❌ | **수습** (2026-08-11 신설, 11조건 중 4건 미충족) |
 | AI Content Analyst | ✅ | ✅(미검증) | ❌ 실토큰없음 | ❌ | - | - | - | ✅ | ❌ | ❌ | ❌ | **수습** |
 | AI CRM | ❌ 분류로직없음 | - | ❌ 테스트데이터뿐 | ❌ | - | - | - | ✅ | ❌ | ❌ | ❌ | **수습** |
 | Instagram·YouTube·TikTok·Naver Blog·Thumbnail·Voice·Video | ❌ | ❌ | ❌ | ❌ | - | - | - | ✅(대기) | ❌ | ❌ | ❌ | **설계** |
