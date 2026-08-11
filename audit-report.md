@@ -2,7 +2,7 @@
 
 # Audit Report
 
-생성: 2026-08-11T15:33:40.548Z
+생성: 2026-08-11T23:54:41.373Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
@@ -42,26 +42,13 @@
 
 ## 8. Git Status
 - 브랜치: claude/hermes-agent-build-bga5ts
-- 최근 커밋: 96a579371b14fd6bb4a3e24d268df87a9eba4dd7 feat(hermes): AI HQ 전령 에이전트 신설 — 4가지 전달 업무를 한 파이프라인으로
-- 미커밋 변경: 18건
+- 최근 커밋: 326eeb2a543d4d3a2f05d5eae7809fe60616eb8a feat(courier): 아침 브리핑 신설 + "헤르메스"를 외부 자율 에이전트에 양보
+- 미커밋 변경: 5건
 
 ```
-M .env.example
- M AI-STAFF-POLICY.md
- M API.md
- M CHANGELOG.md
-RM agents/hermesAgent.ts -> agents/courierAgent.ts
- M agents/marketerAgent.ts
-RM app/api/hq/hermes/route.ts -> app/api/hq/courier/route.ts
-RM lib/hermes/briefing.ts -> lib/courier/briefing.ts
-RM lib/hermes/channels.ts -> lib/courier/channels.ts
-RM lib/hermes/hermes.test.ts -> lib/courier/courier.test.ts
-RM lib/hermes/directory.ts -> lib/courier/directory.ts
-RM lib/hermes/reply.ts -> lib/courier/reply.ts
-RM lib/hermes/signals.ts -> lib/courier/signals.ts
-RM lib/hermes/types.ts -> lib/courier/types.ts
- M lib/hq/erpSnapshot.ts
-?? HERMES-AGENT-PLAN.md
-?? app/api/hq/courier/morning/
-?? lib/courier/morning.ts
+M CHANGELOG.md
+ M DOCUMENT-INDEX.md
+ M TODO.md
+?? HERMES-SETUP-WINDOWS.md
+?? hermes-skills/
 ```

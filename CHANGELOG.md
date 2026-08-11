@@ -4,6 +4,14 @@
 
 ## [Unreleased]
 
+### Hermes Agent 설치 키트 — 노트북 + 디스코드로 업무 (2026-08-11, 대표 지시)
+- **공식 저장소를 직접 받아 확인했다**: `github.com/NousResearch/hermes-agent`(MIT, 커밋 `69ae247`). 공식 문서 사이트는 네트워크 정책에 막혀 있어 저장소를 클론해 `website/docs/`를 읽었다. **추측으로 쓴 명령어는 없다.**
+- **[HERMES-SETUP-WINDOWS.md](HERMES-SETUP-WINDOWS.md) 신설**: 설치(PowerShell 한 줄) → 모델 선택 → 디스코드 봇 생성 → 게이트웨이 연결 → 로그인 시 자동실행 → GBRICK 스킬 적용. 약 40분.
+- **`hermes-skills/gbrick-hq/SKILL.md` 신설**: 헤르메스에 넣는 회사 규칙 스킬. §0-5 공개/비공개 기준, 금지 표현("3년간 폐점 0건" 등), 전령 API 호출법, 배포 전 5항목 자체 점검. `blueprint.schedule: "0 7 * * *"`로 매일 07:00 아침 브리핑 예약이 스킬 안에 포함된다. frontmatter YAML 파싱 검증 완료.
+- **"브리핑을 다시 쓰지 마라"를 스킬에 명시**: 전령이 사내 규칙에 맞춰 완성한 문안을 LLM이 재작성하면 단서("이보다 높을 수 있습니다", "추정하지 않음")가 빠질 수 있다. 받은 마크다운을 그대로 전달하게 했다.
+- **보안**: 공식을 흉내 낸 도메인(`hermes-agent.org`·`hermesagents.net`·`hermesagent.agency` 등)이 다수 확인돼 설치 문서에 경고를 넣었다. 코드 실행 권한을 갖는 프로그램이라 가짜 설치 시 피해가 크다. Public Bot OFF + 수동 초대 URL, `DISCORD_ALLOWED_USERS` 본인 ID만을 권장한다.
+- **미검증(정직 기록)**: 실제 설치를 실행해보지 않았다(이 세션은 임시 컨테이너, 대표님 노트북 접근 불가). `/api/hq/courier/morning`이 `main` 미병합이라 운영 도메인에서 아직 응답하지 않는다. `N8N_SERVICE_TOKEN`의 운영 환경 설정 여부도 확인하지 못했다. 전부 문서 §7에 명시.
+
 ### 아침 브리핑 + 이름 정리 — "헤르메스"는 외부 에이전트에 양보 (2026-08-11)
 - **이름 변경**: 대표님이 말씀하신 "헤르메스"는 그리스 신화 비유가 아니라 **Nous Research의 오픈소스 자율 에이전트 Hermes Agent**였다. 같은 이름이 사내에 둘 생기는 것을 막기 위해 이 저장소의 전달 계층을 **전령(Courier)**로 바꿨다 — `lib/hermes/**`→`lib/courier/**`, `agents/hermesAgent.ts`→`agents/courierAgent.ts`, `/api/hq/hermes`→`/api/hq/courier`, `AI_STAFF` 표기 포함. 앞으로 "헤르메스"는 외부 에이전트만 가리킨다.
 - **아침 브리핑 신설**: `lib/courier/morning.ts` + `runMorning()` + `/api/hq/courier/morning`(GET/POST). 그날 만들어진 봉투를 중요도별로 접어 한 장으로 만든다.
