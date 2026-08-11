@@ -4,8 +4,10 @@
 | 경로 | 메서드 | 용도 |
 |---|---|---|
 | `/api/hq/erp` | GET | AI HQ ERP 데이터(스냅샷 JSON). 대시보드 라이브 소스. |
-| `/api/hq/hermes` | GET | 헤르메스 — 채널 연동 현황(무엇으로 보낼 수 있고 무엇이 막혀 있는가). 관리자/서비스토큰. |
-| `/api/hq/hermes` | POST | 헤르메스 — 내부신호·대외문의·부서배분·외부소식을 발송대기함(Outbox)으로. **발송하지 않는다**(`delivered:false` 고정). |
+| `/api/hq/courier` | GET | 전령 — 채널 연동 현황(무엇으로 보낼 수 있고 무엇이 막혀 있는가). 관리자/서비스토큰. |
+| `/api/hq/courier` | POST | 전령 — 내부신호·대외문의·부서배분·외부소식을 발송대기함(Outbox)으로. **발송하지 않는다**(`delivered:false` 고정). |
+| `/api/hq/courier/morning` | GET | 전령 아침 브리핑. ERP 신호만으로 생성. `?format=md`면 마크다운 원문(text/plain), `?date=YYYY-MM-DD`로 기준일 지정. 외부 상주 에이전트·n8n이 URL 하나로 호출하는 창구. |
+| `/api/hq/courier/morning` | POST | 전령 아침 브리핑 — 외부 소식·문의·업무까지 포함해 생성. body: `MorningInput`. |
 | `/api/generate` | POST | AI 인테리어 리디자인(Gemini). `{image, roomTypeId, styleId, byokKey?}` |
 | `/api/projects` | POST/GET | 프로젝트 생성/조회 (인증) |
 | `/api/projects/[id]/photos` | POST | 사진 업로드 |

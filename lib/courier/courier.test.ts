@@ -1,5 +1,5 @@
 /**
- * 헤르메스 테스트 — 네 역할이 각각 "지어내지 않는가"를 확인한다.
+ * 전령 테스트 — 네 역할이 각각 "지어내지 않는가"를 확인한다.
  * 문장 표현이 아니라 판정(무엇을 인용했나·어디로 보내나·못 보내면 못 보낸다고 하나)을 검사한다.
  */
 
@@ -9,7 +9,8 @@ import { detectSignals, COST_RATIO_ALERT } from "./signals";
 import { draftReply } from "./reply";
 import { routeTask } from "./directory";
 import { buildBriefing } from "./briefing";
-import { runHermes, assembleOutbox, HermesAgentError } from "@/agents/hermesAgent";
+import { runCourier, runMorning, assembleOutbox, CourierAgentError } from "@/agents/courierAgent";
+import { seoulDate } from "./morning";
 import { LEGAL_NOTICE } from "@/lib/franchise/publicFacts";
 import { ERP_SNAPSHOT } from "@/lib/hq/erpSnapshot";
 import type { ErpData } from "@/lib/hq/types";
@@ -159,9 +160,9 @@ describe("briefing — 없는 소식을 만들지 않는다", () => {
   });
 });
 
-describe("runHermes — 네 갈래가 하나의 발송대기함으로 합류한다", () => {
+describe("runCourier — 네 갈래가 하나의 발송대기함으로 합류한다", () => {
   it("발송하지 않는다 · 보낼 채널이 없으면 undeliverable로 남긴다", () => {
-    const { outbox } = runHermes({ inquiries: [{ message: "창업비용 문의", reference: "LEAD-9" }] });
+    const { outbox } = runCourier({ inquiries: [{ message: "창업비용 문의", reference: "LEAD-9" }] });
     expect(outbox.delivered).toBe(false);
     // 이 테스트 환경에는 RESEND 키가 없으므로 실제로 보낼 수 있는 채널이 없어야 한다.
     expect(outbox.undeliverable).toContain("reply:LEAD-9");
@@ -179,6 +180,60 @@ describe("runHermes — 네 갈래가 하나의 발송대기함으로 합류한�
       cost: { avgRatio: 22.6, menus: [] },
       menuEngineering: { available: false, reason: "미계산" },
     };
-    expect(() => runHermes({ erp: quietErp })).toThrow(HermesAgentError);
+    expect(() => runCourier({ erp: quietErp })).toThrow(CourierAgentError);
+  });
+});
+
+describe("아침 브리핑 — 조용한 아침과 고장난 아침을 구분한다", () => {
+  /** 신호가 하나도 없는 ERP — "오늘은 조용합니다"를 만들기 위한 입력. */
+  const quietErp: ErpData = {
+    ...ERP_SNAPSHOT,
+    inventory: { shortageCount: 0, urgentCount: 0, reorders: [], purchaseOrders: [], supplierTotals: [] },
+    cost: { avgRatio: 22.6, menus: [] },
+    menuEngineering: { available: false, reason: "미계산" },
+  };
+
+  it("봉투가 없어도 오류를 내지 않고 조용한 아침으로 알린다", () => {
+    const { brief } = runMorning({ erp: quietErp, date: "2026-08-11" });
+    expect(brief.quiet).toBe(true);
+    expect(brief.counts).toEqual({ 긴급: 0, 중요: 0, 일반: 0, 미전달: 0 });
+    expect(brief.markdown).toContain("긴급 없음 — 확인했고, 없습니다.");
+  });
+
+  it("실제 ERP 신호를 중요도별로 나눠 담는다", () => {
+    const { brief } = runMorning({ date: "2026-08-11" });
+    expect(brief.quiet).toBe(false);
+    expect(brief.counts.긴급).toBeGreaterThan(0);
+    expect(brief.headline).toContain("긴급");
+    // 숫자를 문자열로 박아두지 않았는지 — 본문 수치가 스냅샷과 일치해야 한다.
+    const urgentCount = ERP_SNAPSHOT.inventory.reorders.filter((item) => item.urgent).length;
+    expect(brief.markdown).toContain(`긴급 발주 ${urgentCount}건`);
+  });
+
+  it("브리핑 자체가 봉투가 되어 같은 발송대기함에 들어간다 · 발송하지 않는다", () => {
+    const { brief, outbox } = runMorning({ date: "2026-08-11" });
+    expect(outbox.delivered).toBe(false);
+    expect(outbox.envelopes[0].id).toBe(brief.envelope.id);
+    expect(outbox.envelopes[0].id).toBe("morning:2026-08-11");
+  });
+
+  it("같은 날 두 번 실행해도 브리핑 봉투는 하나다", () => {
+    const first = runMorning({ date: "2026-08-11" }).brief.envelope;
+    const second = runMorning({ date: "2026-08-11" }).brief.envelope;
+    expect(assembleOutbox([first, second]).envelopes).toHaveLength(1);
+  });
+
+  it("보낼 채널이 없는 봉투는 전달하지 못했다고 브리핑에 남긴다", () => {
+    const { brief } = runMorning({ date: "2026-08-11" });
+    // 이 환경에는 채널 자격증명이 없으므로 전부 미전달이어야 한다.
+    expect(brief.counts.미전달).toBeGreaterThan(0);
+    expect(brief.markdown).toContain("🚧 전달하지 못한 것");
+    expect(brief.markdown).toContain("미설정");
+  });
+
+  it("날짜를 한국 기준으로 계산한다 — UTC 자정 이후에도 하루 밀리지 않는다", () => {
+    // 2026-08-11 15:30 UTC = 한국 2026-08-12 00:30.
+    expect(seoulDate(new Date("2026-08-11T15:30:00Z"))).toBe("2026-08-12");
+    expect(seoulDate(new Date("2026-08-11T00:30:00Z"))).toBe("2026-08-11");
   });
 });

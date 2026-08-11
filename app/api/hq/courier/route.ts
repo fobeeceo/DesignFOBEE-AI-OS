@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { AdminAuthError } from "@/lib/auth/requireAdmin";
 import { requireServiceOrAdmin } from "@/lib/auth/requireServiceOrAdmin";
-import { runHermes, HermesAgentError, type HermesInput } from "@/agents/hermesAgent";
-import { channelBoard } from "@/lib/hermes/channels";
+import { runCourier, CourierAgentError, type CourierInput } from "@/agents/courierAgent";
+import { channelBoard } from "@/lib/courier/channels";
 
 /**
- * 헤르메스 — AI HQ 전령.
+ * 전령 — AI HQ 전령.
  *
- * GET  /api/hq/hermes  → 채널 연동 현황(무엇으로 보낼 수 있고 무엇이 막혀 있는가)
- * POST /api/hq/hermes  → body: HermesInput. 발송대기함(Outbox)을 만든다.
+ * GET  /api/hq/courier  → 채널 연동 현황(무엇으로 보낼 수 있고 무엇이 막혀 있는가)
+ * POST /api/hq/courier  → body: CourierInput. 발송대기함(Outbox)을 만든다.
  *
  * 내부 ERP 신호·리드 문의 원문을 다루므로 관리자 세션 또는 n8n 서비스 토큰이 필요하다.
  * LLM을 호출하지 않아 비용은 발생하지 않지만, 노출되는 데이터가 사내 데이터다.
@@ -31,8 +31,8 @@ export async function POST(req: NextRequest) {
   try {
     await requireServiceOrAdmin(req);
 
-    const body = (await req.json().catch(() => ({}))) as HermesInput;
-    const result = runHermes(body ?? {});
+    const body = (await req.json().catch(() => ({}))) as CourierInput;
+    const result = runCourier(body ?? {});
     return NextResponse.json({ ok: true, data: result });
   } catch (error) {
     return handleError(error, "POST");
@@ -44,9 +44,9 @@ function handleError(error: unknown, method: string) {
     const status = error.code === "NOT_LOGGED_IN" ? 401 : 403;
     return NextResponse.json({ ok: false, error: error.message }, { status });
   }
-  if (error instanceof HermesAgentError) {
+  if (error instanceof CourierAgentError) {
     return NextResponse.json({ ok: false, error: error.message, code: error.code }, { status: 422 });
   }
-  console.error(`[${method} /api/hq/hermes]`, error);
+  console.error(`[${method} /api/hq/courier]`, error);
   return NextResponse.json({ ok: false, error: "전달 처리 중 오류가 발생했습니다." }, { status: 500 });
 }

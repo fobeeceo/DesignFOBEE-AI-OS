@@ -118,7 +118,7 @@ export const AI_STAFF = {
     { name: "AI 콘텐츠", mission: "SNS/블로그/쇼츠 기획(Media Director로 통합)", status: "설계" },
     { name: "AI 웹디자인전략가", mission: "경쟁사 분석·트렌드 반영 홈페이지 개선안", status: "정규직" },
     { name: "AI 메뉴전략가", mission: "판매량×마진 매트릭스로 단종·프로모션 후보 산출", status: "정규직" },
-    { name: "헤르메스(전령)", mission: "내부 신호·대외 문의·부서 배분·외부 소식을 한 발송대기함으로 전달", status: "수습" },
+    { name: "전령(Courier)", mission: "내부 신호·대외 문의·부서 배분·외부 소식을 한 발송대기함으로 전달", status: "수습" },
   ],
   media: [
     { name: "Media Director", status: "정규직" },

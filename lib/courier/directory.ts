@@ -1,8 +1,8 @@
 /**
- * 헤르메스 역할 ③ — 부서 배분(에이전트 라우팅).
+ * 전령 역할 ③ — 부서 배분(에이전트 라우팅).
  *
  * CLAUDE.md §5의 MASTER AI 절차 중 "②담당부서 지정"을 코드로 옮긴 것이다.
- * 헤르메스는 여기서도 실행하지 않는다 — 누가 맡아야 하는지, 그 직원이 지금 맡을 수 있는
+ * 전령는 여기서도 실행하지 않는다 — 누가 맡아야 하는지, 그 직원이 지금 맡을 수 있는
  * 상태인지까지만 전달한다. 실제 호출은 사람이나 상위 오케스트레이션이 한다.
  *
  * 인사 상태(정규직/수습/설계…)는 여기에 적지 않고 `AI_STAFF`에서 조회한다. 상태는 재평가마다
@@ -128,7 +128,7 @@ export function routeTask(task: string, taskId?: string): TaskRouting {
         ? "[배분 실패] 담당 AI 직원 미지정"
         : `[배분] ${routes[0].agent}${routes.length > 1 ? ` 외 ${routes.length - 1}명` : ""}`,
       body,
-      source: "lib/hermes/directory.ts + AI_STAFF(AI-STAFF-POLICY.md §7)",
+      source: "lib/courier/directory.ts + AI_STAFF(AI-STAFF-POLICY.md §7)",
     },
   };
 }

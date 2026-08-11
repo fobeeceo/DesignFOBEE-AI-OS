@@ -20,7 +20,7 @@ const FRANCHISE_SSOT = `- 총 창업비용: 약 8,636만원(66㎡ 기준, 임대
 - 금지: 가맹점 수·폐점 수·평균 매출액·평균 운영 기간을 카피에 쓰지 않는다
 - 브랜드 본질: 공간과 커피를 결합한 브랜드 — 고객은 커피가 아니라 좋은 공간을 경험하러 온다`;
 
-// 법정고지 문구는 헤르메스(대외 응대 초안)도 같은 것을 쓴다 — 두 곳에 두지 않는다(§14-A ⑥ SSOT).
+// 법정고지 문구는 전령(대외 응대 초안)도 같은 것을 쓴다 — 두 곳에 두지 않는다(§14-A ⑥ SSOT).
 
 export class MarketerAgentError extends Error {
   constructor(message: string, public code: string) {

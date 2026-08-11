@@ -1,10 +1,10 @@
 /**
- * 헤르메스 역할 ④ — 외부 소식 전달.
+ * 전령 역할 ④ — 외부 소식 전달.
  *
  * ⚠️ 이 모듈은 수집하지 않는다. 수집은 이미 담당이 있다 —
  *    `content-automation-agent/src/trend_research.py`(AI Trend Researcher),
  *    `src/agents/news_agent.py`, `/api/hq/design-trends`(AI 웹디자인전략가).
- *    헤르메스가 또 긁어오면 같은 데이터가 두 곳에서 나오게 된다(§14-A ⑥ SSOT 위반).
+ *    전령가 또 긁어오면 같은 데이터가 두 곳에서 나오게 된다(§14-A ⑥ SSOT 위반).
  *
  * 그래서 여기서는 이미 수집된 항목을 받아 "전달 가능한 한 장"으로 포장만 한다. 전령의 일은
  * 소식을 만드는 게 아니라 옮기는 것이다.

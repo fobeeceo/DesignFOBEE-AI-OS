@@ -2,7 +2,7 @@
 
 # Audit Report
 
-생성: 2026-08-11T14:56:34.775Z
+생성: 2026-08-11T15:33:40.548Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
@@ -18,7 +18,7 @@
     - components/design/CompareSlider.tsx
 
 ## 3. Unused Import
-- 스캔: 96개 파일
+- 스캔: 97개 파일
 - 이슈: 0건
 
 ## 4. Broken Route (nav 컴포넌트)
@@ -42,20 +42,26 @@
 
 ## 8. Git Status
 - 브랜치: claude/hermes-agent-build-bga5ts
-- 최근 커밋: 7bf718977b3a91c8f6fd2a4244b818d482731f4b revert: 창업 비용 총액을 8,636만원으로 되돌리고 보증금 반환 문구를 앞으로 올린다
-- 미커밋 변경: 12건
+- 최근 커밋: 96a579371b14fd6bb4a3e24d268df87a9eba4dd7 feat(hermes): AI HQ 전령 에이전트 신설 — 4가지 전달 업무를 한 파이프라인으로
+- 미커밋 변경: 18건
 
 ```
 M .env.example
  M AI-STAFF-POLICY.md
  M API.md
  M CHANGELOG.md
+RM agents/hermesAgent.ts -> agents/courierAgent.ts
  M agents/marketerAgent.ts
- M audit-report.md
- M docs-sync-report.json
+RM app/api/hq/hermes/route.ts -> app/api/hq/courier/route.ts
+RM lib/hermes/briefing.ts -> lib/courier/briefing.ts
+RM lib/hermes/channels.ts -> lib/courier/channels.ts
+RM lib/hermes/hermes.test.ts -> lib/courier/courier.test.ts
+RM lib/hermes/directory.ts -> lib/courier/directory.ts
+RM lib/hermes/reply.ts -> lib/courier/reply.ts
+RM lib/hermes/signals.ts -> lib/courier/signals.ts
+RM lib/hermes/types.ts -> lib/courier/types.ts
  M lib/hq/erpSnapshot.ts
-?? agents/hermesAgent.ts
-?? app/api/hq/hermes/
-?? lib/franchise/publicFacts.ts
-?? lib/hermes/
+?? HERMES-AGENT-PLAN.md
+?? app/api/hq/courier/morning/
+?? lib/courier/morning.ts
 ```
