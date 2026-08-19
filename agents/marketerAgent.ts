@@ -1,4 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
+import { LEGAL_NOTICE } from "@/lib/franchise/publicFacts";
 
 /**
  * AI 마케터 — GBRICK 창업/브랜드 마케팅 카피 생성.
@@ -19,7 +20,7 @@ const FRANCHISE_SSOT = `- 총 창업비용: 약 8,636만원(66㎡ 기준, 임대
 - 금지: 가맹점 수·폐점 수·평균 매출액·평균 운영 기간을 카피에 쓰지 않는다
 - 브랜드 본질: 공간과 커피를 결합한 브랜드 — 고객은 커피가 아니라 좋은 공간을 경험하러 온다`;
 
-const LEGAL_NOTICE = "* 위 수치는 정보공개서 기준이며 실제와 차이가 있을 수 있습니다. 자세한 사항은 상담을 통해 확인해 주세요.";
+// 법정고지 문구는 전령(대외 응대 초안)도 같은 것을 쓴다 — 두 곳에 두지 않는다(§14-A ⑥ SSOT).
 
 export class MarketerAgentError extends Error {
   constructor(message: string, public code: string) {

@@ -63,6 +63,8 @@
 ## 운영 런북
 - [MIGRATION-RUNBOOK.md](MIGRATION-RUNBOOK.md) — DB 마이그레이션 실행 절차(백업·롤백·위험요소·검증 체크리스트, 2026-07-31 신설). 대표 승인 전까지 Migration 실행 금지.
 - [PROJECT-STORY-GUIDE.md](PROJECT-STORY-GUIDE.md) — 프로젝트 스토리 입력 가이드(2026-07-31 신설). `lib/projects/stories.ts` 한 곳만 채우면 홈·상세·SEO·sitemap이 자동 연결된다.
+- [HERMES-AGENT-PLAN.md](HERMES-AGENT-PLAN.md) — Hermes Agent(Nous Research 오픈소스 자율 에이전트) 도입 계획서(2026-08-11 신설). 사양·비용추정·단계별 절차·승인 대상 2항목. 사내 전령(Courier)과의 역할 분담을 함께 정의한다.
+- [HERMES-SETUP-WINDOWS.md](HERMES-SETUP-WINDOWS.md) — 대표님 Windows 노트북 설치 절차(2026-08-11 신설, 대표 지시). 설치·모델선택·디스코드 봇 생성·상시실행·GBRICK 스킬 적용까지 약 40분. 모든 명령어는 공식 저장소(커밋 `69ae247`) 확인. 미검증 항목은 문서 §7에 명시.
 
 ## QA / Audit (생성 산출물)
 - [QA-REPORT.md](QA-REPORT.md) — `npm run qa:extended` 산출물(재실행 시 갱신)

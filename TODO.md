@@ -7,6 +7,11 @@
 - [ ] **Supabase 자동 일시정지 재발방지 결정 필요**: (a) 매일 가벼운 헬스체크 쿼리를 날리는 예약 작업 추가, 또는 (b) 유료 플랜 전환 — 어느 쪽이든 비용/운영 방식 변경이라 CEO 결정 필요(CEO-CHARTER 승인 대상).
 
 ## CEO 승인 대상 (6항목 규칙 해당)
+- [ ] **Hermes Agent 노트북 설치**(대표 지시 2026-08-11, Owner Action Required): 설치 절차·디스코드 봇 생성·GBRICK 스킬까지 [HERMES-SETUP-WINDOWS.md](HERMES-SETUP-WINDOWS.md)에 준비 완료(약 40분). **Claude Code는 대표님 노트북에 접근할 수 없어 대신 실행 불가** — 대표님이 직접 PowerShell에 붙여넣으셔야 한다. 유료 모델 선택 시 CEO-CHARTER §16-B 2항목(비용 발생·외부 서비스 가입) 해당하나 대표님 본인 결정이므로 진행 가능. 무료(로컬 Ollama)로 먼저 확인 권장.
+- [ ] **`/api/hq/courier/morning` main 병합·배포**: 헤르메스 스킬이 이 API를 호출하는데 현재 작업 브랜치에만 있어 `www.fobee.co.kr`에서 404다. 병합·배포해야 아침 브리핑이 동작한다.
+- [ ] **`N8N_SERVICE_TOKEN` 운영 환경 확인**: 헤르메스가 브리핑 API를 호출하려면 필요. Vercel 환경변수에 설정돼 있는지 확인하지 못했다 — 없으면 401.
+- [ ] **Hermes Agent 도입 여부 결정**(비용 발생 + 외부 서비스 가입, 2026-08-11 신설): 대표님이 영상에서 보신 자율 에이전트(Nous Research, MIT 오픈소스). 계획서는 [HERMES-AGENT-PLAN.md](HERMES-AGENT-PLAN.md)에 작성 완료 — 사양·추정비용(월 3만~15만원, **실측 아님**)·8단계 절차·대표님 직접 작업 구간이 정리돼 있다. **권고: n8n으로 아침 브리핑 자동 전달을 먼저 띄운 뒤 얹는다**(순서를 바꾸면 브리핑이 안 갔을 때 원인 구분이 어렵다). 계획서 §5 1~3단계(조사·결정 준비)는 승인 없이 진행 가능.
+- [ ] **아침 브리핑 자동 전달 연결**(2026-08-11 신설): `/api/hq/courier/morning`으로 브리핑 생성까지는 완료·실행 확인했으나, **호출해줄 주체가 없어 대표님께 자동으로 가지 않는다.** 현재 채널 4개(이메일·Discord·Notion·Telegram)가 전부 미연동이라 봉투가 전부 "전달 불가"로 남는다. 최소 하나(Resend `RESEND_API_KEY` + `LEAD_NOTIFY_TO`가 가장 빠름)를 연결해야 실제 전달이 시작된다.
 - [ ] **저장소 Private 전환**(GitHub 공개여부 변경) — 2026-07-28 CEO 채팅 승인 완료. 단, Claude Code에 GitHub CLI·API 토큰이 없어 대신 실행 불가 — 대표님이 [Settings → Danger Zone → Change visibility](https://github.com/fobeeceo/DesignFOBEE-AI-OS/settings)에서 직접 전환 필요(Owner Action Required).
 - [ ] **`prompts/pricing.ts` 실제 단가 교체**(정책/데이터) — 디자인포비 실제 단가 필요.
 - [ ] **API 키 운영/개발 분리**: CEO MASTER 업무지시서 §6 원칙(예: Gemini Dev/Prod 별도 키)과 현재 방식(Vercel 환경별 값 분리, 변수명은 동일)이 다름 — 어느 쪽을 표준으로 할지 결정 필요([INSTALL.md](INSTALL.md) §7). AI CEO(전략) 에이전트 자체 분석 결과 "현재 방식 유지 + CI 검증스크립트 추가"를 권고(DECISION-LOG 참조, 최종 결정은 CEO).
