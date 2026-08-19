@@ -2,7 +2,7 @@
 
 # Audit Report
 
-생성: 2026-08-19T00:24:33.612Z
+생성: 2026-08-19T00:29:21.802Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
@@ -45,14 +45,9 @@
 
 ## 8. Git Status
 - 브랜치: main
-- 최근 커밋: f835855223420d96bf3ae81f5556f3a5857a5ea6 feat(consult): /consult 공간 상담 페이지 + 도면 업로드 신설
-- 미커밋 변경: 6건
+- 최근 커밋: c37f5af8a6e981d8f6ffaaa145e3a6929bda995f fix(hr): 채용 사전 진단 점수 체계 정정 + 시험 성립 조건 확보
+- 미커밋 변경: 1건
 
 ```
-A  app/api/hr-diagnosis/route.ts
-A  components/hr/DiagnosisClient.tsx
-A  lib/hr/diagnosisData.ts
-A  lib/hr/scoring.test.ts
-A  lib/hr/scoring.ts
-?? app/hr/
+M  app/hr/diagnosis/page.tsx
 ```

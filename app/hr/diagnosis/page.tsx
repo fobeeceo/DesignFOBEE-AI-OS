@@ -7,6 +7,12 @@ export const metadata = {
   description:
     "GBRICK Coffee 직원·알바 채용 사전 진단. 25문항 약 5분, 연락처 없이 즉시 결과를 확인하실 수 있습니다. 본 진단은 참고용 사전 자료이며 채용 여부를 확정하지 않습니다.",
   alternates: { canonical: "/hr/diagnosis" },
+  /**
+   * 검색 제외(2026-08-18 대표 승인).
+   * 채용 시험이라 검색 결과로 흘러 들어오면 안 된다. 링크를 받은 지원자만 연다.
+   * sitemap에도 등록하지 않는다.
+   */
+  robots: { index: false, follow: false },
 };
 
 export default function HrDiagnosisPage() {
