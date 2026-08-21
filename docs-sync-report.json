@@ -1,6 +1,6 @@
 {
-  "checkedAt": "2026-08-19T00:29:22.409Z",
-  "rootMdCount": 27,
+  "checkedAt": "2026-08-21T03:02:15.279Z",
+  "rootMdCount": 29,
   "issueCount": 2,
   "issues": [
     {
@@ -13,7 +13,7 @@
     {
       "type": "CHANGELOG_오래됨",
       "files": [],
-      "detail": "최근 커밋(2026-08-19) 대비 CHANGELOG.md 최상단 항목이 21일 오래됨(경고)"
+      "detail": "최근 커밋(2026-08-19) 대비 CHANGELOG.md 최상단 항목이 8일 오래됨(경고)"
     }
   ]
 }

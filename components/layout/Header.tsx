@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { label: "AI 디자인", href: "/design" },
   { label: "GBRICK Coffee", href: "/#gbrick" },
   { label: "가맹상담", href: "/franchise" },
+  { label: "자서전", href: "/memoir" },
 ];
 
 /**
