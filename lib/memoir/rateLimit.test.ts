@@ -41,3 +41,16 @@ describe("하루 무료 횟수", () => {
     expect(checkIpUsage("test-b").remaining).toBe(MEMOIR_DAILY_IP_LIMIT);
   });
 });
+
+describe("다듬는 방식", () => {
+  it("세 가지가 모두 이름과 지시를 가진다", async () => {
+    const { POLISH_TONES, POLISH_TONE_LABEL, POLISH_TONE_RULE } = await import(
+      "@/lib/memoir/tone"
+    );
+    expect(POLISH_TONES).toHaveLength(3);
+    for (const t of POLISH_TONES) {
+      expect(POLISH_TONE_LABEL[t].name.length).toBeGreaterThan(0);
+      expect(POLISH_TONE_RULE[t].length).toBeGreaterThan(20);
+    }
+  });
+});
