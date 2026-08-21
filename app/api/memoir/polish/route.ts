@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { POLISH_TONES, POLISH_TONE_RULE, type PolishTone } from "@/lib/memoir/tone";
 import {
   MAX_ANSWER_CHARS,
   MemoirAiError,
@@ -22,11 +23,12 @@ export const maxDuration = 45;
  */
 const Schema = z.object({
   text: z.string().min(20).max(MAX_ANSWER_CHARS),
+  tone: z.enum(POLISH_TONES).default("natural"),
   /** 사용자가 직접 넣은 개인 API 키. 없으면 서버 키 + 하루 무료 횟수를 쓴다. */
   byokKey: z.string().trim().max(200).nullish(),
 });
 
-function buildPrompt(text: string): string {
+function buildPrompt(text: string, tone: PolishTone): string {
   return `아래는 어떤 분이 자서전을 위해 말로 답한 것을 그대로 받아쓴 글입니다.
 이것을 책에 실을 수 있는 문장으로 다듬어 주세요.
 
@@ -38,8 +40,9 @@ ${text}
 2. 원문에 있는 사실·숫자·이름은 하나도 빠뜨리지 마세요.
 3. 하는 일: 반복되는 말 정리, 문장 끊기, 조사·어미 다듬기, 순서 정돈, 문단 나누기.
 4. 하지 않는 일: 미화, 요약, 교훈 덧붙이기, 극적인 표현 넣기.
-5. 말투는 원문의 말투를 살립니다. 1인칭 회고체("나는 ~했다")로 씁니다.
+5. 1인칭 회고체("나는 ~했다")로 씁니다.
 6. 원문이 짧으면 짧은 대로 두세요. 늘리지 마세요.
+7. 이번 다듬기 방식: ${POLISH_TONE_RULE[tone]}
 
 다듬은 글만 출력하세요. 설명이나 머리말은 쓰지 마세요.`;
 }
@@ -57,7 +60,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ok: false, error: "RATE_LIMITED", remaining: 0 }, { status: 429 });
     }
 
-    const polished = await askGemini(buildPrompt(parsed.data.text), false, byok);
+    const polished = await askGemini(buildPrompt(parsed.data.text, parsed.data.tone), false, byok);
     const remaining = byok ? null : consumeIpUsage(ip);
     return NextResponse.json({ ok: true, polished, remaining });
   } catch (error) {

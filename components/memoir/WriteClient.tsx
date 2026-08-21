@@ -15,6 +15,7 @@ import { useMemoirBook } from "@/lib/memoir/storage";
 import { useLocalStorage } from "@/lib/useLocalStorage";
 import { VoiceInput } from "@/components/memoir/VoiceInput";
 import { ApiKeyPanel } from "@/components/memoir/ApiKeyPanel";
+import { POLISH_TONES, POLISH_TONE_LABEL, type PolishTone } from "@/lib/memoir/tone";
 
 /**
  * AI 오류를 원인별로 알려준다.
@@ -57,6 +58,7 @@ export function WriteClient() {
   const [aiError, setAiError] = useState<string | null>(null);
   const [polished, setPolished] = useState<string | null>(null);
   const [remaining, setRemaining] = useState<number | null>(null);
+  const [tone, setTone] = useState<PolishTone>("natural");
   // 개인 키는 원고와 함께 두지 않고 따로 보관한다 — 원고를 내보낼 때 키가 딸려 나가면 안 된다.
   const [byokKey, setByokKey] = useLocalStorage("fobee:memoir:apikey", "");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -145,7 +147,7 @@ export function WriteClient() {
       const res = await fetch("/api/memoir/polish", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: draft, byokKey: byokKey.trim() || null }),
+        body: JSON.stringify({ text: draft, tone, byokKey: byokKey.trim() || null }),
       });
       const data = await res.json();
       if (typeof data.remaining === "number") setRemaining(data.remaining);
@@ -258,7 +260,32 @@ export function WriteClient() {
           {aiState === "polish" ? "다듬는 중…" : "글로 다듬기"}
         </button>
       </div>
-      <p className="mt-2 text-[13px] leading-relaxed text-[#A8998A]">
+      {/* 다듬는 방식. 말투는 그 사람 자체라 기본값 하나로 정해두지 않는다. */}
+      <div className="mt-3">
+        <p className="text-[13px] text-[#A8998A]">다듬는 방식</p>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {POLISH_TONES.map((t) => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => setTone(t)}
+              aria-pressed={tone === t}
+              className={`rounded-full px-4 py-2 text-left text-[14px] leading-tight ${
+                tone === t
+                  ? "bg-[#1B1815] text-white"
+                  : "border border-[#D5CFC3] text-[#5C5346]"
+              }`}
+            >
+              <span className="font-semibold">{POLISH_TONE_LABEL[t].name}</span>
+              <span className={`ml-1.5 text-[12px] ${tone === t ? "text-white/60" : "text-[#A8998A]"}`}>
+                {POLISH_TONE_LABEL[t].desc}
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <p className="mt-3 text-[13px] leading-relaxed text-[#A8998A]">
         이 두 버튼을 누를 때만 답변 내용이 AI에 전달됩니다. 그 외에는 이 휴대폰 안에만 저장됩니다.
       </p>
 
@@ -315,7 +342,11 @@ export function WriteClient() {
             </button>
           </div>
           <p className="mt-3 text-[13px] leading-relaxed text-[#A8998A]">
-            AI는 문장만 정리합니다. 없는 사실을 만들어 넣지 않습니다. 그래도 바꾸기 전에 한 번 읽어봐 주세요.
+            말한 내용의 의미와 사실은 유지하면서 읽기 좋은 문장으로만 다듬습니다. 말하지 않은
+            사실이나 사건을 임의로 추가하지 않도록 설계했습니다.{" "}
+            <strong className="font-semibold text-[#8C4A32]">
+              그래도 바꾸기 전에 반드시 본인이 읽고 사실을 확인해 주세요.
+            </strong>
           </p>
         </div>
       )}
