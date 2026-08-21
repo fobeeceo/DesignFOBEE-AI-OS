@@ -1,4 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
+import { MEMOIR_DAILY_IP_LIMIT } from "@/lib/constants";
 
 /**
  * 자서전 코너의 AI 호출 공통부.
@@ -16,8 +17,57 @@ export class MemoirAiError extends Error {
   }
 }
 
-export async function askGemini(instruction: string, asJson: boolean): Promise<string> {
-  const apiKey = process.env.GEMINI_API_KEY;
+/**
+ * IP당 하루 무료 횟수. /api/generate와 같은 방식(인메모리 Map)이다.
+ *
+ * ⚠️ 한계를 그대로 적어둔다: Vercel은 요청을 여러 인스턴스에 나눠 보내고 인스턴스가
+ *    잠들면 이 Map도 사라진다. 즉 정확한 과금 차단 장치가 아니라 폭주를 늦추는
+ *    완충 장치다. 비용을 확실히 묶으려면 Google AI Studio 쪽에서 예산 한도를 건다.
+ *    꼬리질문과 글 다듬기가 하나의 횟수를 나눠 쓴다 — 쓰는 사람은 한 명이기 때문이다.
+ */
+const ipLimits = new Map<string, { count: number; resetAt: number }>();
+
+export function ipFrom(headers: Headers): string {
+  return (
+    headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    headers.get("x-real-ip") ||
+    "127.0.0.1"
+  );
+}
+
+export function checkIpUsage(ip: string): { allowed: boolean; remaining: number } {
+  const now = Date.now();
+  const limit = ipLimits.get(ip);
+
+  if (!limit || now > limit.resetAt) {
+    ipLimits.set(ip, { count: 0, resetAt: now + 24 * 60 * 60 * 1000 });
+    return { allowed: true, remaining: MEMOIR_DAILY_IP_LIMIT };
+  }
+
+  return {
+    allowed: limit.count < MEMOIR_DAILY_IP_LIMIT,
+    remaining: Math.max(0, MEMOIR_DAILY_IP_LIMIT - limit.count),
+  };
+}
+
+/** 성공했을 때만 차감한다 — 실패한 호출이 횟수를 먹으면 억울하다. */
+export function consumeIpUsage(ip: string): number {
+  const limit = ipLimits.get(ip);
+  if (!limit) return MEMOIR_DAILY_IP_LIMIT;
+  limit.count += 1;
+  return Math.max(0, MEMOIR_DAILY_IP_LIMIT - limit.count);
+}
+
+/**
+ * byokKey가 있으면 그것을 먼저 쓴다(/api/generate와 같은 규칙).
+ * ⚠️ 이 값은 절대 로그에 남기지 않는다.
+ */
+export async function askGemini(
+  instruction: string,
+  asJson: boolean,
+  byokKey?: string | null
+): Promise<string> {
+  const apiKey = (typeof byokKey === "string" && byokKey.trim()) || process.env.GEMINI_API_KEY;
   if (!apiKey) {
     throw new MemoirAiError("서버의 GEMINI_API_KEY가 설정되지 않았습니다.", "NO_API_KEY");
   }

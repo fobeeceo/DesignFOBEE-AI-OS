@@ -95,3 +95,12 @@ export const STYLES: StyleOption[] = [
 
 export const FREE_GENERATIONS = 2;
 export const DAILY_IP_LIMIT = 10;
+
+/**
+ * 자서전 코너의 AI 도움(꼬리질문·글 다듬기) 하루 무료 횟수 — IP 기준.
+ *
+ * /design(DAILY_IP_LIMIT=10)보다 넉넉하게 잡았다. 이미지 생성과 달리 짧은 텍스트
+ * 호출이라 비용이 훨씬 낮고, 자서전은 한자리에서 여러 질문을 이어 답하는 작업이라
+ * 10회면 한 시간도 못 쓰고 막힌다. 넘으면 「내 API 키」로 계속 쓸 수 있다.
+ */
+export const MEMOIR_DAILY_IP_LIMIT = 30;
