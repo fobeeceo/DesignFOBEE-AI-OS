@@ -14,6 +14,26 @@ import { CHARS_PER_QUESTION, countChars, progressOf, toPages } from "@/lib/memoi
 import { useMemoirBook } from "@/lib/memoir/storage";
 import { VoiceInput } from "@/components/memoir/VoiceInput";
 
+/**
+ * AI 오류를 원인별로 알려준다.
+ *
+ * ⚠️ 예전에는 무슨 일이 나든 "잠시 뒤 다시 눌러 주세요"만 띄웠다. 그런데 서버에
+ *    GEMINI_API_KEY가 없으면 백 번 눌러도 되지 않는다 — 기다리라는 안내가 거짓이 된다
+ *    (§0-2 원칙 3). 서버는 이미 원인 코드를 보내고 있었으므로 그대로 살려 쓴다.
+ */
+const AI_ERROR_MESSAGE: Record<string, string> = {
+  NO_API_KEY:
+    "AI 키가 서버에 설정되어 있지 않습니다. 다시 눌러도 되지 않으니 관리자에게 알려 주세요. 질문에 답하고 원고를 모으는 기능은 그대로 쓰실 수 있습니다.",
+  AI_FAILED: "AI에 연결하지 못했습니다. 잠시 뒤 다시 눌러 주세요.",
+  NO_RESULT: "AI가 빈 답을 보냈습니다. 다시 한 번 눌러 주세요.",
+  invalid_request: "답변이 너무 짧거나 너무 깁니다. 조금 고쳐서 다시 눌러 주세요.",
+  server_error: "서버에서 오류가 났습니다. 잠시 뒤 다시 눌러 주세요.",
+};
+
+function aiErrorMessage(code: unknown, fallback: string): string {
+  return (typeof code === "string" && AI_ERROR_MESSAGE[code]) || fallback;
+}
+
 /** 답변 칸에 붙이는 안내. 분량 감각이 있어야 사람들이 두세 문장에서 멈추지 않는다. */
 function lengthHint(chars: number): string {
   if (chars === 0) return `말로 하면 3~4분 정도, 약 ${CHARS_PER_QUESTION.toLocaleString()}자면 넉넉합니다.`;
@@ -70,7 +90,9 @@ export function WriteClient() {
     (text: string) => {
       if (!text) return;
       setDraft((prev) => {
-        const next = prev.trim() ? `${prev.trim()} ${text}` : text;
+        // 문장마다 줄을 바꾼다. 한 덩어리로 붙여놓으면 잘못 받아쓴 곳을
+        // 휴대폰에서 찾아 고치기가 어렵다(실기기 확인 2026-08-21).
+        const next = prev.trim() ? `${prev.trim()}\n${text}` : text;
         setAnswer(question.id, next, true);
         return next;
       });
@@ -95,7 +117,7 @@ export function WriteClient() {
       });
       const data = await res.json();
       if (data.ok) setFollowups(data.questions);
-      else setAiError("지금은 꼬리질문을 만들지 못했습니다. 잠시 뒤 다시 눌러 주세요.");
+      else setAiError(aiErrorMessage(data.error, "지금은 꼬리질문을 만들지 못했습니다. 잠시 뒤 다시 눌러 주세요."));
     } catch {
       setAiError("연결이 끊겼습니다. 인터넷 상태를 확인해 주세요.");
     } finally {
@@ -115,7 +137,7 @@ export function WriteClient() {
       });
       const data = await res.json();
       if (data.ok) setPolished(data.polished);
-      else setAiError("지금은 다듬지 못했습니다. 잠시 뒤 다시 눌러 주세요.");
+      else setAiError(aiErrorMessage(data.error, "지금은 다듬지 못했습니다. 잠시 뒤 다시 눌러 주세요."));
     } catch {
       setAiError("연결이 끊겼습니다. 인터넷 상태를 확인해 주세요.");
     } finally {
@@ -185,6 +207,11 @@ export function WriteClient() {
       {/* 답변 */}
       <div className="mt-6 space-y-3">
         <VoiceInput onTranscript={appendVoice} />
+
+        <p className="text-[14px] leading-relaxed text-[#6B6255]">
+          말로 답하시면 받아쓰기가 되지만, 지명·사람 이름은 틀리게 적힐 수 있습니다.
+          다 말씀하신 뒤 아래 글을 눈으로 한 번 고쳐 주세요.
+        </p>
 
         <textarea
           ref={textareaRef}
