@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { MAX_ANSWER_CHARS, MemoirAiError, askGemini } from "@/lib/memoir/ai";
+import {
+  MAX_ANSWER_CHARS,
+  MemoirAiError,
+  askGemini,
+  checkIpUsage,
+  consumeIpUsage,
+  ipFrom,
+} from "@/lib/memoir/ai";
 
 export const runtime = "nodejs";
 export const maxDuration = 45;
@@ -15,6 +22,8 @@ export const maxDuration = 45;
  */
 const Schema = z.object({
   text: z.string().min(20).max(MAX_ANSWER_CHARS),
+  /** 사용자가 직접 넣은 개인 API 키. 없으면 서버 키 + 하루 무료 횟수를 쓴다. */
+  byokKey: z.string().trim().max(200).nullish(),
 });
 
 function buildPrompt(text: string): string {
@@ -42,8 +51,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ok: false, error: "invalid_request" }, { status: 400 });
     }
 
-    const polished = await askGemini(buildPrompt(parsed.data.text), false);
-    return NextResponse.json({ ok: true, polished });
+    const byok = parsed.data.byokKey?.trim() || null;
+    const ip = ipFrom(request.headers);
+    if (!byok && !checkIpUsage(ip).allowed) {
+      return NextResponse.json({ ok: false, error: "RATE_LIMITED", remaining: 0 }, { status: 429 });
+    }
+
+    const polished = await askGemini(buildPrompt(parsed.data.text), false, byok);
+    const remaining = byok ? null : consumeIpUsage(ip);
+    return NextResponse.json({ ok: true, polished, remaining });
   } catch (error) {
     if (error instanceof MemoirAiError) {
       console.error("[memoir/polish]", error.code, error.message);

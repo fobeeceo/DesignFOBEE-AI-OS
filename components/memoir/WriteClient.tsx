@@ -12,7 +12,9 @@ import {
 } from "@/lib/memoir/questions";
 import { CHARS_PER_QUESTION, countChars, progressOf, toPages } from "@/lib/memoir/manuscript";
 import { useMemoirBook } from "@/lib/memoir/storage";
+import { useLocalStorage } from "@/lib/useLocalStorage";
 import { VoiceInput } from "@/components/memoir/VoiceInput";
+import { ApiKeyPanel } from "@/components/memoir/ApiKeyPanel";
 
 /**
  * AI 오류를 원인별로 알려준다.
@@ -26,6 +28,8 @@ const AI_ERROR_MESSAGE: Record<string, string> = {
     "AI 키가 서버에 설정되어 있지 않습니다. 다시 눌러도 되지 않으니 관리자에게 알려 주세요. 질문에 답하고 원고를 모으는 기능은 그대로 쓰실 수 있습니다.",
   AI_FAILED: "AI에 연결하지 못했습니다. 잠시 뒤 다시 눌러 주세요.",
   NO_RESULT: "AI가 빈 답을 보냈습니다. 다시 한 번 눌러 주세요.",
+  RATE_LIMITED:
+    "오늘 쓸 수 있는 무료 횟수를 다 쓰셨습니다. 내일 다시 되고, 그 전에 쓰시려면 아래에서 내 API 키를 넣으시면 됩니다.",
   invalid_request: "답변이 너무 짧거나 너무 깁니다. 조금 고쳐서 다시 눌러 주세요.",
   server_error: "서버에서 오류가 났습니다. 잠시 뒤 다시 눌러 주세요.",
 };
@@ -52,6 +56,9 @@ export function WriteClient() {
   const [aiState, setAiState] = useState<"idle" | "followup" | "polish">("idle");
   const [aiError, setAiError] = useState<string | null>(null);
   const [polished, setPolished] = useState<string | null>(null);
+  const [remaining, setRemaining] = useState<number | null>(null);
+  // 개인 키는 원고와 함께 두지 않고 따로 보관한다 — 원고를 내보낼 때 키가 딸려 나가면 안 된다.
+  const [byokKey, setByokKey] = useLocalStorage("fobee:memoir:apikey", "");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const question = QUESTIONS[index];
@@ -113,9 +120,14 @@ export function WriteClient() {
       const res = await fetch("/api/memoir/followup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: question.text, answer: draft }),
+        body: JSON.stringify({
+          question: question.text,
+          answer: draft,
+          byokKey: byokKey.trim() || null,
+        }),
       });
       const data = await res.json();
+      if (typeof data.remaining === "number") setRemaining(data.remaining);
       if (data.ok) setFollowups(data.questions);
       else setAiError(aiErrorMessage(data.error, "지금은 꼬리질문을 만들지 못했습니다. 잠시 뒤 다시 눌러 주세요."));
     } catch {
@@ -133,9 +145,10 @@ export function WriteClient() {
       const res = await fetch("/api/memoir/polish", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: draft }),
+        body: JSON.stringify({ text: draft, byokKey: byokKey.trim() || null }),
       });
       const data = await res.json();
+      if (typeof data.remaining === "number") setRemaining(data.remaining);
       if (data.ok) setPolished(data.polished);
       else setAiError(aiErrorMessage(data.error, "지금은 다듬지 못했습니다. 잠시 뒤 다시 눌러 주세요."));
     } catch {
@@ -248,6 +261,13 @@ export function WriteClient() {
       <p className="mt-2 text-[13px] leading-relaxed text-[#A8998A]">
         이 두 버튼을 누를 때만 답변 내용이 AI에 전달됩니다. 그 외에는 이 휴대폰 안에만 저장됩니다.
       </p>
+
+      <ApiKeyPanel
+        value={byokKey}
+        onChange={setByokKey}
+        remaining={remaining}
+        forceOpen={aiError !== null}
+      />
 
       {aiError && (
         <p className="mt-3 rounded-xl bg-[#FBEDE9] px-4 py-3 text-[15px] text-[#8C4A32]">{aiError}</p>

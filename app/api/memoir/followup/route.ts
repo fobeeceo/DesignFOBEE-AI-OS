@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { MAX_ANSWER_CHARS, MemoirAiError, askGemini } from "@/lib/memoir/ai";
+import {
+  MAX_ANSWER_CHARS,
+  MemoirAiError,
+  askGemini,
+  checkIpUsage,
+  consumeIpUsage,
+  ipFrom,
+} from "@/lib/memoir/ai";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -16,6 +23,8 @@ export const maxDuration = 30;
 const Schema = z.object({
   question: z.string().min(1).max(500),
   answer: z.string().min(10).max(MAX_ANSWER_CHARS),
+  /** 사용자가 직접 넣은 개인 API 키. 없으면 서버 키 + 하루 무료 횟수를 쓴다. */
+  byokKey: z.string().trim().max(200).nullish(),
 });
 
 function buildPrompt(question: string, answer: string): string {
@@ -47,17 +56,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ok: false, error: "invalid_request" }, { status: 400 });
     }
 
-    const raw = await askGemini(buildPrompt(parsed.data.question, parsed.data.answer), true);
+    // 개인 키를 쓰면 무료 횟수를 차감하지 않는다 — 본인 비용으로 부르는 것이기 때문이다.
+    const byok = parsed.data.byokKey?.trim() || null;
+    const ip = ipFrom(request.headers);
+    if (!byok && !checkIpUsage(ip).allowed) {
+      return NextResponse.json({ ok: false, error: "RATE_LIMITED", remaining: 0 }, { status: 429 });
+    }
+
+    const raw = await askGemini(buildPrompt(parsed.data.question, parsed.data.answer), true, byok);
     const data = JSON.parse(raw) as { questions?: unknown };
     const questions = Array.isArray(data.questions)
       ? data.questions.filter((q): q is string => typeof q === "string" && q.trim().length > 0).slice(0, 3)
       : [];
 
     if (questions.length === 0) {
-      return NextResponse.json({ ok: false, error: "no_result" }, { status: 502 });
+      return NextResponse.json({ ok: false, error: "NO_RESULT" }, { status: 502 });
     }
 
-    return NextResponse.json({ ok: true, questions });
+    const remaining = byok ? null : consumeIpUsage(ip);
+    return NextResponse.json({ ok: true, questions, remaining });
   } catch (error) {
     if (error instanceof MemoirAiError) {
       console.error("[memoir/followup]", error.code, error.message);
