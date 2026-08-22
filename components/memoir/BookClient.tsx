@@ -2,7 +2,7 @@
 
 import { useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { Download, FileUp, Upload } from "lucide-react";
+import { Download, FileText, FileUp, Printer, Upload } from "lucide-react";
 import { CHAPTERS, PARTS } from "@/lib/memoir/questions";
 import {
   CHARS_PER_PAGE,
@@ -13,6 +13,12 @@ import {
   type MemoirBook,
 } from "@/lib/memoir/manuscript";
 import { backupFileName, downloadText, useMemoirBook } from "@/lib/memoir/storage";
+import {
+  REVIEW_NOTICE,
+  buildDocxBlob,
+  hasContent,
+  manuscriptFileName,
+} from "@/lib/memoir/exportDoc";
 
 export function BookClient() {
   const { book, ready, saveState, setMeta, addNote, removeNote, replaceBook } = useMemoirBook();
@@ -21,6 +27,7 @@ export function BookClient() {
   const [pasteChapter, setPasteChapter] = useState(CHAPTERS[0].id);
   const [pasteTitle, setPasteTitle] = useState("");
   const [restoreMessage, setRestoreMessage] = useState<string | null>(null);
+  const [docxState, setDocxState] = useState<"idle" | "working" | "error">("idle");
   const fileInput = useRef<HTMLInputElement>(null);
 
   const progress = useMemo(() => progressOf(book), [book]);
@@ -28,6 +35,29 @@ export function BookClient() {
 
   function exportMarkdown() {
     downloadText(backupFileName("md"), toMarkdown(book), "text/markdown");
+  }
+
+  /**
+   * Word(.docx)로 내보낸다. docx 패키지가 무거워 누를 때만 불러온다 —
+   * 그래서 잠깐 걸릴 수 있고, 그동안 버튼에 상태를 보여준다.
+   */
+  async function exportDocx() {
+    setDocxState("working");
+    try {
+      const blob = await buildDocxBlob(book);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = manuscriptFileName(book.title, "docx");
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      setDocxState("idle");
+    } catch (error) {
+      console.error("[memoir] docx 내보내기 실패:", error);
+      setDocxState("error");
+    }
   }
 
   function exportJson() {
@@ -132,17 +162,32 @@ export function BookClient() {
         <div className="mt-4 flex flex-wrap gap-2">
           <button
             type="button"
-            onClick={exportMarkdown}
-            className="inline-flex h-12 items-center gap-2 rounded-full bg-[#8C4A32] px-5 text-[15px] font-semibold text-white"
+            onClick={exportDocx}
+            disabled={!hasContent(book) || docxState === "working"}
+            className="inline-flex h-12 items-center gap-2 rounded-full bg-[#8C4A32] px-5 text-[15px] font-semibold text-white disabled:opacity-40"
           >
-            <Download className="h-4 w-4" /> 원고 파일로 받기
+            <FileText className="h-4 w-4" />
+            {docxState === "working" ? "만드는 중…" : "Word로 받기"}
+          </button>
+          <Link
+            href="/memoir/print"
+            className="inline-flex h-12 items-center gap-2 rounded-full border border-[#8C4A32] px-5 text-[15px] font-semibold text-[#8C4A32]"
+          >
+            <Printer className="h-4 w-4" /> PDF로 저장
+          </Link>
+          <button
+            type="button"
+            onClick={exportMarkdown}
+            className="inline-flex h-12 items-center gap-2 rounded-full border border-[#D5CFC3] px-5 text-[15px] text-[#5C5346]"
+          >
+            <Download className="h-4 w-4" /> 원고 파일(.md)
           </button>
           <button
             type="button"
             onClick={exportJson}
-            className="inline-flex h-12 items-center gap-2 rounded-full border border-[#8C4A32] px-5 text-[15px] font-semibold text-[#8C4A32]"
+            className="inline-flex h-12 items-center gap-2 rounded-full border border-[#D5CFC3] px-5 text-[15px] text-[#5C5346]"
           >
-            <Upload className="h-4 w-4" /> 백업 파일 받기
+            <Upload className="h-4 w-4" /> 백업 파일(.json)
           </button>
           <button
             type="button"
@@ -163,7 +208,15 @@ export function BookClient() {
             }}
           />
         </div>
+        {docxState === "error" && (
+          <p className="mt-3 text-[15px] text-[#8C4A32]">
+            Word 파일을 만들지 못했습니다. 다시 눌러 주세요. 계속 안 되면 「원고 파일(.md)」로 받으실 수 있습니다.
+          </p>
+        )}
         {restoreMessage && <p className="mt-3 text-[15px] text-[#8C4A32]">{restoreMessage}</p>}
+        <p className="mt-4 border-t border-[#E7D9CE] pt-3 text-[14px] leading-relaxed text-[#8C4A32]">
+          {REVIEW_NOTICE}
+        </p>
       </div>
 
       {/* 탭 */}
