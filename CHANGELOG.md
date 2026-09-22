@@ -4,6 +4,12 @@
 
 ## [Unreleased]
 
+### 전령(Courier) → JARVIS 비서실장 명칭 변경 (2026-09-22, 대표 지시)
+- **이름만 변경, 기능은 그대로**: 사내 전달 계층의 공식 명칭을 "전령(Courier)"에서 "JARVIS 비서실장"으로 바꿨다. `AI-STAFF-POLICY.md`(조직표) · `API.md`(엔드포인트 설명) · `lib/courier/morning.ts`(아침 브리핑 제목·본문 문구) · `DOCUMENT-INDEX.md` 4개 파일의 **사용자 노출 텍스트만** 변경했다.
+- **바꾸지 않은 것**: `lib/courier/` 디렉터리명, `agents/courierAgent.ts` 파일명, `CourierAgent`/`runCourier`/`runMorning`/`CourierInput`/`MorningInput`/`CourierAgentError` 등 코드 식별자, `/api/hq/courier`·`/api/hq/courier/morning` API 경로, `lib/hq/erpSnapshot.ts`의 `AI_STAFF` 조회 키(`name: "전령(Courier)"`)는 그대로 유지했다 — 특히 API 경로는 대표님 노트북의 Hermes Agent가 매일 07:00 blueprint로 호출하는 외부 계약이라 바꾸면 아침 브리핑이 깨진다.
+- **역할을 부풀리지 않았다**: 현재 JARVIS(구 전령)는 LLM을 호출하지 않는 규칙 기반 전달 계층이며, 내부 신호 감지·응대 초안·부서 배분(계산만)·외부 소식 포장 후 발송대기함(Outbox)에 쌓기만 한다(스스로 발송하지 않음, `delivered:false` 고정). 대표 지시 접수·목표 해석·업무 분해·AI 직원 실제 위임·실행 관리·결과 검증·자동 재실행 같은 오케스트레이션 기능은 **아직 없으며**, 필요하면 별도의 "JARVIS 고도화" 프로젝트로 분리한다.
+- **2026-08-11 "헤르메스 → 전령(Courier)" 개명 기록은 보존**한다(바로 아래 항목). 그 기록을 지우거나 현재 명칭으로 소급 수정하지 않았다.
+
 ### 자서전 코너 `/memoir` — 질문에 답하면 원고가 되는 도구 (2026-08-21, 대표 지시)
 - **별도 사이트가 아니라 DesignFOBEE 안에 붙였다**: 도메인 신뢰도·헤더/푸터·배포 파이프라인·SEO를 그대로 쓰고, 나중에 트래픽이 붙으면 서브도메인만 이 경로로 돌리면 된다. 지금 사이트를 하나 더 만들면 배포·인증서·개인정보 처리방침이 두 벌이 된다.
 - **질문 156개 · 13장 · 5부** (`lib/memoir/questions.ts`): 대표 원고 「유리 벽돌을 쌓다」의 구성(5 PART / 15장 / 부록)에서 도출해 누구에게나 쓸 수 있는 형태로 일반화했다. 요약이 아니라 장면을, 감각과 숫자를 묻는다. 무너졌던 때·미안했던 사람·부끄러웠던 일을 정면으로 묻는 장을 넣었다(§0-2 원칙 3).

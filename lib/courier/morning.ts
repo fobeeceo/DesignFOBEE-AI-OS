@@ -133,7 +133,7 @@ export function buildMorningBrief(envelopes: Envelope[], date: string = seoulDat
         ].join("\n");
 
   const markdown = [
-    `# ☀️ 전령 아침 브리핑 — ${date}`,
+    `# ☀️ JARVIS 아침 브리핑 — ${date}`,
     "",
     `**한 줄**: ${headline}`,
     "",
@@ -148,7 +148,7 @@ export function buildMorningBrief(envelopes: Envelope[], date: string = seoulDat
     channelSection(envelopes),
     "",
     "---",
-    "전령은 발송하지 않습니다. 이 브리핑은 대표님 확인 후 나갑니다(AI-STAFF-POLICY §4).",
+    "JARVIS는 발송하지 않습니다. 이 브리핑은 대표님 확인 후 나갑니다(AI-STAFF-POLICY §4).",
   ].join("\n");
 
   return {
@@ -165,7 +165,7 @@ export function buildMorningBrief(envelopes: Envelope[], date: string = seoulDat
       audience: "대표",
       subject: `☀️ 아침 브리핑 ${date} — ${headline}`,
       body: markdown,
-      source: quiet ? "봉투 없음(전령 자체 판정)" : `전령 봉투 ${envelopes.length}건 요약`,
+      source: quiet ? "봉투 없음(JARVIS 자체 판정)" : `JARVIS 봉투 ${envelopes.length}건 요약`,
     },
   };
 }

@@ -71,7 +71,7 @@ AI 직원은 제안까지만 한다. 실제 실행(코드 반영·메뉴 변경�
 | AI 콘텐츠 | ❌ | N/A | N/A | N/A | N/A | N/A | N/A | ✅(초안으로 조정) | N/A | N/A | N/A | **은퇴 대상 아님, 초안 유지** — `generate_osmu.py`(Media Director 정규직)와 산출물 중복 확인, 정본을 Media Director로 지정(삭제 대신 표준지정, DECISION-LOG 참조) |
 | **AI Documentation** | ✅ `scripts/check-docs-sync.js`(신규 코드화) | N/A | ✅ | ✅ | N/A | N/A | N/A(npm 스크립트) | ❌(도구성 역할, QA/Audit과 동일 사유) | ✅ | ✅ | ✅(통과) | **정규직** |
 | AI 견적 | ✅ | N/A | ❌ **가격 placeholder**(TODO.md — 실단가 CEO승인 대기) | ✅(실사용중) | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | **개선중** |
-| **전령(Courier)** | ✅ `agents/courierAgent.ts` + `lib/courier/**` | ✅ `/api/hq/courier` · `/api/hq/courier/morning` | ✅ ERP 실스냅샷·실문의 | ✅ 봉투 8건 + 아침 브리핑 실행확인 | ✅ | ✅ | ❌ 미실행 | ❌ 미등록 | ✅ | ❌ | ❌ | **수습** (2026-08-11 신설, 11조건 중 4건 미충족. 구 명칭 "헤르메스" → 외부 Hermes Agent와 혼동 방지를 위해 개명) |
+| **JARVIS 비서실장** | ✅ `agents/courierAgent.ts` + `lib/courier/**` | ✅ `/api/hq/courier` · `/api/hq/courier/morning` | ✅ ERP 실스냅샷·실문의 | ✅ 봉투 8건 + 아침 브리핑 실행확인 | ✅ | ✅ | ❌ 미실행 | ❌ 미등록 | ✅ | ❌ | ❌ | **수습** (2026-08-11 신설, 11조건 중 4건 미충족. 구 명칭 "헤르메스" → 외부 Hermes Agent와 혼동 방지를 위해 "전령(Courier)"로 개명, 2026-09-22 "JARVIS 비서실장"으로 재개명. 현재 구현은 전달 계층/메시지 라우팅/브리핑 생성이며, 대표 지시 접수·업무 위임·실행 관리 등 오케스트레이션 기능은 별도 고도화 대상) |
 | AI Content Analyst | ✅ | ✅(미검증) | ❌ 실토큰없음 | ❌ | - | - | - | ✅ | ❌ | ❌ | ❌ | **수습** |
 | AI CRM | ❌ 분류로직없음 | - | ❌ 테스트데이터뿐 | ❌ | - | - | - | ✅ | ❌ | ❌ | ❌ | **수습** |
 | Instagram·YouTube·TikTok·Naver Blog·Thumbnail·Voice·Video | ❌ | ❌ | ❌ | ❌ | - | - | - | ✅(대기) | ❌ | ❌ | ❌ | **설계** |
