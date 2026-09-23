@@ -7,16 +7,9 @@ import {
   type MemoirQuestion,
 } from "@/lib/memoir/questions";
 
-/**
- * 원고 분량 환산 기준.
- *
- * 대표 원고 「유리 벽돌을 쌓다」(2026-08, PDF 75쪽)의 본문 추출 결과가 49,517자였다.
- * 49,517 / 75 ≈ 660자/쪽. 일반적인 신국판 단행본(600~700자/쪽) 범위와도 맞는다.
- *
- * ⚠️ 어디까지나 환산 기준이다. 실제 인쇄 쪽수는 판형·서체·행간·사진에 따라 달라진다.
- *    화면에는 반드시 "약"을 붙여 표시하고, 확정 수치처럼 쓰지 않는다(§0-2 원칙 3).
- */
-export const CHARS_PER_PAGE = 660;
+/** 한 쪽 = 660자 환산 기준. 책 집필 도구도 같은 값을 쓰도록 별도 모듈에 둔다(§14-A ⑥). */
+import { CHARS_PER_PAGE } from "@/lib/memoir/pageSize";
+export { CHARS_PER_PAGE };
 
 /** 목표 분량. 대표 지시(2026-08-21): 300쪽 분량의 책 한 권. */
 export const TARGET_PAGES = 300;

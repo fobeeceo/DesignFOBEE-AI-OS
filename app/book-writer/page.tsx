@@ -7,7 +7,7 @@ import { BookWriterClient } from "@/components/bookwriter/BookWriterClient";
  */
 export const metadata = {
   title: "책 집필 도구 | DesignFOBEE",
-  description: "아이디어 → 기획서 → 목차 → 장면 → 초안 순서로 AI와 함께 책 한 권을 씁니다.",
+  description: "시장 기획 → 제목 → 목차 → 초안 → 편집자 검토 → 판매 문안 순서로 AI와 함께 팔리는 책 한 권을 씁니다.",
   robots: { index: false, follow: false },
 };
 
