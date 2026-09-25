@@ -40,6 +40,12 @@ export default function Studio() {
   const [resultImage, setResultImage] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+  // 대화형 리파인 상태
+  const [refineHistory, setRefineHistory] = useState<{ instruction: string; imageUrl: string }[]>([]);
+  const [refineInput, setRefineInput] = useState('');
+  const [isRefining, setIsRefining] = useState(false);
+  const [refineError, setRefineError] = useState<string | null>(null);
+
   useEffect(() => {
     // 스타일 갤러리 카드에서 스타일을 미리 선택했을 때
     const onPickStyle = (e: Event) => {
@@ -161,6 +167,49 @@ export default function Studio() {
     }
   };
 
+  const handleRefine = async () => {
+    if (!resultImage || !refineInput.trim()) return;
+    if (!byokMode && freeCount <= 0) {
+      setRefineError(
+        `무료 체험 횟수(${FREE_GENERATIONS}회)를 모두 사용하셨습니다. "내 API 키로 무제한 사용" 토글을 켜고 개인 API 키를 등록해 주세요.`
+      );
+      return;
+    }
+
+    setIsRefining(true);
+    setRefineError(null);
+
+    try {
+      const res = await fetch('/api/refine', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          image: resultImage,
+          instruction: refineInput.trim(),
+          byokKey: byokMode ? byokKey.trim() : null,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || '반영에 실패했습니다.');
+      }
+
+      const nextImage = `data:image/png;base64,${data.image}`;
+      setRefineHistory((prev) => [...prev, { instruction: refineInput.trim(), imageUrl: nextImage }]);
+      setResultImage(nextImage);
+      setRefineInput('');
+
+      if (!byokMode) {
+        setFreeCountRaw(String(Math.max(0, freeCount - 1)));
+      }
+    } catch (err) {
+      setRefineError(err instanceof Error ? err.message : '반영 중 오류가 발생했습니다.');
+    } finally {
+      setIsRefining(false);
+    }
+  };
+
   const handleDownload = () => {
     if (!resultImage) return;
     const link = document.createElement('a');
@@ -174,6 +223,9 @@ export default function Studio() {
   const resetResult = () => {
     setResultImage(null);
     setGenerationTime(null);
+    setRefineHistory([]);
+    setRefineInput('');
+    setRefineError(null);
   };
 
   const resetAll = () => {
@@ -181,6 +233,9 @@ export default function Studio() {
     setResultImage(null);
     setGenerationTime(null);
     setErrorMsg(null);
+    setRefineHistory([]);
+    setRefineInput('');
+    setRefineError(null);
   };
 
   return (
@@ -228,6 +283,62 @@ export default function Studio() {
                   beforeAlt="업로드한 원본 공간"
                   afterAlt="리디자인된 공간"
                 />
+
+                {/* 대화형 리파인 — 결과에 자연어로 계속 요청해 다듬는다 */}
+                <div className="w-full max-w-md rounded-2xl border border-line bg-paper p-5">
+                  <p className="text-sm font-bold text-ink">AI와 대화하며 다듬기</p>
+                  <p className="mt-0.5 text-xs text-ink-soft">
+                    예: 소파를 더 밝은 색으로, 조명을 따뜻하게 바꿔줘
+                  </p>
+
+                  {refineHistory.length > 0 && (
+                    <ul className="mt-3 flex flex-col gap-2">
+                      {refineHistory.map((item, i) => (
+                        <li key={i} className="flex items-center gap-2 text-xs text-ink-soft">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={item.imageUrl} alt="" className="h-8 w-8 rounded-md object-cover" />
+                          <span>&quot;{item.instruction}&quot; 반영 완료</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+
+                  {!byokMode && freeCount <= 0 ? (
+                    <p className="mt-3 text-xs text-ink-soft">
+                      무료 체험 횟수를 모두 사용했습니다. 위 &quot;내 API 키로 무제한 사용&quot;을 켜주세요.
+                    </p>
+                  ) : (
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        handleRefine();
+                      }}
+                      className="mt-3 flex flex-col gap-2 sm:flex-row"
+                    >
+                      <input
+                        value={refineInput}
+                        onChange={(e) => setRefineInput(e.target.value)}
+                        placeholder="어떻게 다듬을까요?"
+                        disabled={isRefining}
+                        maxLength={200}
+                        className="w-full rounded-xl border border-line bg-paper-raised px-4 py-3 text-sm text-ink placeholder-ink-faint transition-colors focus:border-clay focus:outline-none"
+                      />
+                      <button
+                        type="submit"
+                        disabled={isRefining || !refineInput.trim()}
+                        className={`shrink-0 cursor-pointer rounded-xl px-6 py-3 text-sm font-semibold transition-all duration-200 ${
+                          isRefining || !refineInput.trim()
+                            ? 'cursor-not-allowed bg-sand text-ink-faint'
+                            : 'bg-ink text-paper hover:bg-clay active:scale-95'
+                        }`}
+                      >
+                        {isRefining ? '반영 중...' : '반영하기'}
+                      </button>
+                    </form>
+                  )}
+
+                  {refineError && <p className="mt-2 text-xs text-clay-deep">{refineError}</p>}
+                </div>
 
                 <div className="flex w-full flex-wrap justify-center gap-3">
                   <button
