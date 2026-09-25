@@ -1,43 +1,42 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
-import { DAILY_IP_LIMIT, ROOM_TYPES, STYLES } from '@/lib/constants';
 import { getIpUsage, consumeIpUsage, getClientIp } from '@/lib/ipLimit';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
 
+/**
+ * 대화형 리파인: /api/generate로 만든 결과 이미지에 자연어 지시를 한 번 더 반영한다.
+ * generate와 동일한 IP당 일일 제한·BYOK 모드를 공유한다(별도 한도 신설 없음).
+ */
 export async function POST(req: NextRequest) {
   try {
-    // 요청 용량 제한 체크 (~8MB)
     const contentLength = req.headers.get('content-length');
     if (contentLength && parseInt(contentLength, 10) > 8 * 1024 * 1024) {
       return NextResponse.json(
-        { error: '업로드 요청 크기가 제한(8MB)을 초과했습니다. 이미지 해상도를 줄여주세요.' },
+        { error: '업로드 요청 크기가 제한(8MB)을 초과했습니다.' },
         { status: 413 }
       );
     }
 
-    const { image, roomTypeId, styleId, byokKey } = await req.json();
+    const { image, instruction, byokKey } = await req.json();
 
     if (!image || typeof image !== 'string') {
       return NextResponse.json(
-        { error: '인테리어 디자인을 입힐 원본 방 사진을 업로드해 주세요.' },
+        { error: '다듬을 결과 이미지가 없습니다. 먼저 디자인을 생성해 주세요.' },
         { status: 400 }
       );
     }
 
-    const roomType = ROOM_TYPES.find((r) => r.id === roomTypeId);
-    const style = STYLES.find((s) => s.id === styleId);
-    if (!roomType || !style) {
+    const trimmedInstruction = typeof instruction === 'string' ? instruction.trim() : '';
+    if (trimmedInstruction.length < 2 || trimmedInstruction.length > 200) {
       return NextResponse.json(
-        { error: '공간 유형과 인테리어 스타일을 선택해 주세요.' },
+        { error: '어떻게 수정할지 2~200자로 입력해 주세요.' },
         { status: 400 }
       );
     }
 
     const ip = getClientIp(req);
-
-    // API 키 결정 (BYOK 우선, 없으면 서버 환경변수 키)
     const apiKey = (typeof byokKey === 'string' && byokKey.trim()) || process.env.GEMINI_API_KEY;
 
     if (!apiKey || apiKey === 'your_gemini_api_key_here') {
@@ -47,21 +46,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 데모 모드(서버 제공 키)인 경우에만 IP당 일일 제한 검증
     const isDemoMode = !byokKey;
     if (isDemoMode && !getIpUsage(ip).allowed) {
       return NextResponse.json(
         {
-          error: `데모 일일 제한(IP당 하루 ${DAILY_IP_LIMIT}회)을 초과했습니다. 무제한 사용을 위해 "내 API 키로 무제한 사용" 모드를 켜고 무료 API 키를 등록해 주세요.`,
+          error: '데모 일일 제한을 초과했습니다. 무제한 사용을 위해 "내 API 키로 무제한 사용" 모드를 켜고 무료 API 키를 등록해 주세요.',
         },
         { status: 429 }
       );
     }
 
-    // base64 및 mimeType 파싱
-    let mimeType = 'image/jpeg';
+    let mimeType = 'image/png';
     let base64Image = image;
-
     if (image.startsWith('data:')) {
       const match = image.match(/^data:([^;]+);base64,(.*)$/);
       if (match) {
@@ -70,15 +66,14 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 이미지 base64 바이트 사이즈 검증 (~8MB)
     if (base64Image.length > 8 * 1024 * 1024 * 1.33) {
       return NextResponse.json(
-        { error: '업로드 이미지 용량이 8MB를 초과합니다. 더 작은 이미지를 업로드해 주세요.' },
+        { error: '이미지 용량이 8MB를 초과합니다.' },
         { status: 413 }
       );
     }
 
-    const instruction = `Redesign this ${roomType.prompt} interior in ${style.prompt}. Keep the room architecture — walls, windows, doors, ceiling and camera perspective — exactly the same. Replace furniture, lighting, color palette and decor to match the target style. Photorealistic interior photography, natural lighting, high detail.`;
+    const geminiInstruction = `Apply this change to the interior photo: "${trimmedInstruction}". Keep the room architecture — walls, windows, doors, ceiling and camera perspective — exactly the same, and keep everything else about the current design unchanged unless the instruction says otherwise. Photorealistic interior photography, high detail.`;
 
     const ai = new GoogleGenAI({ apiKey });
     const res = await ai.models.generateContent({
@@ -86,7 +81,7 @@ export async function POST(req: NextRequest) {
       contents: [
         {
           role: 'user',
-          parts: [{ inlineData: { mimeType, data: base64Image } }, { text: instruction }],
+          parts: [{ inlineData: { mimeType, data: base64Image } }, { text: geminiInstruction }],
         },
       ],
     });
@@ -95,7 +90,7 @@ export async function POST(req: NextRequest) {
 
     if (candidate?.finishReason === 'SAFETY') {
       return NextResponse.json(
-        { error: '안전 정책에 의해 이미지 생성이 차단되었습니다. 다른 사진을 사용해 주세요.' },
+        { error: '안전 정책에 의해 이미지 생성이 차단되었습니다. 다른 요청으로 시도해 주세요.' },
         { status: 400 }
       );
     }
@@ -105,7 +100,7 @@ export async function POST(req: NextRequest) {
 
     if (!imageBase64) {
       return NextResponse.json(
-        { error: '이미지 생성이 실패했거나 차단되었습니다. 다른 공간 유형이나 스타일을 선택해 주세요.' },
+        { error: '반영에 실패했거나 차단되었습니다. 다른 표현으로 다시 시도해 주세요.' },
         { status: 400 }
       );
     }
@@ -114,7 +109,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ image: imageBase64 });
   } catch (error) {
-    console.error('Gemini Generate API Error:', error);
+    console.error('Gemini Refine API Error:', error);
     const errMsg = error instanceof Error ? error.message : '';
 
     if (
@@ -137,13 +132,13 @@ export async function POST(req: NextRequest) {
 
     if (errMsg.includes('SAFETY') || errMsg.includes('safety') || errMsg.includes('blocked')) {
       return NextResponse.json(
-        { error: '안전 필터에 의해 생성이 거부되었습니다. 다른 사진이나 스타일로 시도해 주세요.' },
+        { error: '안전 필터에 의해 생성이 거부되었습니다. 다른 표현으로 시도해 주세요.' },
         { status: 400 }
       );
     }
 
     return NextResponse.json(
-      { error: `인테리어 생성 실패: ${errMsg || '알 수 없는 서버 내부 오류'}` },
+      { error: `반영 실패: ${errMsg || '알 수 없는 서버 내부 오류'}` },
       { status: 500 }
     );
   }
