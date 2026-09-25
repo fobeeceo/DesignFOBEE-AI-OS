@@ -9,16 +9,16 @@ export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
   try {
-    // 요청 용량 제한 체크 (~8MB)
+    // 요청 용량 제한 체크 (~12MB, 평면도까지 함께 올리는 경우를 감안)
     const contentLength = req.headers.get('content-length');
-    if (contentLength && parseInt(contentLength, 10) > 8 * 1024 * 1024) {
+    if (contentLength && parseInt(contentLength, 10) > 12 * 1024 * 1024) {
       return NextResponse.json(
-        { error: '업로드 요청 크기가 제한(8MB)을 초과했습니다. 이미지 해상도를 줄여주세요.' },
+        { error: '업로드 요청 크기가 제한(12MB)을 초과했습니다. 이미지 해상도를 줄여주세요.' },
         { status: 413 }
       );
     }
 
-    const { image, roomTypeId, styleId, byokKey } = await req.json();
+    const { image, floorPlanImage, roomTypeId, styleId, byokKey } = await req.json();
 
     if (!image || typeof image !== 'string') {
       return NextResponse.json(
@@ -79,17 +79,44 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const instruction = `Redesign this ${roomType.prompt} interior in ${style.prompt}. Keep the room architecture — walls, windows, doors, ceiling and camera perspective — exactly the same. Replace furniture, lighting, color palette and decor to match the target style. Photorealistic interior photography, natural lighting, high detail.`;
+    // 평면도(선택) 파싱 — 있으면 방 구조·동선의 근거 자료로 함께 전달한다.
+    let floorPlanMimeType: string | null = null;
+    let base64FloorPlan: string | null = null;
+    if (typeof floorPlanImage === 'string' && floorPlanImage.trim()) {
+      floorPlanMimeType = 'image/jpeg';
+      base64FloorPlan = floorPlanImage;
+      if (floorPlanImage.startsWith('data:')) {
+        const match = floorPlanImage.match(/^data:([^;]+);base64,(.*)$/);
+        if (match) {
+          floorPlanMimeType = match[1];
+          base64FloorPlan = match[2];
+        }
+      }
+      if (base64FloorPlan.length > 8 * 1024 * 1024 * 1.33) {
+        return NextResponse.json(
+          { error: '평면도 이미지 용량이 8MB를 초과합니다. 더 작은 이미지를 업로드해 주세요.' },
+          { status: 413 }
+        );
+      }
+    }
+
+    const instruction = base64FloorPlan
+      ? `Redesign this ${roomType.prompt} interior in ${style.prompt}. A floor plan of this same space is provided as reference — use it to understand the real wall layout, room boundaries, and door/window positions, and make sure furniture placement in the redesign respects that layout. Keep the room architecture in the photo — walls, windows, doors, ceiling and camera perspective — exactly the same. Replace furniture, lighting, color palette and decor to match the target style. Photorealistic interior photography, natural lighting, high detail.`
+      : `Redesign this ${roomType.prompt} interior in ${style.prompt}. Keep the room architecture — walls, windows, doors, ceiling and camera perspective — exactly the same. Replace furniture, lighting, color palette and decor to match the target style. Photorealistic interior photography, natural lighting, high detail.`;
+
+    const parts: Array<{ text: string } | { inlineData: { mimeType: string; data: string } }> = [];
+    if (base64FloorPlan && floorPlanMimeType) {
+      parts.push({ text: 'Reference floor plan of this space (context only — do not redesign this image):' });
+      parts.push({ inlineData: { mimeType: floorPlanMimeType, data: base64FloorPlan } });
+      parts.push({ text: 'Room photo to redesign:' });
+    }
+    parts.push({ inlineData: { mimeType, data: base64Image } });
+    parts.push({ text: instruction });
 
     const ai = new GoogleGenAI({ apiKey });
     const res = await ai.models.generateContent({
       model: 'gemini-3.1-flash-image-preview',
-      contents: [
-        {
-          role: 'user',
-          parts: [{ inlineData: { mimeType, data: base64Image } }, { text: instruction }],
-        },
-      ],
+      contents: [{ role: 'user', parts }],
     });
 
     const candidate = res.candidates?.[0];

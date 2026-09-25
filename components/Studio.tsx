@@ -15,6 +15,42 @@ const LOADING_STATUSES = [
   '최종 고화질 렌더링 중...',
 ];
 
+/** 업로드 이미지 전처리 — Canvas로 긴 쪽 maxDim까지 다운스케일 */
+function downscaleImage(file: File, maxDim = 1024): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new window.Image();
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > maxDim || height > maxDim) {
+          if (width > height) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('이미지 처리에 실패했습니다.'));
+          return;
+        }
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', 0.85));
+      };
+      img.onerror = () => reject(new Error('이미지를 불러올 수 없습니다.'));
+      img.src = e.target?.result as string;
+    };
+    reader.onerror = () => reject(new Error('파일을 읽을 수 없습니다.'));
+    reader.readAsDataURL(file);
+  });
+}
+
 export default function Studio() {
   // 입력 상태
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
@@ -22,6 +58,11 @@ export default function Studio() {
   const [selectedStyle, setSelectedStyle] = useState(STYLES[0].id);
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // 평면도(선택) — 있으면 AI가 실제 벽·동선 구조를 참고해 디자인한다.
+  const [floorPlanImage, setFloorPlanImage] = useState<string | null>(null);
+  const [isFloorPlanDragOver, setIsFloorPlanDragOver] = useState(false);
+  const floorPlanInputRef = useRef<HTMLInputElement>(null);
 
   // 무료 체험 횟수 + BYOK (localStorage와 동기화)
   const [freeCountRaw, setFreeCountRaw] = useLocalStorage(
@@ -61,7 +102,6 @@ export default function Studio() {
 
   const handleByokToggle = () => setByokModeRaw(String(!byokMode));
 
-  // 업로드 이미지 전처리 — Canvas로 긴 쪽 1024px 다운스케일
   const handleImageFile = (file: File) => {
     if (!file) return;
     if (!file.type.startsWith('image/')) {
@@ -73,36 +113,32 @@ export default function Studio() {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const img = new window.Image();
-      img.onload = () => {
-        const maxDim = 1024;
-        let { width, height } = img;
-        if (width > maxDim || height > maxDim) {
-          if (width > height) {
-            height = Math.round((height * maxDim) / width);
-            width = maxDim;
-          } else {
-            width = Math.round((width * maxDim) / height);
-            height = maxDim;
-          }
-        }
+    downscaleImage(file)
+      .then((dataUrl) => {
+        setUploadedImage(dataUrl);
+        setResultImage(null);
+        setErrorMsg(null);
+      })
+      .catch(() => setErrorMsg('이미지 처리 중 오류가 발생했습니다.'));
+  };
 
-        const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          ctx.drawImage(img, 0, 0, width, height);
-          setUploadedImage(canvas.toDataURL('image/jpeg', 0.85));
-          setResultImage(null);
-          setErrorMsg(null);
-        }
-      };
-      img.src = e.target?.result as string;
-    };
-    reader.readAsDataURL(file);
+  const handleFloorPlanFile = (file: File) => {
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setErrorMsg('평면도는 이미지 파일(JPG, PNG, WebP)만 업로드할 수 있습니다.');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setErrorMsg('평면도 파일 크기는 10MB를 초과할 수 없습니다.');
+      return;
+    }
+
+    downscaleImage(file)
+      .then((dataUrl) => {
+        setFloorPlanImage(dataUrl);
+        setErrorMsg(null);
+      })
+      .catch(() => setErrorMsg('평면도 처리 중 오류가 발생했습니다.'));
   };
 
   const handleGenerate = async () => {
@@ -137,6 +173,7 @@ export default function Studio() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           image: uploadedImage,
+          floorPlanImage: floorPlanImage || null,
           roomTypeId: selectedRoom,
           styleId: selectedStyle,
           byokKey: byokMode ? byokKey.trim() : null,
@@ -230,6 +267,7 @@ export default function Studio() {
 
   const resetAll = () => {
     setUploadedImage(null);
+    setFloorPlanImage(null);
     setResultImage(null);
     setGenerationTime(null);
     setErrorMsg(null);
@@ -378,7 +416,8 @@ export default function Studio() {
             ) : (
               /* ── 입력 단계 ── */
               <div className="grid gap-10 lg:grid-cols-[1fr_1fr] lg:gap-12">
-                {/* 01. 업로드 */}
+                {/* 01. 업로드 + 평면도(선택) */}
+                <div className="flex flex-col gap-6">
                 <div className="flex flex-col gap-3">
                   <p className="flex items-baseline gap-2 text-base font-bold text-ink">
                     <span className="font-display text-sm text-clay">01</span>
@@ -457,6 +496,83 @@ export default function Studio() {
                       </button>
                     </div>
                   )}
+                </div>
+
+                {/* 평면도(선택) — 있으면 AI가 실제 벽·동선 구조를 참고해 디자인한다 */}
+                <div className="flex flex-col gap-3">
+                  <p className="flex items-baseline gap-2 text-base font-bold text-ink">
+                    평면도
+                    <span className="rounded-full bg-paper px-2 py-0.5 text-[10px] font-semibold text-ink-faint">
+                      선택
+                    </span>
+                  </p>
+                  <p className="text-xs text-ink-faint">
+                    평면도를 함께 올리면 AI가 실제 벽·동선 구조를 참고해 더 정확하게 디자인합니다.
+                  </p>
+
+                  {!floorPlanImage ? (
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        setIsFloorPlanDragOver(true);
+                      }}
+                      onDragLeave={() => setIsFloorPlanDragOver(false)}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        setIsFloorPlanDragOver(false);
+                        if (e.dataTransfer.files?.[0]) handleFloorPlanFile(e.dataTransfer.files[0]);
+                      }}
+                      onClick={() => floorPlanInputRef.current?.click()}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          floorPlanInputRef.current?.click();
+                        }
+                      }}
+                      className={`flex aspect-[16/9] cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed p-6 text-center transition-all duration-300 ${
+                        isFloorPlanDragOver
+                          ? 'scale-[0.99] border-clay bg-clay-soft'
+                          : 'border-line-strong bg-paper hover:border-ink-faint'
+                      }`}
+                    >
+                      <input
+                        ref={floorPlanInputRef}
+                        type="file"
+                        className="hidden"
+                        accept="image/png, image/jpeg, image/webp"
+                        onChange={(e) => {
+                          if (e.target.files?.[0]) handleFloorPlanFile(e.target.files[0]);
+                          e.target.value = '';
+                        }}
+                      />
+                      <svg
+                        width="28"
+                        height="28"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        aria-hidden="true"
+                        className="text-ink-faint"
+                      >
+                        <rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="1.5" />
+                        <path d="M3 12h18M9 12V4M9 12v8" stroke="currentColor" strokeWidth="1.5" />
+                      </svg>
+                      <p className="text-xs font-semibold text-ink">평면도 이미지 업로드</p>
+                    </div>
+                  ) : (
+                    <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl border border-line shadow-lift">
+                      <Image src={floorPlanImage} alt="업로드한 평면도" fill className="object-cover" />
+                      <button
+                        onClick={() => setFloorPlanImage(null)}
+                        title="평면도 삭제"
+                        className="absolute right-3 top-3 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-ink/75 text-paper backdrop-blur-sm transition-all duration-200 hover:bg-ink active:scale-95"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  )}
+                </div>
                 </div>
 
                 {/* 02+03. 옵션 */}
