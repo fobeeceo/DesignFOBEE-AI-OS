@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { uploadDesignImage } from "@/lib/supabase/storage";
-import { generateInteriorDesign, InteriorDesignError } from "@/agents/interiorDesignAgent";
+import { generateInteriorDesign, refineInteriorDesign, InteriorDesignError } from "@/agents/interiorDesignAgent";
 import { generateDesignDescription } from "@/agents/interiorDescriptionAgent";
 import { FREE_GENERATIONS_PER_USER } from "@/prompts/interiorStyles";
 import type { DesignImage, DesignImageWithEstimate, GenerateDesignResult } from "@/types/design";
@@ -82,6 +82,74 @@ export async function generateDesignForProject(params: GenerateDesignParams): Pr
     }),
     prisma.designGeneration.create({ data: { profileId: params.userId } }),
     prisma.project.update({ where: { id: params.projectId }, data: { status: "DESIGNED" } }),
+  ]);
+
+  return {
+    designImage: serializeDesignImage(designImage),
+    remainingFree: remaining - 1,
+  };
+}
+
+interface RefineDesignParams {
+  userId: string;
+  projectId: string;
+  designImageId: string;
+  instruction: string;
+}
+
+/**
+ * 대화형 리파인: 기존 결과 이미지를 불러와 자연어 지시를 한 번 더 반영하고,
+ * 새 DesignImage로 저장한다. generate와 동일한 무료 횟수 한도를 공유한다
+ * (원칙 4 — 수를 늘리지 않는다: 별도 한도를 만들지 않는다).
+ */
+export async function refineDesignImage(params: RefineDesignParams): Promise<GenerateDesignResult> {
+  const remaining = await getRemainingFreeGenerations(params.userId);
+  if (remaining <= 0) {
+    throw new InteriorDesignError(
+      `무료 체험 횟수(${FREE_GENERATIONS_PER_USER}회)를 모두 사용하셨습니다. 담당자와 상담을 통해 계속 이용하실 수 있습니다.`,
+      "FREE_LIMIT_EXCEEDED"
+    );
+  }
+
+  const current = await prisma.designImage.findFirst({
+    where: { id: params.designImageId, projectId: params.projectId, project: { profileId: params.userId } },
+  });
+
+  if (!current) {
+    throw new InteriorDesignError("결과 이미지를 찾을 수 없습니다.", "DESIGN_IMAGE_NOT_FOUND");
+  }
+
+  const imageRes = await fetch(current.url);
+  if (!imageRes.ok) {
+    throw new InteriorDesignError("결과 이미지를 불러오지 못했습니다.", "IMAGE_FETCH_FAILED");
+  }
+  const imageBuffer = Buffer.from(await imageRes.arrayBuffer());
+  const imageBase64 = imageBuffer.toString("base64");
+
+  const resultBase64 = await refineInteriorDesign({
+    imageBase64,
+    mimeType: "image/png",
+    userInstruction: params.instruction,
+  });
+
+  const { storagePath, url } = await uploadDesignImage({
+    userId: params.userId,
+    projectId: params.projectId,
+    base64: resultBase64,
+  });
+
+  const [designImage] = await prisma.$transaction([
+    prisma.designImage.create({
+      data: {
+        projectId: params.projectId,
+        sourcePhotoId: current.sourcePhotoId,
+        roomType: current.roomType,
+        style: current.style,
+        storagePath,
+        url,
+      },
+    }),
+    prisma.designGeneration.create({ data: { profileId: params.userId } }),
   ]);
 
   return {
