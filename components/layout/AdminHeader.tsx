@@ -28,9 +28,12 @@ export function AdminHeader({ email }: AdminHeaderProps) {
           <Link href="/admin/leads" className="text-lg font-bold tracking-tight">
             DesignFOBEE <span className="text-accent">Admin</span>
           </Link>
-          <nav className="hidden text-sm font-medium text-muted-foreground sm:flex">
+          <nav className="hidden gap-6 text-sm font-medium text-muted-foreground sm:flex">
             <Link href="/admin/leads" className="hover:text-foreground">
               리드 관리
+            </Link>
+            <Link href="/admin/usage" className="hover:text-foreground">
+              AI 사용량
             </Link>
           </nav>
         </div>
