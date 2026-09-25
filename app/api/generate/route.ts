@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
 import { DAILY_IP_LIMIT, ROOM_TYPES, STYLES } from '@/lib/constants';
 import { getIpUsage, consumeIpUsage, getClientIp } from '@/lib/ipLimit';
+import { logPublicGeneration } from '@/lib/usageLog';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -111,6 +112,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (isDemoMode) consumeIpUsage(ip);
+    logPublicGeneration('generate', !isDemoMode);
 
     return NextResponse.json({ image: imageBase64 });
   } catch (error) {
