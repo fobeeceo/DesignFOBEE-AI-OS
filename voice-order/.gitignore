@@ -1,0 +1,5 @@
+# 테스트 주문 기록과 기기별 인증서는 저장소에 올리지 않는다
+data/orders.json
+data/orders.json.tmp
+certs/
+tests/e2e/screenshots/

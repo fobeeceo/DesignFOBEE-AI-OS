@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>음성 주문 테스트 대시보드</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <style>
+    html { font-size: 16px; }
+    .dash { max-width: 1100px; margin: 0 auto; padding: 16px; }
+    .banner { background: #b3261e; color: #fff; font-weight: 900; font-size: 1.4rem; text-align: center; padding: 14px; border-radius: 12px; letter-spacing: 0.05em; }
+    .banner small { display: block; font-size: 0.95rem; font-weight: 600; letter-spacing: 0; margin-top: 4px; }
+    h1 { font-size: 1.4rem; margin: 18px 0 8px; }
+    .kpis { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+    .kpi { background: #fff; border: 2px solid var(--line); border-radius: 14px; padding: 14px; }
+    .kpi .k { font-size: 0.95rem; color: var(--muted); }
+    .kpi .v { font-size: 2rem; font-weight: 900; }
+    .table-wrap { overflow-x: auto; background: #fff; border: 2px solid var(--line); border-radius: 14px; }
+    table.orders { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+    .orders th, .orders td { padding: 10px; border-bottom: 1px solid var(--line); text-align: left; white-space: nowrap; }
+    .orders td.items { white-space: normal; min-width: 180px; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-weight: 700; font-size: 0.85rem; background: #eee; }
+    .CONFIRMED { background: #d7f0de; } .FAILED { background: #fadad7; } .IN_PROGRESS { background: #fff1c2; }
+    .mini { font: inherit; padding: 6px 10px; border-radius: 8px; border: 2px solid var(--brand); background: #fff; cursor: pointer; }
+    .meta { color: var(--muted); font-size: 0.9rem; margin-top: 8px; }
+    @media print { .dash { display: none; } }
+  </style>
+</head>
+<body>
+  <div class="dash">
+    <div class="banner">DEMO / TEST DATA<small>실제 POS 매출 데이터가 아닙니다. 결제는 모두 카운터(PAY_AT_COUNTER)에서 별도로 처리됩니다.</small></div>
+    <h1>오늘 테스트 현황 <span id="date"></span></h1>
+    <div class="kpis" id="kpis"></div>
+    <h1>최근 주문</h1>
+    <div class="table-wrap">
+      <table class="orders">
+        <thead><tr><th>주문번호</th><th>시간</th><th>입력</th><th>주문 내용</th><th>금액</th><th>상태</th><th>도움</th><th>출력</th><th></th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <p class="meta">5초마다 자동 새로고침 · <a href="/">주문 화면으로</a></p>
+  </div>
+  <div id="print-area" aria-hidden="true"></div>
+  <script type="module" src="/dashboard.js"></script>
+</body>
+</html>

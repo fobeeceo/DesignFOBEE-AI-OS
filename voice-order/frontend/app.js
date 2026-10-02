@@ -1,0 +1,417 @@
+// 주문 화면 흐름: 시작 → 듣기 → (확인 질문) → 주문 확인 → 완료/출력
+// 가격 계산·주문번호는 서버가 한다. 여기서는 화면과 음성만 다룬다.
+import { nextQuestion, applyAnswer, interpretAnswer } from '/core/dialog.mjs';
+import { won, speakItems } from '/core/format.mjs';
+import { createSpeechProvider, Speaker, SpeechFailure } from '/speech.js';
+
+const HOME_AFTER_DONE_SEC = 10;
+const IDLE_RESET_SEC = 90;
+const MAX_FAILS = 3;
+const EXAMPLES = [
+  '아이스 아메리카노 하나',
+  '따뜻한 라떼 하나',
+  '아이스 아메리카노 두 잔하고 라떼 하나 주세요.',
+  '커피 하나 주세요.',
+  '딸기라떼 하나 주세요.',
+];
+
+const $ = (id) => document.getElementById(id);
+const stt = createSpeechProvider();
+const speaker = new Speaker();
+const autoPrint = new URLSearchParams(location.search).get('autoprint') === '1';
+
+let menu = null;
+let s = freshState();
+let flow = 0; // 처음으로 돌아가면 증가 → 진행 중이던 비동기 흐름은 멈춘다
+let idleTimer = null;
+let doneTimer = null;
+
+function freshState() {
+  return { session: null, mode: null, items: [], unrecognized: [], question: null, failCount: 0, heard: '' };
+}
+
+// ---------- 공통 ----------
+async function api(path, body) {
+  const res = await fetch(path, {
+    method: body === undefined ? 'GET' : 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+  return data;
+}
+
+function show(name) {
+  document.querySelectorAll('[data-screen]').forEach((el) => {
+    el.hidden = el.dataset.screen !== name;
+  });
+  $('help-bar').hidden = name === 'help';
+  window.scrollTo(0, 0);
+  resetIdle(name);
+}
+
+function resetIdle(screen) {
+  clearTimeout(idleTimer);
+  if (screen && screen !== 'start' && screen !== 'done') {
+    idleTimer = setTimeout(() => reset(), IDLE_RESET_SEC * 1000);
+  }
+}
+
+function buttons(container, list) {
+  container.replaceChildren(
+    ...list.map(([label, cls, fn]) => {
+      const b = document.createElement('button');
+      b.className = `btn ${cls}`;
+      b.textContent = label;
+      b.addEventListener('click', fn);
+      return b;
+    }),
+  );
+}
+
+function linesHtml(ul, lines) {
+  ul.replaceChildren(
+    ...lines.map((l) => {
+      const li = document.createElement('li');
+      const name = document.createElement('span');
+      name.textContent = l.display_name;
+      const qty = document.createElement('span');
+      qty.className = 'qty';
+      qty.textContent = `${l.quantity}${l.unit}`;
+      li.append(name, qty);
+      return li;
+    }),
+  );
+}
+
+function say(text) {
+  return speaker.speak(text);
+}
+
+async function ensureSession(mode) {
+  if (s.session && s.mode === mode) return;
+  if (s.session) await api(`/api/sessions/${s.session}/cancel`, {}).catch(() => {});
+  s = freshState();
+  s.mode = mode;
+  s.session = (await api('/api/sessions', { input_type: mode })).id;
+}
+
+// ---------- 시작 ----------
+async function startVoice() {
+  speaker.unlock();
+  if (!stt.isSupported()) {
+    $('voice-unsupported').hidden = false;
+    return;
+  }
+  await ensureSession('VOICE');
+  listenOrder();
+}
+
+async function startText() {
+  speaker.unlock();
+  await ensureSession('TEXT');
+  show('text');
+  $('text-input').value = '';
+  $('text-input').focus();
+}
+
+// ---------- 주문 듣기 ----------
+async function listenOrder() {
+  const my = ++flow;
+  $('interim').textContent = '';
+  show('listening');
+  await say('듣고 있습니다.');
+  if (my !== flow) return;
+  try {
+    const text = await stt.listen((t) => ($('interim').textContent = t));
+    if (my !== flow) return;
+    await handleText(text);
+  } catch (e) {
+    if (my !== flow) return;
+    await handleHearFail(e instanceof SpeechFailure ? e.code : 'error');
+  }
+}
+
+async function handleText(text) {
+  const my = flow;
+  s.heard = text;
+  const r = await api(`/api/sessions/${s.session}/parse`, { text });
+  if (my !== flow) return;
+  s.failCount = r.fail_count;
+  if (r.kind === 'ok' || r.kind === 'clarify') {
+    s.items = r.items;
+    s.unrecognized = r.unrecognized;
+    return proceed();
+  }
+  if (r.kind === 'not_found') return showNotFound(r.unknown);
+  if (r.kind === 'unavailable') {
+    return showMessage({
+      title: '죄송합니다.',
+      body: `${r.unavailable.join(', ')}는 지금 준비가 어려워요.\n직원에게 도움을 요청하시겠어요?`,
+      buttons: helpOrRetry(),
+    });
+  }
+  return showNotHeard(); // unclear
+}
+
+function helpOrRetry() {
+  const help = ['직원에게 도움 요청', 'primary', requestHelp];
+  const again = ['다시 말하기', 'secondary', retry];
+  return s.failCount >= MAX_FAILS ? [help, again] : [again, ['직원에게 도움 요청', 'secondary', requestHelp]];
+}
+
+async function handleHearFail(code) {
+  if (code === 'aborted') return;
+  if (code === 'unsupported') return startText();
+  const r = await api(`/api/sessions/${s.session}/fail`, { reason: code }).catch(() => null);
+  if (r) s.failCount = r.fail_count;
+  if (code === 'not-allowed' || code === 'audio-capture') {
+    return showMessage({
+      title: '마이크를 쓸 수 없어요.',
+      body: '마이크 사용을 허용해 주시거나\n직원에게 말씀해 주세요.',
+      buttons: [['다시 말하기', 'secondary', retry], ['직원에게 도움 요청', 'primary', requestHelp]],
+      speak: '마이크를 쓸 수 없어요. 직원에게 말씀해 주세요.',
+    });
+  }
+  return showNotHeard();
+}
+
+function showNotHeard() {
+  if (s.failCount >= MAX_FAILS) {
+    return showMessage({
+      title: '직원이 도와드릴게요.',
+      body: '제가 잘 알아듣지 못해 죄송해요.\n직원을 불러 드릴까요?',
+      buttons: helpOrRetry(),
+    });
+  }
+  return showMessage({
+    title: '제가 잘 못 들었어요.',
+    body: '천천히 한 번 더 말씀해 주세요.',
+    buttons: helpOrRetry(),
+  });
+}
+
+function showNotFound(unknown) {
+  const what = unknown?.length ? `‘${unknown.join(', ')}’는\n` : '';
+  showMessage({
+    title: '죄송합니다.',
+    body: `${what}현재 주문 가능한 메뉴에서 찾지 못했습니다.\n직원에게 도움을 요청하시겠어요?`,
+    buttons: [['직원에게 도움 요청', 'primary', requestHelp], ['다시 말하기', 'secondary', retry]],
+  });
+}
+
+function showMessage({ title, body, buttons: list, speak }) {
+  $('m-title').textContent = title;
+  $('m-body').textContent = body;
+  $('m-heard').textContent = s.heard ? `들은 말: “${s.heard}”` : '';
+  buttons($('m-buttons'), list);
+  show('message');
+  say(speak || `${title} ${body.replace(/\n/g, ' ')}`);
+}
+
+// ---------- 확인 질문 ----------
+function proceed() {
+  const q = nextQuestion(s.items, menu);
+  if (q) return askQuestion(q);
+  return showConfirm();
+}
+
+async function askQuestion(q) {
+  const my = ++flow;
+  s.question = q;
+  $('q-heard').textContent = s.heard ? `들은 말: “${s.heard}”` : '';
+  $('q-text').textContent = q.text;
+  $('q-hint').hidden = true;
+  const answer = (a) => () => onAnswer(a);
+  buttons(
+    $('q-choices'),
+    q.type === 'choose_temperature'
+      ? [
+          ['☕ 따뜻하게', 'primary warm', answer('HOT')],
+          ['🧊 차갑게 (아이스)', 'primary cool', answer('ICE')],
+          ['다시 말할게요', 'secondary', retry],
+        ]
+      : [
+          ['네, 맞아요', 'primary', answer('yes')],
+          ['아니요, 다시 말할게요', 'secondary', answer('no')],
+        ],
+  );
+  show('question');
+  await say(q.text);
+  if (my === flow && s.mode === 'VOICE') listenAnswer(my, onAnswer, 'q-hint');
+}
+
+async function listenAnswer(my, handler, hintId) {
+  try {
+    const text = await stt.listen();
+    if (my !== flow) return;
+    s.heard = text;
+    const a = interpretAnswer(text);
+    if (a) handler(a);
+    else $(hintId).hidden = false;
+  } catch {
+    if (my === flow) $(hintId).hidden = false; // 대답을 못 들어도 탓하지 않고 버튼 안내만
+  }
+}
+
+function onAnswer(a) {
+  stt.cancel();
+  const next = applyAnswer(s.items, s.question, a, menu);
+  if (next === null) return retry();
+  if (next === s.items) {
+    $('q-hint').hidden = false;
+    return;
+  }
+  s.items = next;
+  proceed();
+}
+
+// ---------- 주문 확인 ----------
+async function showConfirm() {
+  const my = ++flow;
+  let priced;
+  try {
+    priced = await api('/api/quote', { items: s.items });
+  } catch {
+    return showNotHeard();
+  }
+  if (my !== flow) return;
+  s.priced = priced;
+  linesHtml($('c-lines'), priced.items);
+  $('c-total').textContent = won(priced.total_amount);
+  const spoken = speakItems(priced.items);
+  $('c-ask').textContent = `“${spoken} 맞으실까요?”`;
+  $('c-note').hidden = !s.unrecognized.length;
+  $('c-note').textContent = s.unrecognized.length
+    ? `‘${s.unrecognized.join(', ')}’는 알아듣지 못해 빠졌어요. 필요하시면 ‘다시 말할게요’를 눌러 주세요.`
+    : '';
+  $('c-hint').hidden = true;
+  show('confirm');
+  await say(`${spoken} 맞으실까요? 총 ${won(priced.total_amount)}입니다.`);
+  if (my === flow && s.mode === 'VOICE') {
+    listenAnswer(my, (a) => {
+      if (a === 'yes') confirmOrder();
+      else if (a === 'no') retry();
+      else $('c-hint').hidden = false;
+    }, 'c-hint');
+  }
+}
+
+async function confirmOrder() {
+  stt.cancel();
+  const my = ++flow;
+  try {
+    const order = await api(`/api/sessions/${s.session}/confirm`, { items: s.items });
+    if (my !== flow) return;
+    showDone(order);
+  } catch {
+    showMessage({
+      title: '주문을 저장하지 못했어요.',
+      body: '죄송합니다. 직원에게 말씀해 주세요.',
+      buttons: [['직원에게 도움 요청', 'primary', requestHelp], ['처음으로', 'secondary', reset]],
+    });
+  }
+}
+
+// ---------- 완료 ----------
+function showDone(order) {
+  const shortNo = String(parseInt(order.order_id.slice(-3), 10));
+  $('d-no').textContent = shortNo;
+  $('d-id').textContent = order.order_id;
+  linesHtml($('d-lines'), order.items);
+  $('d-total').textContent = won(order.total_amount);
+  $('d-print-msg').hidden = true;
+  s.lastOrder = order;
+  s.session = null; // 확정된 세션은 닫힘
+  show('done');
+  say(`주문이 완료되었습니다. 주문번호는 ${shortNo}번입니다. 카운터에서 결제해 주세요.`);
+  if (autoPrint) printOrder(order.order_id);
+  let left = HOME_AFTER_DONE_SEC;
+  $('d-count').textContent = left;
+  clearInterval(doneTimer);
+  doneTimer = setInterval(() => {
+    left -= 1;
+    $('d-count').textContent = left;
+    if (left <= 0) reset();
+  }, 1000);
+}
+
+export async function printOrder(orderId) {
+  const msg = $('d-print-msg');
+  try {
+    const r = await api(`/api/orders/${orderId}/print`, {});
+    if (!r.ok) throw new Error(r.error);
+    $('print-area').innerHTML = r.html;
+    window.print();
+    await api(`/api/orders/${orderId}/print-result`, { ok: true });
+  } catch {
+    await api(`/api/orders/${orderId}/print-result`, { ok: false }).catch(() => {});
+    if (msg) {
+      msg.textContent = '주문서가 출력되지 않았어요. 주문번호를 직원에게 말씀해 주세요.';
+      msg.hidden = false;
+    }
+  }
+}
+
+// ---------- 직원 호출 · 초기화 ----------
+async function requestHelp() {
+  stt.cancel();
+  ++flow;
+  await api('/api/help', { session_id: s.session }).catch(() => {});
+  show('help');
+  say('직원을 호출했습니다. 잠시만 기다려 주세요.');
+}
+
+function retry() {
+  stt.cancel();
+  s.items = [];
+  s.question = null;
+  if (s.mode === 'VOICE') return listenOrder();
+  ++flow;
+  show('text');
+  $('text-input').focus();
+}
+
+async function reset() {
+  ++flow;
+  stt.cancel();
+  speaker.cancel();
+  clearInterval(doneTimer);
+  if (s.session) await api(`/api/sessions/${s.session}/cancel`, {}).catch(() => {});
+  s = freshState();
+  show('start');
+}
+
+// ---------- 연결 ----------
+const ACTIONS = {
+  'start-voice': startVoice,
+  'start-text': startText,
+  'confirm-yes': confirmOrder,
+  retry,
+  reset,
+  help: requestHelp,
+  print: () => s.lastOrder && printOrder(s.lastOrder.order_id),
+};
+
+document.addEventListener('click', (e) => {
+  const el = e.target.closest('[data-action]');
+  if (el && ACTIONS[el.dataset.action]) ACTIONS[el.dataset.action]();
+  const current = document.querySelector('[data-screen]:not([hidden])');
+  resetIdle(current?.dataset.screen);
+});
+
+$('text-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const text = $('text-input').value.trim();
+  if (text) handleText(text);
+});
+
+buttons(
+  $('examples'),
+  EXAMPLES.map((t) => [t, 'chip', () => ($('text-input').value = t)]),
+);
+
+menu = await api('/api/menu');
+if (!stt.isSupported()) $('voice-unsupported').hidden = false;
+window.__voiceOrder = { printOrder }; // 대시보드 재출력·자동 테스트용

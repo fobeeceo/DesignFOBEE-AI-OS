@@ -1,0 +1,157 @@
+// GBRICK AI VOICE ORDER MVP v0.1 — 독립 실행 서버 (의존성 없음, Node 18+)
+// HTTP  : PC 브라우저용 (localhost)
+// HTTPS : 휴대폰·태블릿용. 휴대폰 브라우저는 HTTPS에서만 마이크를 허용한다.
+import http from 'node:http';
+import https from 'node:https';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { execFileSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+import { createJsonStore } from './backend/store.mjs';
+import { createOrderService, OrderError } from './backend/orderService.mjs';
+import { createPrintProvider } from './backend/print/printService.mjs';
+
+const ROOT = path.dirname(fileURLToPath(import.meta.url));
+const STATIC = {
+  '/core/': path.join(ROOT, 'core'),
+  '/': path.join(ROOT, 'frontend'),
+};
+const MIME = {
+  '.html': 'text/html; charset=utf-8',
+  '.js': 'text/javascript; charset=utf-8',
+  '.mjs': 'text/javascript; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+  '.svg': 'image/svg+xml',
+  '.png': 'image/png',
+};
+
+export function loadMenu(file = path.join(ROOT, 'data', 'menu.json')) {
+  return JSON.parse(fs.readFileSync(file, 'utf8'));
+}
+
+function send(res, status, body, type = 'application/json; charset=utf-8') {
+  res.writeHead(status, { 'Content-Type': type, 'Cache-Control': 'no-store' });
+  res.end(typeof body === 'string' || Buffer.isBuffer(body) ? body : JSON.stringify(body));
+}
+
+async function readJson(req) {
+  let raw = '';
+  for await (const chunk of req) {
+    raw += chunk;
+    if (raw.length > 100_000) throw new OrderError('요청이 너무 큽니다.', 413);
+  }
+  if (!raw) return {};
+  try {
+    return JSON.parse(raw);
+  } catch {
+    throw new OrderError('JSON 형식이 아닙니다.');
+  }
+}
+
+function serveStatic(req, res) {
+  const url = decodeURIComponent(new URL(req.url, 'http://x').pathname);
+  const routes = { '/': '/index.html', '/dashboard': '/dashboard.html' };
+  const p = routes[url] || url;
+  const prefix = Object.keys(STATIC).find((k) => p.startsWith(k));
+  const base = STATIC[prefix];
+  const file = path.normalize(path.join(base, p.slice(prefix.length)));
+  if (!file.startsWith(base) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) {
+    return send(res, 404, 'Not found', 'text/plain; charset=utf-8');
+  }
+  send(res, 200, fs.readFileSync(file), MIME[path.extname(file)] || 'application/octet-stream');
+}
+
+export function createHandler(service) {
+  return async function handler(req, res) {
+    const { pathname } = new URL(req.url, 'http://x');
+    const m = (re) => pathname.match(re);
+    let match;
+    try {
+      if (!pathname.startsWith('/api/')) return serveStatic(req, res);
+      if (req.method === 'GET' && pathname === '/api/health') return send(res, 200, { ok: true });
+      if (req.method === 'GET' && pathname === '/api/menu') return send(res, 200, service.menu);
+      if (req.method === 'GET' && pathname === '/api/stats') return send(res, 200, service.stats());
+      if (req.method !== 'POST') return send(res, 404, { error: 'not found' });
+
+      const body = await readJson(req);
+      if (pathname === '/api/sessions') return send(res, 201, service.startSession(body.input_type));
+      if (pathname === '/api/quote') return send(res, 200, service.quote(body.items));
+      if (pathname === '/api/help') return send(res, 200, service.requestHelp(body.session_id || null));
+      if ((match = m(/^\/api\/sessions\/([\w-]+)\/(parse|fail|confirm|cancel)$/))) {
+        const [, id, action] = match;
+        if (action === 'parse') return send(res, 200, service.parse(id, body.text));
+        if (action === 'fail') return send(res, 200, service.recordFailure(id, body.reason));
+        if (action === 'confirm') return send(res, 200, service.confirm(id, body.items));
+        if (action === 'cancel') return send(res, 200, service.cancel(id));
+      }
+      if ((match = m(/^\/api\/orders\/(GB-\d{8}-\d{3,})\/print$/))) return send(res, 200, await service.print(match[1]));
+      if ((match = m(/^\/api\/orders\/(GB-\d{8}-\d{3,})\/print-result$/))) {
+        return send(res, 200, service.reportPrint(match[1], body.ok === true));
+      }
+      return send(res, 404, { error: 'not found' });
+    } catch (e) {
+      if (e instanceof OrderError) return send(res, e.status, { error: e.message });
+      console.error(e);
+      return send(res, 500, { error: '서버 오류가 발생했습니다.' });
+    }
+  };
+}
+
+export function lanAddresses() {
+  return Object.values(os.networkInterfaces())
+    .flat()
+    .filter((a) => a && a.family === 'IPv4' && !a.internal)
+    .map((a) => a.address);
+}
+
+/** 자체 서명 인증서 (openssl 필요). 없으면 HTTPS 없이 HTTP만 연다. */
+function ensureCert(dir, ips) {
+  const key = path.join(dir, 'key.pem');
+  const cert = path.join(dir, 'cert.pem');
+  if (!fs.existsSync(key) || !fs.existsSync(cert)) {
+    fs.mkdirSync(dir, { recursive: true });
+    const san = ['DNS:localhost', 'IP:127.0.0.1', ...ips.map((ip) => `IP:${ip}`)].join(',');
+    execFileSync('openssl', [
+      'req', '-x509', '-newkey', 'rsa:2048', '-nodes', '-sha256', '-days', '825',
+      '-keyout', key, '-out', cert, '-subj', '/CN=GBRICK Voice Order (DEMO)', '-addext', `subjectAltName=${san}`,
+    ], { stdio: 'ignore' });
+  }
+  return { key: fs.readFileSync(key), cert: fs.readFileSync(cert) };
+}
+
+function main() {
+  const port = Number(process.env.PORT || 3100);
+  const httpsPort = Number(process.env.HTTPS_PORT || 3443);
+  const dataFile = process.env.VOICE_ORDER_DATA || path.join(ROOT, 'data', 'orders.json');
+  const service = createOrderService({
+    store: createJsonStore(dataFile),
+    menu: loadMenu(),
+    printProvider: createPrintProvider(),
+  });
+  const handler = createHandler(service);
+  const ips = lanAddresses();
+
+  http.createServer(handler).listen(port, '0.0.0.0');
+  let httpsOk = false;
+  try {
+    https.createServer(ensureCert(path.join(ROOT, 'certs'), ips), handler).listen(httpsPort, '0.0.0.0');
+    httpsOk = true;
+  } catch (e) {
+    console.warn(`[경고] HTTPS를 열지 못했습니다 (openssl 필요): ${e.message}`);
+  }
+
+  const line = '='.repeat(56);
+  console.log(`\n${line}\n GBRICK AI VOICE ORDER  MVP v0.1  (DEMO / TEST DATA)\n${line}`);
+  console.log(` PC 주문 화면   : http://localhost:${port}`);
+  console.log(` PC 대시보드    : http://localhost:${port}/dashboard`);
+  if (httpsOk) {
+    for (const ip of ips) console.log(` 휴대폰·태블릿  : https://${ip}:${httpsPort}   (음성 가능)`);
+  }
+  for (const ip of ips) console.log(` 같은 Wi-Fi(HTTP): http://${ip}:${port}   (텍스트만)`);
+  if (!ips.length) console.log(' (네트워크 IP를 찾지 못했습니다. Wi-Fi 연결을 확인하세요)');
+  console.log(` 주문 기록 파일 : ${dataFile}\n${line}\n`);
+}
+
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main();

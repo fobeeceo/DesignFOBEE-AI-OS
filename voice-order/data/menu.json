@@ -1,0 +1,73 @@
+{
+  "_comment": "MENU_MASTER — 가격·메뉴는 이 파일 한 곳에서만 관리한다. 화면·음성·주문서·합계는 모두 여기서 읽는다.",
+  "version": "2026-10-02",
+  "currency": "KRW",
+  "items": [
+    {
+      "menu_id": "AMERICANO",
+      "name": "아메리카노",
+      "category": "COFFEE",
+      "price": 3500,
+      "unit": "잔",
+      "options": { "temperature": ["HOT", "ICE"] },
+      "aliases": ["아메리카노", "아메리까노", "어메리카노"],
+      "suggest_for": ["커피", "블랙커피", "원두커피"],
+      "available": true
+    },
+    {
+      "menu_id": "CAFE_LATTE",
+      "name": "카페라떼",
+      "category": "COFFEE",
+      "price": 4400,
+      "unit": "잔",
+      "options": { "temperature": ["HOT", "ICE"] },
+      "aliases": ["카페라떼", "카페라테", "까페라떼", "라떼", "라테"],
+      "suggest_for": [],
+      "available": true
+    },
+    {
+      "menu_id": "VANILLA_LATTE",
+      "name": "바닐라라떼",
+      "category": "COFFEE",
+      "price": 4800,
+      "unit": "잔",
+      "options": { "temperature": ["HOT", "ICE"] },
+      "aliases": ["바닐라라떼", "바닐라라테", "바닐라"],
+      "suggest_for": [],
+      "available": true
+    },
+    {
+      "menu_id": "LEMON_AMERICANO",
+      "name": "레몬 아메리카노",
+      "category": "COFFEE",
+      "price": 4500,
+      "unit": "잔",
+      "options": { "temperature": ["ICE"] },
+      "aliases": ["레몬아메리카노", "레몬 아메리까노"],
+      "suggest_for": [],
+      "available": true
+    },
+    {
+      "menu_id": "ORANGE_AMERICANO",
+      "name": "오렌지 아메리카노",
+      "category": "COFFEE",
+      "price": 5500,
+      "unit": "잔",
+      "options": { "temperature": ["ICE"] },
+      "aliases": ["오렌지아메리카노", "오렌지 아메리까노"],
+      "suggest_for": [],
+      "available": true
+    },
+    {
+      "menu_id": "PATBINGSU",
+      "name": "팥빙수",
+      "category": "DESSERT",
+      "price": 10000,
+      "unit": "개",
+      "options": {},
+      "aliases": ["팥빙수", "빙수"],
+      "suggest_for": [],
+      "available": true
+    }
+  ]
+}
