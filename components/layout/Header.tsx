@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { label: "포트폴리오", href: "/#portfolio" },
   { label: "AI 디자인", href: "/design" },
   { label: "GBRICK Coffee", href: "/#gbrick" },
+  { label: "음성인식 주문", href: "/voice/index.html" },
   { label: "가맹상담", href: "/franchise" },
   { label: "자서전", href: "/memoir" },
 ];

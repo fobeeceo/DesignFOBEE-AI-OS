@@ -1,0 +1,915 @@
+{
+  "store": "GBRICK Coffee",
+  "note": "자동 생성 파일입니다. 직접 고치지 말고 public/gbrick-menu.html 또는 scripts/build-voice-menu.mjs 를 고친 뒤 node scripts/build-voice-menu.mjs 를 실행하세요.",
+  "items": [
+    {
+      "id": "espresso",
+      "name": "에스프레소",
+      "category": "coffee",
+      "prices": {
+        "one": 2500
+      },
+      "temps": [
+        "one"
+      ],
+      "defaultTemp": "one",
+      "aliases": [
+        "에스프레소"
+      ]
+    },
+    {
+      "id": "double_espresso",
+      "name": "더블 에스프레소",
+      "category": "coffee",
+      "prices": {
+        "one": 2800
+      },
+      "temps": [
+        "one"
+      ],
+      "defaultTemp": "one",
+      "aliases": [
+        "더블에스프레소",
+        "더블샷"
+      ]
+    },
+    {
+      "id": "sweet_espresso",
+      "name": "스윗 에스프레소",
+      "category": "coffee",
+      "prices": {
+        "one": 2800
+      },
+      "temps": [
+        "one"
+      ],
+      "defaultTemp": "one",
+      "aliases": [
+        "스윗에스프레소",
+        "스위트에스프레소"
+      ]
+    },
+    {
+      "id": "cocoa_espresso",
+      "name": "코코아 에스프레소",
+      "category": "coffee",
+      "prices": {
+        "one": 2800
+      },
+      "temps": [
+        "one"
+      ],
+      "defaultTemp": "one",
+      "aliases": [
+        "코코아에스프레소"
+      ]
+    },
+    {
+      "id": "salted_caramel_espresso",
+      "name": "솔티 카라멜 에스프레소",
+      "category": "coffee",
+      "prices": {
+        "one": 2800
+      },
+      "temps": [
+        "one"
+      ],
+      "defaultTemp": "one",
+      "aliases": [
+        "솔티카라멜에스프레소"
+      ]
+    },
+    {
+      "id": "americano_specialty",
+      "name": "아메리카노 (스페셜티)",
+      "category": "coffee",
+      "prices": {
+        "hot": 3500,
+        "ice": 3500
+      },
+      "temps": [
+        "hot",
+        "ice"
+      ],
+      "defaultTemp": "hot",
+      "aliases": [
+        "스페셜티아메리카노",
+        "아메리카노",
+        "아메"
+      ]
+    },
+    {
+      "id": "americano_yirgacheffe",
+      "name": "아메리카노 (예가체프)",
+      "category": "coffee",
+      "prices": {
+        "hot": 3500,
+        "ice": 3500
+      },
+      "temps": [
+        "hot",
+        "ice"
+      ],
+      "defaultTemp": "hot",
+      "aliases": [
+        "예가체프아메리카노",
+        "예가체프"
+      ]
+    },
+    {
+      "id": "latte",
+      "name": "카페라떼",
+      "category": "coffee",
+      "prices": {
+        "hot": 4400,
+        "ice": 4400
+      },
+      "temps": [
+        "hot",
+        "ice"
+      ],
+      "defaultTemp": "hot",
+      "aliases": [
+        "카페라떼",
+        "라떼"
+      ]
+    },
+    {
+      "id": "cappuccino",
+      "name": "카푸치노",
+      "category": "coffee",
+      "prices": {
+        "hot": 4400,
+        "ice": 4400
+      },
+      "temps": [
+        "hot",
+        "ice"
+      ],
+      "defaultTemp": "hot",
+      "aliases": [
+        "카푸치노"
+      ]
+    },
+    {
+      "id": "vanilla_bean",
+      "name": "바닐라빈",
+      "category": "coffee",
+      "prices": {
+        "hot": 4900,
+        "ice": 4900
+      },
+      "temps": [
+        "hot",
+        "ice"
+      ],
+      "defaultTemp": "hot",
+      "aliases": [
+        "바닐라빈",
+        "바닐라라떼",
+        "바닐라"
+      ]
+    },
+    {
+      "id": "hazelnut",
+      "name": "헤이즐넛",
+      "category": "coffee",
+      "prices": {
+        "hot": 4900,
+        "ice": 4900
+      },
+      "temps": [
+        "hot",
+        "ice"
+      ],
+      "defaultTemp": "hot",
+      "aliases": [
+        "헤이즐넛",
+        "헤이즐넛라떼"
+      ]
+    },
+    {
+      "id": "dolce",
+      "name": "돌체",
+      "category": "coffee",
+      "prices": {
+        "hot": 4900,
+        "ice": 4900
+      },
+      "temps": [
+        "hot",
+        "ice"
+      ],
+      "defaultTemp": "hot",
+      "aliases": [
+        "돌체",
+        "돌체라떼"
+      ]
+    },
+    {
+      "id": "mocha",
+      "name": "카페모카",
+      "category": "coffee",
+      "prices": {
+        "hot": 5400,
+        "ice": 5400
+      },
+      "temps": [
+        "hot",
+        "ice"
+      ],
+      "defaultTemp": "hot",
+      "aliases": [
+        "카페모카",
+        "모카"
+      ]
+    },
+    {
+      "id": "caramel_macchiato",
+      "name": "카라멜 마끼아또",
+      "category": "coffee",
+      "prices": {
+        "hot": 5400,
+        "ice": 5400
+      },
+      "temps": [
+        "hot",
+        "ice"
+      ],
+      "defaultTemp": "hot",
+      "aliases": [
+        "카라멜마끼아또",
+        "카라멜마키아또",
+        "캐러멜마끼아또",
+        "마끼아또",
+        "마키아또"
+      ]
+    },
+    {
+      "id": "affogato",
+      "name": "아포카토",
+      "category": "coffee",
+      "prices": {
+        "ice": 5400
+      },
+      "temps": [
+        "ice"
+      ],
+      "defaultTemp": "ice",
+      "aliases": [
+        "아포카토"
+      ]
+    },
+    {
+      "id": "affogato_latte",
+      "name": "아포카토 라떼",
+      "category": "coffee",
+      "prices": {
+        "ice": 6000
+      },
+      "temps": [
+        "ice"
+      ],
+      "defaultTemp": "ice",
+      "aliases": [
+        "아포카토라떼"
+      ]
+    },
+    {
+      "id": "dutch_coffee",
+      "name": "더치 커피",
+      "category": "brew",
+      "prices": {
+        "hot": 4500,
+        "ice": 4500
+      },
+      "temps": [
+        "hot",
+        "ice"
+      ],
+      "defaultTemp": "hot",
+      "aliases": [
+        "더치커피",
+        "더치",
+        "콜드브루"
+      ]
+    },
+    {
+      "id": "dutch_latte",
+      "name": "더치 라떼",
+      "category": "brew",
+      "prices": {
+        "hot": 5000,
+        "ice": 5000
+      },
+      "temps": [
+        "hot",
+        "ice"
+      ],
+      "defaultTemp": "hot",
+      "aliases": [
+        "더치라떼"
+      ]
+    },
+    {
+      "id": "dutch_soda",
+      "name": "더치 소다",
+      "category": "brew",
+      "prices": {
+        "ice": 5000
+      },
+      "temps": [
+        "ice"
+      ],
+      "defaultTemp": "ice",
+      "aliases": [
+        "더치소다"
+      ]
+    },
+    {
+      "id": "handdrip_blend",
+      "name": "핸드드립 · 스페셜티 블랜딩",
+      "category": "brew",
+      "prices": {
+        "hot": 5000,
+        "ice": 6000
+      },
+      "temps": [
+        "hot",
+        "ice"
+      ],
+      "defaultTemp": "hot",
+      "aliases": [
+        "핸드드립",
+        "스페셜티블랜딩",
+        "핸드드립블랜딩"
+      ]
+    },
+    {
+      "id": "handdrip_kenya",
+      "name": "핸드드립 · 케냐 AA",
+      "category": "brew",
+      "prices": {
+        "hot": 5000,
+        "ice": 6000
+      },
+      "temps": [
+        "hot",
+        "ice"
+      ],
+      "defaultTemp": "hot",
+      "aliases": [
+        "핸드드립케냐",
+        "케냐핸드드립",
+        "케냐"
+      ]
+    },
+    {
+      "id": "handdrip_yirgacheffe",
+      "name": "핸드드립 · 이디오피아 예가체프",
+      "category": "brew",
+      "prices": {
+        "hot": 5000,
+        "ice": 6000
+      },
+      "temps": [
+        "hot",
+        "ice"
+      ],
+      "defaultTemp": "hot",
+      "aliases": [
+        "핸드드립예가체프",
+        "핸드드립이디오피아",
+        "이디오피아핸드드립"
+      ]
+    },
+    {
+      "id": "ade_lemon",
+      "name": "레몬 에이드",
+      "category": "ade",
+      "prices": {
+        "ice": 5500
+      },
+      "temps": [
+        "ice"
+      ],
+      "defaultTemp": "ice",
+      "aliases": [
+        "레몬에이드",
+        "레몬"
+      ]
+    },
+    {
+      "id": "ade_grapefruit",
+      "name": "자몽 에이드",
+      "category": "ade",
+      "prices": {
+        "ice": 5500
+      },
+      "temps": [
+        "ice"
+      ],
+      "defaultTemp": "ice",
+      "aliases": [
+        "자몽에이드",
+        "자몽"
+      ]
+    },
+    {
+      "id": "ade_omija",
+      "name": "오미자 에이드",
+      "category": "ade",
+      "prices": {
+        "ice": 5500
+      },
+      "temps": [
+        "ice"
+      ],
+      "defaultTemp": "ice",
+      "aliases": [
+        "오미자에이드",
+        "오미자"
+      ]
+    },
+    {
+      "id": "ade_passion",
+      "name": "패션후르츠 에이드",
+      "category": "ade",
+      "prices": {
+        "ice": 5500
+      },
+      "temps": [
+        "ice"
+      ],
+      "defaultTemp": "ice",
+      "aliases": [
+        "패션후르츠에이드",
+        "패션후르츠"
+      ]
+    },
+    {
+      "id": "lassi_plain",
+      "name": "플레인 라씨",
+      "category": "ade",
+      "prices": {
+        "ice": 6500
+      },
+      "temps": [
+        "ice"
+      ],
+      "defaultTemp": "ice",
+      "aliases": [
+        "플레인라씨",
+        "요거트라씨",
+        "라씨"
+      ]
+    },
+    {
+      "id": "lassi_strawberry",
+      "name": "딸기 라씨",
+      "category": "ade",
+      "prices": {
+        "ice": 7500
+      },
+      "temps": [
+        "ice"
+      ],
+      "defaultTemp": "ice",
+      "aliases": [
+        "딸기라씨"
+      ]
+    },
+    {
+      "id": "lassi_mango",
+      "name": "망고 라씨",
+      "category": "ade",
+      "prices": {
+        "ice": 7500
+      },
+      "temps": [
+        "ice"
+      ],
+      "defaultTemp": "ice",
+      "aliases": [
+        "망고라씨"
+      ]
+    },
+    {
+      "id": "lassi_blueberry",
+      "name": "블루베리 라씨",
+      "category": "ade",
+      "prices": {
+        "ice": 7500
+      },
+      "temps": [
+        "ice"
+      ],
+      "defaultTemp": "ice",
+      "aliases": [
+        "블루베리라씨"
+      ]
+    },
+    {
+      "id": "frappe_javachip",
+      "name": "자바칩 프라페",
+      "category": "ade",
+      "prices": {
+        "ice": 6500
+      },
+      "temps": [
+        "ice"
+      ],
+      "defaultTemp": "ice",
+      "aliases": [
+        "자바칩프라페",
+        "자바칩"
+      ]
+    },
+    {
+      "id": "frappe_cookies",
+      "name": "쿠키앤크림 프라페",
+      "category": "ade",
+      "prices": {
+        "ice": 6500
+      },
+      "temps": [
+        "ice"
+      ],
+      "defaultTemp": "ice",
+      "aliases": [
+        "쿠키앤크림프라페",
+        "쿠키앤크림"
+      ]
+    },
+    {
+      "id": "matcha_latte",
+      "name": "말차 라떼",
+      "category": "drink",
+      "prices": {
+        "hot": 4900,
+        "ice": 5500
+      },
+      "temps": [
+        "hot",
+        "ice"
+      ],
+      "defaultTemp": "hot",
+      "aliases": [
+        "말차라떼",
+        "말차"
+      ]
+    },
+    {
+      "id": "strawberry_latte",
+      "name": "딸기 라떼",
+      "category": "drink",
+      "prices": {
+        "ice": 4900
+      },
+      "temps": [
+        "ice"
+      ],
+      "defaultTemp": "ice",
+      "aliases": [
+        "딸기라떼"
+      ]
+    },
+    {
+      "id": "choco_latte",
+      "name": "초코 라떼",
+      "category": "drink",
+      "prices": {
+        "hot": 4900,
+        "ice": 4900
+      },
+      "temps": [
+        "hot",
+        "ice"
+      ],
+      "defaultTemp": "hot",
+      "aliases": [
+        "초코라떼",
+        "초콜릿라떼"
+      ]
+    },
+    {
+      "id": "sweetpotato_latte",
+      "name": "고구마 라떼",
+      "category": "drink",
+      "prices": {
+        "hot": 4900,
+        "ice": 4900
+      },
+      "temps": [
+        "hot",
+        "ice"
+      ],
+      "defaultTemp": "hot",
+      "aliases": [
+        "고구마라떼"
+      ]
+    },
+    {
+      "id": "ginger_latte",
+      "name": "생강 라떼",
+      "category": "drink",
+      "prices": {
+        "hot": 4900,
+        "ice": 4900
+      },
+      "temps": [
+        "hot",
+        "ice"
+      ],
+      "defaultTemp": "hot",
+      "aliases": [
+        "생강라떼"
+      ]
+    },
+    {
+      "id": "grain12_latte",
+      "name": "12곡 라떼",
+      "category": "drink",
+      "prices": {
+        "hot": 4900,
+        "ice": 4900
+      },
+      "temps": [
+        "hot",
+        "ice"
+      ],
+      "defaultTemp": "hot",
+      "aliases": [
+        "12곡라떼",
+        "십이곡라떼"
+      ]
+    },
+    {
+      "id": "juice_mango",
+      "name": "망고 주스",
+      "category": "drink",
+      "prices": {
+        "ice": 6000
+      },
+      "temps": [
+        "ice"
+      ],
+      "defaultTemp": "ice",
+      "aliases": [
+        "망고주스"
+      ]
+    },
+    {
+      "id": "juice_blueberry",
+      "name": "블루베리 주스",
+      "category": "drink",
+      "prices": {
+        "ice": 6000
+      },
+      "temps": [
+        "ice"
+      ],
+      "defaultTemp": "ice",
+      "aliases": [
+        "블루베리주스"
+      ]
+    },
+    {
+      "id": "juice_tomato",
+      "name": "토마토 주스",
+      "category": "drink",
+      "prices": {
+        "ice": 6500
+      },
+      "temps": [
+        "ice"
+      ],
+      "defaultTemp": "ice",
+      "aliases": [
+        "토마토주스",
+        "토마토"
+      ]
+    },
+    {
+      "id": "iced_tea",
+      "name": "아이스티",
+      "category": "drink",
+      "prices": {
+        "ice": 3800
+      },
+      "temps": [
+        "ice"
+      ],
+      "defaultTemp": "ice",
+      "aliases": [
+        "아이스티"
+      ]
+    },
+    {
+      "id": "brown_bubble_tea",
+      "name": "브라운 버블티",
+      "category": "drink",
+      "prices": {
+        "ice": 5500
+      },
+      "temps": [
+        "ice"
+      ],
+      "defaultTemp": "ice",
+      "aliases": [
+        "브라운버블티",
+        "버블티"
+      ]
+    },
+    {
+      "id": "yuzu_mint",
+      "name": "유자 + 민트",
+      "category": "drink",
+      "prices": {
+        "hot": 6000,
+        "ice": 6000
+      },
+      "temps": [
+        "hot",
+        "ice"
+      ],
+      "defaultTemp": "hot",
+      "aliases": [
+        "유자민트"
+      ]
+    },
+    {
+      "id": "herb_chamomile",
+      "name": "캐모마일 허브티",
+      "category": "tea",
+      "prices": {
+        "hot": 6000,
+        "ice": 6000
+      },
+      "temps": [
+        "hot",
+        "ice"
+      ],
+      "defaultTemp": "hot",
+      "aliases": [
+        "캐모마일"
+      ]
+    },
+    {
+      "id": "herb_peppermint",
+      "name": "페퍼민트 허브티",
+      "category": "tea",
+      "prices": {
+        "hot": 6000,
+        "ice": 6000
+      },
+      "temps": [
+        "hot",
+        "ice"
+      ],
+      "defaultTemp": "hot",
+      "aliases": [
+        "페퍼민트"
+      ]
+    },
+    {
+      "id": "herb_greentea",
+      "name": "녹차 (허브티)",
+      "category": "tea",
+      "prices": {
+        "hot": 6000,
+        "ice": 6000
+      },
+      "temps": [
+        "hot",
+        "ice"
+      ],
+      "defaultTemp": "hot",
+      "aliases": [
+        "녹차",
+        "녹차티"
+      ]
+    },
+    {
+      "id": "puerh",
+      "name": "운남성 보이차",
+      "category": "tea",
+      "prices": {
+        "hot": 8000
+      },
+      "temps": [
+        "hot"
+      ],
+      "defaultTemp": "hot",
+      "aliases": [
+        "보이차",
+        "운남성보이차"
+      ]
+    },
+    {
+      "id": "tea_grapefruit",
+      "name": "생자몽 수제티",
+      "category": "tea",
+      "prices": {
+        "hot": 6000,
+        "ice": 6000
+      },
+      "temps": [
+        "hot",
+        "ice"
+      ],
+      "defaultTemp": "hot",
+      "aliases": [
+        "생자몽티",
+        "생자몽차",
+        "자몽차",
+        "자몽티"
+      ]
+    },
+    {
+      "id": "tea_omija",
+      "name": "오미자 수제티",
+      "category": "tea",
+      "prices": {
+        "hot": 6000,
+        "ice": 6000
+      },
+      "temps": [
+        "hot",
+        "ice"
+      ],
+      "defaultTemp": "hot",
+      "aliases": [
+        "오미자차",
+        "오미자티"
+      ]
+    },
+    {
+      "id": "tea_lemon",
+      "name": "레몬 수제티",
+      "category": "tea",
+      "prices": {
+        "hot": 6000,
+        "ice": 6000
+      },
+      "temps": [
+        "hot",
+        "ice"
+      ],
+      "defaultTemp": "hot",
+      "aliases": [
+        "레몬차",
+        "레몬티"
+      ]
+    },
+    {
+      "id": "tea_yuzu",
+      "name": "유자 수제티",
+      "category": "tea",
+      "prices": {
+        "hot": 6000,
+        "ice": 6000
+      },
+      "temps": [
+        "hot",
+        "ice"
+      ],
+      "defaultTemp": "hot",
+      "aliases": [
+        "유자차",
+        "유자티"
+      ]
+    },
+    {
+      "id": "tea_ginger",
+      "name": "진저 수제티",
+      "category": "tea",
+      "prices": {
+        "hot": 6000,
+        "ice": 6000
+      },
+      "temps": [
+        "hot",
+        "ice"
+      ],
+      "defaultTemp": "hot",
+      "aliases": [
+        "생강차",
+        "진저티",
+        "진저차"
+      ]
+    }
+  ],
+  "specialAliases": [
+    {
+      "alias": "아아",
+      "id": "americano_specialty",
+      "temp": "ice"
+    },
+    {
+      "alias": "따아",
+      "id": "americano_specialty",
+      "temp": "hot"
+    }
+  ]
+}
