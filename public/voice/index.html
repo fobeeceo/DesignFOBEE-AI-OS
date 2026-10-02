@@ -152,9 +152,11 @@
   }
 
   // ---------- 음성 출력 ----------
-  function speak(text) {
+  // 1순위: 서버의 사람 같은 목소리(키가 있을 때). 안 되면 언제든 기기 기본 음성으로 바꿉니다.
+  var ttsOn = false, currentAudio = null, audioCache = {};
+
+  function speakDevice(text) {
     return new Promise(function (resolve) {
-      setSay(text); setMode('speaking');
       if (!('speechSynthesis' in window)) return resolve();
       var u = new SpeechSynthesisUtterance(text);
       u.lang = 'ko-KR'; u.rate = 0.95;
@@ -167,6 +169,35 @@
       speechSynthesis.cancel(); speechSynthesis.speak(u);
       setTimeout(done, 15000);
     });
+  }
+
+  async function fetchVoice(text) {
+    if (audioCache[text]) return audioCache[text];
+    var r = await fetch('/api/voice/tts', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ text: text }), signal: AbortSignal.timeout(9000) });
+    if (!r.ok) throw new Error('tts ' + r.status);
+    var url = URL.createObjectURL(await r.blob());
+    audioCache[text] = url;
+    return url;
+  }
+
+  function playUrl(url) {
+    return new Promise(function (resolve, reject) {
+      var a = new Audio(url); currentAudio = a;
+      var finished = false;
+      function done() { if (!finished) { finished = true; currentAudio = null; resolve(); } }
+      a.onended = done;
+      a.onerror = function () { currentAudio = null; reject(new Error('audio')); };
+      a.play().catch(function (e) { currentAudio = null; reject(e); });
+    });
+  }
+
+  async function speak(text) {
+    setSay(text); setMode('speaking');
+    if (ttsOn) {
+      try { await playUrl(await fetchVoice(text)); return; }
+      catch (e) { if (cancelled) return; /* 안 되면 기기 음성으로 */ }
+    }
+    return speakDevice(text);
   }
 
   // ---------- 음성 입력 ----------
@@ -310,7 +341,7 @@
     } finally { busy = false; setMode('idle'); }
   }
 
-  function stopAll() { cancelled = true; if (window.speechSynthesis) speechSynthesis.cancel(); if (currentRec) { try { currentRec.abort(); } catch (e) {} } setMode('idle'); setSay('멈췄어요. 큰 버튼을 누르면 다시 시작해요.'); }
+  function stopAll() { cancelled = true; if (currentAudio) { try { currentAudio.pause(); } catch (e) {} currentAudio = null; } if (window.speechSynthesis) speechSynthesis.cancel(); if (currentRec) { try { currentRec.abort(); } catch (e) {} } setMode('idle'); setSay('멈췄어요. 큰 버튼을 누르면 다시 시작해요.'); }
 
   // ---------- 시작 ----------
   async function init() {
@@ -336,6 +367,7 @@
       box.appendChild(opts); wrap.appendChild(box);
     });
     try { var h = await (await fetch('api/health')).json(); serverOn = h.ok === true; aiOn = serverOn && h.ai === true; } catch (e) { serverOn = false; aiOn = false; }
+    try { ttsOn = (await (await fetch('/api/voice/tts')).json()).ok === true; } catch (e) { ttsOn = false; }
     if (!serverOn) $('#env').textContent = '체험 단계예요. 주문은 아직 매장에 전달되지 않으니, 확인 화면을 카운터에 보여 주세요.';
     if (!SR) { $('#env').textContent += ' 이 브라우저는 음성 인식을 지원하지 않아요. 안드로이드 크롬이나 PC 크롬을 사용해 주세요. 지금은 메뉴를 눌러 주문할 수 있어요.'; }
     render();
@@ -345,7 +377,7 @@
   $('#staff').onclick = function () { if (busy) stopAll(); callStaff(); };
   $('#clear').onclick = function () { order = []; viaVoice = false; render(); setSay('비웠어요. 다시 말씀하시거나 메뉴를 눌러 주세요.'); };
   $('#send').onclick = function () { if (order.length) submit(); };
-  $('#doneClose').onclick = function () { clearTimeout(resetTimer); if (window.speechSynthesis) speechSynthesis.cancel(); closeDone(); };
+  $('#doneClose').onclick = function () { clearTimeout(resetTimer); if (currentAudio) { try { currentAudio.pause(); } catch (e) {} currentAudio = null; } if (window.speechSynthesis) speechSynthesis.cancel(); closeDone(); };
   if (window.speechSynthesis) speechSynthesis.getVoices();
   init();
 })();
