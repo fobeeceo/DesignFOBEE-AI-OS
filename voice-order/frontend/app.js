@@ -1,8 +1,10 @@
 // 주문 화면 흐름: 시작 → 듣기 → (확인 질문) → 주문 확인 → 완료/출력
 // 가격 계산·주문번호는 서버가 한다. 여기서는 화면과 음성만 다룬다.
-import { nextQuestion, applyAnswer, interpretAnswer, suggestionText } from '/core/dialog.mjs';
+import {
+  nextQuestion, applyAnswer, interpretAnswer, suggestionText, groupSuggestions, categoryText, interpretCategory, CATEGORY_LABEL,
+} from '/core/dialog.mjs';
 import { parseOrder } from '/core/parser.mjs';
-import { won, speakItems } from '/core/format.mjs';
+import { won, speakItems, priceLabel } from '/core/format.mjs';
 import { createSpeechProvider, Speaker, SpeechFailure } from '/speech.js';
 
 const HOME_AFTER_DONE_SEC = 10;
@@ -10,13 +12,14 @@ const IDLE_RESET_SEC = 90;
 const MAX_FAILS = 3;
 const ANSWER_TRIES = 3; // 대답은 한 번 놓쳐도 다시 듣는다 (어르신은 대답이 늦을 수 있다)
 // 스피커에서 나온 안내 음성을 마이크가 다시 들은 것 → 대답으로 치지 않는다
-const ECHO_RE = /(말씀하시나요|맞으실까요|드릴까요|어떤 걸로|듣고 있습니다|드실 수 있는|주문하실 수 있는)/;
+const ECHO_RE = /(말씀하시나요|맞으실까요|드릴까요|보여드릴까요|어떤 걸로|듣고 있습니다|드실 수 있는|주문하실 수 있는)/;
 const EXAMPLES = [
   '아이스 아메리카노 하나',
   '따뜻한 라떼 하나',
   '아이스 아메리카노 두 잔하고 라떼 하나 주세요.',
   '커피 하나 주세요.',
-  '딸기라떼 하나 주세요.',
+  '커피 말고 따뜻한 거 뭐 있어요?',
+  '딸기 아메리카노 하나 주세요.',
 ];
 
 const $ = (id) => document.getElementById(id);
@@ -294,10 +297,39 @@ function onAnswer(a) {
 }
 
 // ---------- 메뉴 추천 (메뉴 이름을 모를 때) ----------
-/** "따뜻한 거 뭐 있어요?" → 메뉴판에 있는 것만 보기로 보여주고 고르게 한다. 대신 골라 담지 않는다. */
+const SUGGEST_TITLE = { HOT: '따뜻한', ICE: '시원한' };
+
+/** "따뜻한 거 뭐 있어요?" → 메뉴판에 있는 것만 보기로 보여주고 고르게 한다. 대신 골라 담지 않는다.
+ *  보기가 많으면(커피·차·라떼 섞임) 먼저 종류를 고르게 한다. */
 async function showSuggestions(r) {
+  const groups = groupSuggestions(r.suggestions);
+  if (!groups) return showSuggestionList(r);
   const my = ++flow;
-  const text = suggestionText(r.temperature, r.suggestions);
+  const text = categoryText(r, groups);
+  const choose = (category) => {
+    stt.cancel();
+    showSuggestionList({ ...r, suggestions: r.suggestions.filter((x) => x.category === category) });
+  };
+  const kind = `${SUGGEST_TITLE[r.temperature] ? `${SUGGEST_TITLE[r.temperature]} ` : ''}${r.not_coffee ? '커피 아닌 ' : ''}메뉴`;
+  $('q-heard').textContent = s.heard ? `들은 말: “${s.heard}”` : '';
+  $('q-text').textContent = `${kind}예요.\n어떤 종류로 보여드릴까요?`;
+  resetAnswerUi('q');
+  buttons($('q-choices'), [
+    ...groups.map((g) => [`${g.label}  (${g.count}가지)`, 'secondary', () => choose(g.category)]),
+    ['다시 말할게요', 'link', retry],
+  ]);
+  show('question');
+  await say(text);
+  if (my !== flow || s.mode !== 'VOICE') return;
+  listenAnswer(my, 'q', (category) => {
+    if (!groups.some((g) => g.category === category)) return false;
+    choose(category);
+  }, `${groups.map((g) => `“${g.label}”`).join(', ')} 중에 말씀해 주세요.`, interpretCategory);
+}
+
+async function showSuggestionList(r) {
+  const my = ++flow;
+  const text = suggestionText(r);
   const pick = (menuId, temperature) => {
     stt.cancel();
     const def = menu.items.find((m) => m.menu_id === menuId);
@@ -310,12 +342,17 @@ async function showSuggestions(r) {
     s.unrecognized = [];
     proceed();
   };
+  const cats = [...new Set(r.suggestions.map((x) => x.category))];
+  const kind = cats.length === 1 && CATEGORY_LABEL[cats[0]] ? CATEGORY_LABEL[cats[0]] : '메뉴';
   $('q-heard').textContent = s.heard ? `들은 말: “${s.heard}”` : '';
   // 화면은 짧게, 메뉴 목록 전체는 음성으로 읽어 준다
-  $('q-text').textContent = `${r.temperature === 'HOT' ? '따뜻한 메뉴예요.' : r.temperature === 'ICE' ? '시원한 메뉴예요.' : '주문하실 수 있는 메뉴예요.'}\n어떤 걸로 드릴까요?`;
+  $('q-text').textContent = `${SUGGEST_TITLE[r.temperature] ? `${SUGGEST_TITLE[r.temperature]} ` : ''}${kind}예요.\n어떤 걸로 드릴까요?`;
   resetAnswerUi('q');
   buttons($('q-choices'), [
-    ...r.suggestions.map((x) => [`${x.name}  ${won(x.price)}`, 'secondary', () => pick(x.menu_id, r.temperature)]),
+    ...r.suggestions.map((x) => {
+      const def = menu.items.find((m) => m.menu_id === x.menu_id);
+      return [`${x.name}  ${priceLabel(def, r.temperature)}`, 'secondary', () => pick(x.menu_id, r.temperature)];
+    }),
     ['다시 말할게요', 'link', retry],
   ]);
   show('question');

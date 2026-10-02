@@ -57,9 +57,39 @@ export function applyAnswer(items, question, answer, menu) {
   return next;
 }
 
+export const CATEGORY_LABEL = { COFFEE: '커피', DRINK: '라떼·음료', TEA: '차', DESSERT: '빙수' };
+export const MAX_DIRECT_CHOICES = 6; // 이보다 많으면 먼저 종류(커피/차/라떼·음료)를 고르게 한다
+
+/** 보기가 너무 많으면 종류별로 묶는다. 묶을 필요 없으면 null */
+export function groupSuggestions(suggestions) {
+  const cats = [...new Set(suggestions.map((x) => x.category))];
+  if (suggestions.length <= MAX_DIRECT_CHOICES || cats.length < 2) return null;
+  return cats.map((c) => ({ category: c, label: CATEGORY_LABEL[c] || c, count: suggestions.filter((x) => x.category === c).length }));
+}
+
+/** "차요" / "라떼 종류" / "커피" → 카테고리 */
+export function interpretCategory(text) {
+  const t = String(text || '');
+  if (/(?:^|\s)(?:차|티)(?!가|갑)|녹차|허브/.test(t)) return 'TEA';
+  if (/라떼|라테|음료|드링크|주스/.test(t)) return 'DRINK';
+  if (/커피/.test(t)) return 'COFFEE';
+  if (/빙수|디저트/.test(t)) return 'DESSERT';
+  return null;
+}
+
+function headPhrase(r) {
+  const t = r.temperature === 'HOT' ? '따뜻하게 드실 수 있는' : r.temperature === 'ICE' ? '시원하게 드실 수 있는' : '주문하실 수 있는';
+  return r.not_coffee ? `${t} 커피 아닌 메뉴는` : `${t} 메뉴는`;
+}
+
+/** 종류를 먼저 고르게 할 때의 안내 문장 */
+export function categoryText(r, groups) {
+  return `${headPhrase(r)} ${groups.map((g) => g.label).join(', ')} 종류가 있어요. 어떤 종류로 보여드릴까요?`;
+}
+
 /** 추천 보기 안내 문장: "따뜻하게 드실 수 있는 메뉴는 아메리카노, 카페라떼가 있어요. 어떤 걸로 드릴까요?" */
-export function suggestionText(temperature, suggestions) {
-  const head = temperature === 'HOT' ? '따뜻하게 드실 수 있는 메뉴는' : temperature === 'ICE' ? '시원하게 드실 수 있는 메뉴는' : '주문하실 수 있는 메뉴는';
+export function suggestionText(r, suggestions = r.suggestions) {
+  const head = headPhrase(r);
   const names = suggestions.map((x) => x.name).join(', ');
   return `${head} ${josa(names, '이', '가')} 있어요. 어떤 걸로 드릴까요?`;
 }

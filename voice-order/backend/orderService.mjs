@@ -3,7 +3,7 @@
 // order_id, created_at, input_type, raw_transcript, items, total_amount, payment_status, status, help_requested, print_status
 import crypto from 'node:crypto';
 import { parseOrder } from '../core/parser.mjs';
-import { itemLabel } from '../core/format.mjs';
+import { itemLabel, priceFor } from '../core/format.mjs';
 
 export const STATUS = {
   IN_PROGRESS: 'IN_PROGRESS',
@@ -47,16 +47,20 @@ export function quote(rawItems, menu) {
     if (prev) prev.quantity += qty;
     else merged.set(key, { def, temperature, quantity: qty });
   }
-  const items = [...merged.values()].map(({ def, temperature, quantity }) => ({
-    menu_id: def.menu_id,
-    name: def.name,
-    display_name: itemLabel(def.name, temperature),
-    temperature,
-    unit: def.unit,
-    quantity,
-    unit_price: def.price,
-    line_total: def.price * quantity,
-  }));
+  const items = [...merged.values()].map(({ def, temperature, quantity }) => {
+    const unitPrice = priceFor(def, temperature);
+    if (!Number.isInteger(unitPrice)) throw new OrderError(`${def.name}의 가격이 메뉴에 없습니다.`);
+    return {
+      menu_id: def.menu_id,
+      name: def.name,
+      display_name: itemLabel(def.name, temperature),
+      temperature,
+      unit: def.unit,
+      quantity,
+      unit_price: unitPrice,
+      line_total: unitPrice * quantity,
+    };
+  });
   if (items.some((l) => l.quantity > MAX_QTY)) throw new OrderError(`수량은 ${MAX_QTY}개까지 주문할 수 있습니다.`);
   return { items, total_amount: items.reduce((s, l) => s + l.line_total, 0) };
 }

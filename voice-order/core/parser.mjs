@@ -13,7 +13,12 @@ const NON_MENU_FLAVORS = [
 ];
 
 // 메뉴 이름 없이 "따뜻한 거 뭐 있어요?" / "뭘 마시면 될까" → 메뉴판에서 고를 보기를 보여준다
-const SUGGEST_RE = /(음료|마실\s*(?:거|것|게)|먹을\s*(?:거|것|게)|뭐|뭘|무엇|무슨|어떤|어느|추천|메뉴|있어|있나|있습니까|있어요|좋을까|될까|골라|맛있는)/;
+// "커피 말고 / 커피 아닌 거 / 카페인 없는" → 커피를 빼고 보여준다
+const NOT_COFFEE_RE = /(?:커피|카페인)\s*(?:가|는|를|은|이)?\s*(?:아닌|아니고|말고|빼고|없는|없이|안\s*들어|안\s*마시|못\s*마시|싫|안\s*좋)/;
+// "차 종류 / 따뜻한 차 / 티 뭐 있어요" → 차만 보여준다 ("차가운"의 '차'는 제외)
+const TEA_RE = /(?:^|\s)(?:전통\s*)?(?:차|티|허브티)(?=$|\s|종류|는|로|도|를|좀|요|가(?:\s|$)|나|라도)/;
+
+const SUGGEST_RE = /(종류|음료|마실\s*(?:거|것|게)|먹을\s*(?:거|것|게)|뭐|뭘|무엇|무슨|어떤|어느|추천|메뉴|있어|있나|있습니까|있어요|좋을까|될까|골라|맛있는)/;
 
 const NUM_WORDS = {
   하나: 1, 둘: 2, 셋: 3, 넷: 4, 다섯: 5, 여섯: 6, 일곱: 7, 여덟: 8, 아홉: 9, 열: 10,
@@ -155,16 +160,30 @@ function leftoverWords(text, mentions) {
  * }}
  */
 export function parseOrder(rawText, menu) {
-  const text = normalize(rawText);
+  let text = normalize(rawText);
   const result = { kind: 'unclear', items: [], unknown: [], unavailable: [], unrecognized: [] };
   if (!text) return result;
+  const notCoffee = NOT_COFFEE_RE.exec(text);
+  if (notCoffee) text = (text.slice(0, notCoffee.index) + ' ' + text.slice(notCoffee.index + notCoffee[0].length)).trim();
 
-  const mentions = findMentions(text, buildMatchers(menu));
+  const found = findMentions(text, buildMatchers(menu));
   let cursor = 0; // 이전 메뉴가 차지한 영역의 끝
+
+  // "고구마 아메리카노"처럼 메뉴 이름 둘이 연결어·수량 없이 바로 붙으면 두 잔이 아니라 없는 메뉴 하나다
+  const mentions = [];
+  for (const m of found) {
+    const prev = mentions.at(-1);
+    if (prev && /^\s*$/.test(text.slice(prev.end, m.start))) {
+      prev.compound = `${prev.compound || prev.raw} ${m.raw}`;
+      prev.end = m.end;
+    } else {
+      mentions.push({ ...m });
+    }
+  }
 
   mentions.forEach((m, idx) => {
     const nextStart = idx + 1 < mentions.length ? mentions[idx + 1].start : text.length;
-    const unknownName = unknownPrefix(text, m, cursor);
+    const unknownName = m.compound || unknownPrefix(text, m, cursor);
 
     // 메뉴 뒤쪽에서 이 메뉴의 몫: 수량까지, 없으면 연결어(하고/랑) 앞까지
     const suffix = text.slice(m.end, nextStart);
@@ -191,7 +210,7 @@ export function parseOrder(rawText, menu) {
     const prefixQty = qty ? null : parseQty(prefix);
     const quantity = qty ? qty.n : prefixQty ? prefixQty.n : 1;
     const allowed = item.options?.temperature || [];
-    let temperature = allowed.length ? detectTemperature(own) : null;
+    let temperature = allowed.length ? detectTemperature(`${own} ${m.raw}`) : null; // "핫초코"처럼 이름에 온도가 들어간 경우 포함
     let temperatureUnavailable = null;
     if (temperature && !allowed.includes(temperature)) {
       temperatureUnavailable = temperature; // 예: 따뜻한 레몬 아메리카노 → "아이스만 있어요"
@@ -218,15 +237,20 @@ export function parseOrder(rawText, menu) {
 
   if (result.unknown.length) result.kind = 'not_found';
   else if (result.unavailable.length) result.kind = 'unavailable';
-  else if (!result.items.length && (SUGGEST_RE.test(text) || detectTemperature(text))) {
+  else if (!result.items.length && (SUGGEST_RE.test(text) || detectTemperature(text) || notCoffee || TEA_RE.test(text))) {
     // 추측해서 담지 않는다. 메뉴판에 있는 것 중에서 고르게 한다.
     const temperature = detectTemperature(text);
+    const category = TEA_RE.test(text) ? 'TEA' : null;
     result.kind = 'suggest';
     result.temperature = temperature;
+    result.not_coffee = !!notCoffee;
+    result.category = category;
     result.suggestions = menu.items
       .filter((m) => m.available !== false)
       .filter((m) => !temperature || (m.options?.temperature || []).includes(temperature))
-      .map((m) => ({ menu_id: m.menu_id, name: m.name, price: m.price }));
+      .filter((m) => !notCoffee || m.category !== 'COFFEE')
+      .filter((m) => !category || m.category === category)
+      .map((m) => ({ menu_id: m.menu_id, name: m.name, category: m.category, price: m.price }));
     result.unrecognized = [];
   }
   else if (!result.items.length) result.kind = result.unrecognized.length ? 'not_found' : 'unclear';

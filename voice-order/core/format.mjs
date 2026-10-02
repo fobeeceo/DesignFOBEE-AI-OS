@@ -2,6 +2,20 @@
 
 const QTY_WORDS = ['', '한', '두', '세', '네', '다섯', '여섯', '일곱', '여덟', '아홉', '열'];
 
+/** 메뉴 가격: price가 숫자면 온도 무관, {HOT, ICE}면 온도별 (예: 말차 라떼 따뜻 4,900 / 아이스 5,500) */
+export function priceFor(def, temperature) {
+  if (typeof def.price === 'number') return def.price;
+  return def.price?.[temperature] ?? null;
+}
+
+/** 보기 버튼용 가격 표시 */
+export function priceLabel(def, temperature) {
+  const p = priceFor(def, temperature);
+  if (p !== null) return won(p);
+  const { HOT, ICE } = def.price;
+  return HOT === ICE ? won(HOT) : `따뜻 ${won(HOT)} · 아이스 ${won(ICE)}`;
+}
+
 export function won(amount) {
   return `${Number(amount).toLocaleString('ko-KR')}원`;
 }

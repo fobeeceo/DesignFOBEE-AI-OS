@@ -35,7 +35,7 @@ test('정적 화면·메뉴 제공', async () => {
   assert.equal((await call('/core/parser.mjs')).status, 200);
   assert.equal((await call('/../server.mjs')).status, 404);
   const menu = await call('/api/menu');
-  assert.equal(menu.data.items.length, 6);
+  assert.equal(menu.data.items.length, 29);
 });
 
 test('텍스트 주문 전체 흐름: 세션 → 분석 → 가격 → 확정 → 출력 → 통계', async () => {

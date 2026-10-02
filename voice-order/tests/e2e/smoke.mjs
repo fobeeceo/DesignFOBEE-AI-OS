@@ -146,7 +146,7 @@ await step('음성 대답 3번 못 들음 → 버튼 안내 + "말로 다시 대
 });
 
 await step('음성: "따뜻한 음료 뭐 먹으면 될까" → 메뉴 보기 → "라떼요" → 따뜻한 카페라떼', async () => {
-  await page.evaluate(() => window.__queue.push('따뜻한 음료수 먹고 싶은데 어떤 걸 먹으면 될까', '라떼요', '네'));
+  await page.evaluate(() => window.__queue.push('따뜻한 음료수 먹고 싶은데 어떤 걸 먹으면 될까', '커피요', '라떼요', '네'));
   await page.getByRole('button', { name: /주문 시작/ }).click();
   await page.waitForFunction(() => document.getElementById('q-text').textContent.startsWith('따뜻한 메뉴예요.'));
   await page.screenshot({ path: `${OUT}06c-suggest.png` });
@@ -159,6 +159,7 @@ await step('텍스트: 메뉴 보기에서 버튼으로 고르기', async () => 
   await page.getByRole('button', { name: '텍스트로 테스트' }).click();
   await page.fill('#text-input', '시원한 거 뭐 있어요');
   await page.getByRole('button', { name: '주문 분석' }).click();
+  await page.locator('#q-choices').getByRole('button', { name: /^커피\s+\(/ }).click();
   await page.getByRole('button', { name: /레몬 아메리카노/ }).click();
   await visible('confirm');
   assert.equal(await page.textContent('#c-total'), '4,500원');
@@ -166,11 +167,27 @@ await step('텍스트: 메뉴 보기에서 버튼으로 고르기', async () => 
   await page.getByRole('button', { name: /처음으로/ }).click();
 });
 
-await step('음성: 없는 메뉴 "딸기라떼" → 찾지 못했다는 안내', async () => {
-  await page.evaluate(() => window.__queue.push('딸기라떼 하나 주세요'));
+await step('음성: "따뜻한 음료 중에 커피 아닌 거" → 종류 → "차요" → "유자차요" → 따뜻한 유자차 6,000원', async () => {
+  await page.evaluate(() => window.__queue.push('따뜻한 음료 중에 커피 아닌 거 추천해 줘', '차요', '유자차요'));
+  await page.getByRole('button', { name: /주문 시작/ }).click();
+  await page.waitForFunction(() => document.getElementById('q-text').textContent.startsWith('따뜻한 커피 아닌 메뉴예요.'));
+  const cats = await page.locator('#q-choices button').allTextContents();
+  assert.ok(!cats.some((t) => t.startsWith('커피')), '커피가 보기 안에 있음');
+  await page.screenshot({ path: `${OUT}06d-not-coffee.png` });
+  await page.waitForFunction(() => document.getElementById('q-text').textContent.startsWith('따뜻한 차예요.'));
+  await page.screenshot({ path: `${OUT}06e-tea-list.png` });
+  await visible('confirm');
+  assert.match(await page.textContent('#c-lines'), /따뜻한 유자차/);
+  assert.equal(await page.textContent('#c-total'), '6,000원');
+  await page.reload(); // 음성 모드의 '다시 말할게요'는 바로 듣기로 넘어가므로 새로고침으로 처음부터
+  await visible('start');
+});
+
+await step('음성: 없는 메뉴 "딸기 아메리카노" → 찾지 못했다는 안내', async () => {
+  await page.evaluate(() => window.__queue.push('딸기 아메리카노 하나 주세요'));
   await page.getByRole('button', { name: /주문 시작/ }).click();
   await visible('message');
-  assert.match(await page.textContent('#m-body'), /딸기라떼.*\n?현재 주문 가능한 메뉴에서 찾지 못했습니다/s);
+  assert.match(await page.textContent('#m-body'), /딸기 아메리카노.*\n?현재 주문 가능한 메뉴에서 찾지 못했습니다/s);
   await page.screenshot({ path: `${OUT}07-not-found.png` });
 });
 
