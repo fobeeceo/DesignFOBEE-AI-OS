@@ -106,6 +106,16 @@ export function lanAddresses() {
     .map((a) => a.address);
 }
 
+// Windows는 Git for Windows를 깔아도 openssl이 PATH에 없다 → 설치 경로도 찾아본다
+function findOpenssl() {
+  const candidates = [
+    'C:\\Program Files\\Git\\usr\\bin\\openssl.exe',
+    'C:\\Program Files\\Git\\mingw64\\bin\\openssl.exe',
+    'C:\\Program Files (x86)\\Git\\usr\\bin\\openssl.exe',
+  ];
+  return candidates.find((p) => fs.existsSync(p)) || 'openssl';
+}
+
 /** 자체 서명 인증서 (openssl 필요). 없으면 HTTPS 없이 HTTP만 연다. */
 function ensureCert(dir, ips) {
   const key = path.join(dir, 'key.pem');
@@ -113,7 +123,7 @@ function ensureCert(dir, ips) {
   if (!fs.existsSync(key) || !fs.existsSync(cert)) {
     fs.mkdirSync(dir, { recursive: true });
     const san = ['DNS:localhost', 'IP:127.0.0.1', ...ips.map((ip) => `IP:${ip}`)].join(',');
-    execFileSync('openssl', [
+    execFileSync(findOpenssl(), [
       'req', '-x509', '-newkey', 'rsa:2048', '-nodes', '-sha256', '-days', '825',
       '-keyout', key, '-out', cert, '-subj', '/CN=GBRICK Voice Order (DEMO)', '-addext', `subjectAltName=${san}`,
     ], { stdio: 'ignore' });
@@ -140,6 +150,7 @@ function main() {
     httpsOk = true;
   } catch (e) {
     console.warn(`[경고] HTTPS를 열지 못했습니다 (openssl 필요): ${e.message}`);
+    console.warn('       아이폰 음성 주문을 쓰려면 Git for Windows(https://git-scm.com)를 설치한 뒤 다시 npm start 하세요.');
   }
 
   const line = '='.repeat(56);

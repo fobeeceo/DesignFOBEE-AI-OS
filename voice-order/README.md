@@ -28,7 +28,8 @@ npm start
 
 - 포트 변경: `PORT=3200 HTTPS_PORT=3444 npm start`
 - 처음 실행 시 Windows 방화벽 창이 뜨면 **개인 네트워크 허용**을 누른다 (안 누르면 휴대폰에서 접속 안 됨).
-- HTTPS 인증서는 `openssl`로 자동 생성한다. Windows는 [Git for Windows](https://git-scm.com)를 설치하면 openssl이 함께 들어온다. 없으면 HTTP만 열린다.
+- HTTPS 인증서는 `openssl`로 자동 생성한다. Windows는 [Git for Windows](https://git-scm.com)를 기본 경로에 설치하면 서버가 그 안의 openssl을 자동으로 찾는다(PATH 설정 불필요). 없으면 HTTP만 열린다.
+- IP가 여러 개 나오면 보통 `192.168.0.x`·`192.168.1.x`가 Wi-Fi 주소다. `192.168.137.1`(핫스팟)·`172.x`(가상 네트워크)는 휴대폰 접속용이 아니다.
 
 ## 2. 아이폰·태블릿에서 열기
 
