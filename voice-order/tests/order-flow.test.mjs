@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { parseOrder } from '../core/parser.mjs';
-import { nextQuestion, applyAnswer, interpretAnswer } from '../core/dialog.mjs';
+import { nextQuestion, applyAnswer, interpretAnswer, suggestionText } from '../core/dialog.mjs';
 import { createOrderService, quote, STATUS, PAY_AT_COUNTER } from '../backend/orderService.mjs';
 import { createMemoryStore } from '../backend/store.mjs';
 import { createBrowserPrintProvider, createThermalPrintProvider } from '../backend/print/printService.mjs';
@@ -227,4 +227,21 @@ test('자연어 표현 (요구사항 §9)', () => {
   assert.equal(parseOrder('음', menu).kind, 'unclear');
   assert.equal(parseOrder('', menu).kind, 'unclear');
   assert.deepEqual(parseOrder('아메리카노 하나랑 카푸치노 하나', menu).unrecognized, ['카푸치노']);
+});
+
+test('메뉴를 모를 때: "따뜻한 음료 뭐 먹으면 될까" → 메뉴판의 보기만 제시 (대신 골라 담지 않음)', () => {
+  const r = parseOrder('따뜻한 음료수 먹고 싶은데 어떤 걸 먹으면 될까', menu);
+  assert.equal(r.kind, 'suggest');
+  assert.equal(r.items.length, 0);
+  assert.deepEqual(r.suggestions.map((x) => x.menu_id), ['AMERICANO', 'CAFE_LATTE', 'VANILLA_LATTE']);
+  assert.equal(suggestionText(r.temperature, r.suggestions),
+    '따뜻하게 드실 수 있는 메뉴는 아메리카노, 카페라떼, 바닐라라떼가 있어요. 어떤 걸로 드릴까요?');
+  assert.equal(parseOrder('시원한 거 뭐 있어요', menu).suggestions.length, 5);
+  assert.equal(parseOrder('메뉴 뭐 있어요', menu).suggestions.length, 6);
+  assert.equal(parseOrder('따뜻한 거 하나 주세요', menu).kind, 'suggest');
+  // 가격은 MENU_MASTER 그대로
+  assert.equal(r.suggestions[0].price, 3500);
+  // 없는 메뉴는 여전히 not_found, 메뉴 이름이 있으면 주문으로
+  assert.equal(parseOrder('딸기라떼 뭐 있어요', menu).kind, 'not_found');
+  assert.equal(parseOrder('아이스 아메리카노 하나', menu).kind, 'ok');
 });

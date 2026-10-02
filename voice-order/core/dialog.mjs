@@ -57,6 +57,13 @@ export function applyAnswer(items, question, answer, menu) {
   return next;
 }
 
+/** 추천 보기 안내 문장: "따뜻하게 드실 수 있는 메뉴는 아메리카노, 카페라떼가 있어요. 어떤 걸로 드릴까요?" */
+export function suggestionText(temperature, suggestions) {
+  const head = temperature === 'HOT' ? '따뜻하게 드실 수 있는 메뉴는' : temperature === 'ICE' ? '시원하게 드실 수 있는 메뉴는' : '주문하실 수 있는 메뉴는';
+  const names = suggestions.map((x) => x.name).join(', ');
+  return `${head} ${josa(names, '이', '가')} 있어요. 어떤 걸로 드릴까요?`;
+}
+
 const NO_RE = /(아니|아뇨|아녜|틀려|틀렸|다시|취소|안\s*돼|싫어|노우?$|^노\b)/;
 const YES_RE = /(^|\s)(네|넵|넹|예|응|어|엉|그래|그럼요|맞아|맞습|맞네|맞어|좋아|좋습|오케이|okay|ok|그렇|주세요|해\s*주세요|부탁)/i;
 

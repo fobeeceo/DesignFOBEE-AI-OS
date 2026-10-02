@@ -12,6 +12,9 @@ const NON_MENU_FLAVORS = [
   '곡물', '토피넛', '밀크티', '연유', '돌체', '시나몬', '꿀', '허니', '모카', '카푸치노', '과일',
 ];
 
+// 메뉴 이름 없이 "따뜻한 거 뭐 있어요?" / "뭘 마시면 될까" → 메뉴판에서 고를 보기를 보여준다
+const SUGGEST_RE = /(음료|마실\s*(?:거|것|게)|먹을\s*(?:거|것|게)|뭐|뭘|무엇|무슨|어떤|어느|추천|메뉴|있어|있나|있습니까|있어요|좋을까|될까|골라|맛있는)/;
+
 const NUM_WORDS = {
   하나: 1, 둘: 2, 셋: 3, 넷: 4, 다섯: 5, 여섯: 6, 일곱: 7, 여덟: 8, 아홉: 9, 열: 10,
   한: 1, 두: 2, 세: 3, 석: 3, 네: 4, 서: 3, 너: 4,
@@ -215,6 +218,17 @@ export function parseOrder(rawText, menu) {
 
   if (result.unknown.length) result.kind = 'not_found';
   else if (result.unavailable.length) result.kind = 'unavailable';
+  else if (!result.items.length && (SUGGEST_RE.test(text) || detectTemperature(text))) {
+    // 추측해서 담지 않는다. 메뉴판에 있는 것 중에서 고르게 한다.
+    const temperature = detectTemperature(text);
+    result.kind = 'suggest';
+    result.temperature = temperature;
+    result.suggestions = menu.items
+      .filter((m) => m.available !== false)
+      .filter((m) => !temperature || (m.options?.temperature || []).includes(temperature))
+      .map((m) => ({ menu_id: m.menu_id, name: m.name, price: m.price }));
+    result.unrecognized = [];
+  }
   else if (!result.items.length) result.kind = result.unrecognized.length ? 'not_found' : 'unclear';
   else if (result.items.some(needsQuestion(menu))) result.kind = 'clarify';
   else result.kind = 'ok';

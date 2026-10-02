@@ -145,6 +145,27 @@ await step('음성 대답 3번 못 들음 → 버튼 안내 + "말로 다시 대
   await page.getByRole('button', { name: /처음으로/ }).click();
 });
 
+await step('음성: "따뜻한 음료 뭐 먹으면 될까" → 메뉴 보기 → "라떼요" → 따뜻한 카페라떼', async () => {
+  await page.evaluate(() => window.__queue.push('따뜻한 음료수 먹고 싶은데 어떤 걸 먹으면 될까', '라떼요', '네'));
+  await page.getByRole('button', { name: /주문 시작/ }).click();
+  await page.waitForFunction(() => document.getElementById('q-text').textContent.startsWith('따뜻한 메뉴예요.'));
+  await page.screenshot({ path: `${OUT}06c-suggest.png` });
+  await visible('done');
+  assert.match(await page.textContent('#d-lines'), /따뜻한 카페라떼/);
+  await page.getByRole('button', { name: /처음으로/ }).click();
+});
+
+await step('텍스트: 메뉴 보기에서 버튼으로 고르기', async () => {
+  await page.getByRole('button', { name: '텍스트로 테스트' }).click();
+  await page.fill('#text-input', '시원한 거 뭐 있어요');
+  await page.getByRole('button', { name: '주문 분석' }).click();
+  await page.getByRole('button', { name: /레몬 아메리카노/ }).click();
+  await visible('confirm');
+  assert.equal(await page.textContent('#c-total'), '4,500원');
+  await page.getByRole('button', { name: /다시 말할게요/ }).click();
+  await page.getByRole('button', { name: /처음으로/ }).click();
+});
+
 await step('음성: 없는 메뉴 "딸기라떼" → 찾지 못했다는 안내', async () => {
   await page.evaluate(() => window.__queue.push('딸기라떼 하나 주세요'));
   await page.getByRole('button', { name: /주문 시작/ }).click();

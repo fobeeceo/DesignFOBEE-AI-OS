@@ -1,6 +1,7 @@
 // 주문 화면 흐름: 시작 → 듣기 → (확인 질문) → 주문 확인 → 완료/출력
 // 가격 계산·주문번호는 서버가 한다. 여기서는 화면과 음성만 다룬다.
-import { nextQuestion, applyAnswer, interpretAnswer } from '/core/dialog.mjs';
+import { nextQuestion, applyAnswer, interpretAnswer, suggestionText } from '/core/dialog.mjs';
+import { parseOrder } from '/core/parser.mjs';
 import { won, speakItems } from '/core/format.mjs';
 import { createSpeechProvider, Speaker, SpeechFailure } from '/speech.js';
 
@@ -9,7 +10,7 @@ const IDLE_RESET_SEC = 90;
 const MAX_FAILS = 3;
 const ANSWER_TRIES = 3; // 대답은 한 번 놓쳐도 다시 듣는다 (어르신은 대답이 늦을 수 있다)
 // 스피커에서 나온 안내 음성을 마이크가 다시 들은 것 → 대답으로 치지 않는다
-const ECHO_RE = /(말씀하시나요|맞으실까요|드릴까요|어떤 걸로|듣고 있습니다)/;
+const ECHO_RE = /(말씀하시나요|맞으실까요|드릴까요|어떤 걸로|듣고 있습니다|드실 수 있는|주문하실 수 있는)/;
 const EXAMPLES = [
   '아이스 아메리카노 하나',
   '따뜻한 라떼 하나',
@@ -147,6 +148,7 @@ async function handleText(text) {
     s.unrecognized = r.unrecognized;
     return proceed();
   }
+  if (r.kind === 'suggest') return showSuggestions(r);
   if (r.kind === 'not_found') return showNotFound(r.unknown);
   if (r.kind === 'unavailable') {
     return showMessage({
@@ -243,7 +245,7 @@ async function askQuestion(q) {
   show('question');
   await say(q.text);
   if (my === flow && s.mode === 'VOICE') {
-    const prompt = q.type === 'choose_temperature' ? '“따뜻하게” 또는 “아이스”' : '“네” 또는 “아니요”';
+    const prompt = q.type === 'choose_temperature' ? '“따뜻하게” 또는 “아이스”라고 말씀해 주세요.' : '“네” 또는 “아니요”라고 말씀해 주세요.';
     listenAnswer(my, 'q', onAnswer, prompt);
   }
 }
@@ -254,13 +256,13 @@ function resetAnswerUi(prefix) {
 }
 
 /** 대답 듣기: 못 들었거나 모르는 말이면 ANSWER_TRIES번까지 다시 듣는다. handler가 false면 처리 못 한 대답 */
-async function listenAnswer(my, prefix, handler, prompt) {
-  s.answer = { prefix, handler, prompt };
+async function listenAnswer(my, prefix, handler, prompt, interpret = interpretAnswer) {
+  s.answer = { prefix, handler, prompt, interpret };
   const status = $(`${prefix}-status`);
   $(`${prefix}-listen`).hidden = true;
   for (let i = 0; i < ANSWER_TRIES; i++) {
     if (my !== flow) return;
-    status.textContent = `🎤 듣고 있어요. ${prompt}라고 말씀해 주세요.`;
+    status.textContent = `🎤 듣고 있어요. ${prompt}`;
     await new Promise((r) => setTimeout(r, 300)); // 안내 음성 끝자락이 마이크에 들어가지 않게
     let text;
     try {
@@ -273,7 +275,7 @@ async function listenAnswer(my, prefix, handler, prompt) {
     if (my !== flow) return;
     if (ECHO_RE.test(text)) continue;
     s.heard = text;
-    const a = interpretAnswer(text);
+    const a = interpret(text);
     if (a && handler(a) !== false) return;
   }
   if (my === flow) {
@@ -289,6 +291,47 @@ function onAnswer(a) {
   if (next === s.items) return false;
   s.items = next;
   proceed();
+}
+
+// ---------- 메뉴 추천 (메뉴 이름을 모를 때) ----------
+/** "따뜻한 거 뭐 있어요?" → 메뉴판에 있는 것만 보기로 보여주고 고르게 한다. 대신 골라 담지 않는다. */
+async function showSuggestions(r) {
+  const my = ++flow;
+  const text = suggestionText(r.temperature, r.suggestions);
+  const pick = (menuId, temperature) => {
+    stt.cancel();
+    const def = menu.items.find((m) => m.menu_id === menuId);
+    const allowed = def.options?.temperature || [];
+    s.items = [{
+      menu_id: def.menu_id, name: def.name, unit: def.unit, quantity: 1, needs_confirm: false,
+      temperature: allowed.includes(temperature) ? temperature : allowed.length === 1 ? allowed[0] : null,
+      temperature_unavailable: null,
+    }];
+    s.unrecognized = [];
+    proceed();
+  };
+  $('q-heard').textContent = s.heard ? `들은 말: “${s.heard}”` : '';
+  // 화면은 짧게, 메뉴 목록 전체는 음성으로 읽어 준다
+  $('q-text').textContent = `${r.temperature === 'HOT' ? '따뜻한 메뉴예요.' : r.temperature === 'ICE' ? '시원한 메뉴예요.' : '주문하실 수 있는 메뉴예요.'}\n어떤 걸로 드릴까요?`;
+  resetAnswerUi('q');
+  buttons($('q-choices'), [
+    ...r.suggestions.map((x) => [`${x.name}  ${won(x.price)}`, 'secondary', () => pick(x.menu_id, r.temperature)]),
+    ['다시 말할게요', 'link', retry],
+  ]);
+  show('question');
+  await say(text);
+  if (my !== flow || s.mode !== 'VOICE') return;
+  listenAnswer(my, 'q', (said) => {
+    const p = parseOrder(said, menu);
+    if (!p.items.length || (p.kind !== 'ok' && p.kind !== 'clarify')) return false;
+    s.items = p.items.map((it) => {
+      const allowed = menu.items.find((m) => m.menu_id === it.menu_id)?.options?.temperature || [];
+      return !it.temperature && allowed.includes(r.temperature) ? { ...it, temperature: r.temperature } : it;
+    });
+    s.unrecognized = p.unrecognized;
+    stt.cancel();
+    proceed();
+  }, '드시고 싶은 메뉴를 말씀하시거나 눌러 주세요.', (said) => said);
 }
 
 // ---------- 주문 확인 ----------
@@ -318,7 +361,7 @@ async function showConfirm() {
       if (a === 'yes') return confirmOrder();
       if (a === 'no') return retry();
       return false;
-    }, '“네” 또는 “아니요”');
+    }, '“네” 또는 “아니요”라고 말씀해 주세요.');
   }
 }
 
@@ -416,7 +459,7 @@ const ACTIONS = {
   reset,
   help: requestHelp,
   print: () => s.lastOrder && printOrder(s.lastOrder.order_id),
-  'listen-answer': () => s.answer && listenAnswer(flow, s.answer.prefix, s.answer.handler, s.answer.prompt),
+  'listen-answer': () => s.answer && listenAnswer(flow, s.answer.prefix, s.answer.handler, s.answer.prompt, s.answer.interpret),
 };
 
 document.addEventListener('click', (e) => {
