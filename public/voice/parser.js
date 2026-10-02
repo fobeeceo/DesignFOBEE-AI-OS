@@ -12,6 +12,17 @@
   var HOT = /따뜻|따듯|뜨거|뜨겁|핫/i;
   var ICE = /시원|차가|차갑|아이스|얼음/i;
 
+  // 음성 인식이 자주 다르게 적는 철자를 메뉴 표기로 맞춥니다.
+  function normalize(text) {
+    return String(text || '')
+      .replace(/라테/g, '라떼')
+      .replace(/아메리까노|아메리카느|아메리카너/g, '아메리카노')
+      .replace(/카푸치노|카푸치너|까푸치노/g, '카푸치노')
+      .replace(/마키아토|마끼아토|마끼아또/g, '마끼아또')
+      .replace(/에스프레쏘|에스프래소/g, '에스프레소')
+      .replace(/초콜렛|초콜릿/g, '초콜릿');
+  }
+
   function qtyOf(m) {
     var w = m[1] || m[2];
     return /^\d+$/.test(w) ? Math.min(parseInt(w, 10), 20) : NUM[w];
@@ -69,31 +80,50 @@
     return found.map(function (f, idx) {
       var item = menu.items.filter(function (x) { return x.id === f.id; })[0];
       var temp = f.temp || said || item.defaultTemp || item.temps[0];
-      if (item.temps.indexOf(temp) === -1) temp = item.temps[0]; // 없는 온도는 가능한 것으로
-      return { id: item.id, name: item.name, temp: temp, qty: idx === found.length - 1 ? qty : 1 };
+      var note = null;
+      if (item.temps.indexOf(temp) === -1) { // 없는 온도는 가능한 것으로, 그리고 손님께 알려 드립니다
+        if (temp !== 'one' && item.temps[0] !== 'one') note = item.name + '는 ' + tempWord(item.temps[0]) + ' 것만 있어요.';
+        temp = item.temps[0];
+      }
+      return { id: item.id, name: item.name, temp: temp, qty: idx === found.length - 1 ? qty : 1, note: note };
     });
   }
 
+  // "하나 더 주세요" / "한 잔 더" / "똑같은 걸로 하나 더" : 방금 담은 메뉴를 더 담는 말
+  var REPEAT_RE = /^(?:(?:같은|똑같은|이거|그거)\s*(?:걸로|거)?\s*)?(?:(\d+|하나|둘|셋|넷|한|두|세|네)\s*(?:잔|개)?\s*)?(?:더|또|추가)(?:\s*(?:주세요|해\s*주세요|할게요|요|줘요|줘))?$/;
+  function repeatQty(text) {
+    var t = text.replace(/\s+/g, ' ').trim();
+    var m = REPEAT_RE.exec(t);
+    if (!m) return 0;
+    if (!m[1]) return /더|또/.test(t) ? 1 : 0; // "추가"만 말한 건 '더 주문하겠다'는 뜻이지 같은 걸 또 담으라는 뜻이 아님
+    return /^\d+$/.test(m[1]) ? Math.min(parseInt(m[1], 10), 20) : NUM[m[1]];
+  }
+
   function parseOrder(text, menu) {
+    text = normalize(text);
     var aliases = buildAliasList(menu);
     var merged = {};
     var order = [];
+    var notes = [];
     splitClauses(text).forEach(function (c) {
       parseClause(c, menu, aliases).forEach(function (it) {
         var key = it.id + '|' + it.temp;
+        if (it.note && notes.indexOf(it.note) === -1) notes.push(it.note);
         if (merged[key]) merged[key].qty += it.qty;
         else { merged[key] = it; order.push(it); }
       });
     });
-    return { heard: text, items: order };
+    return { heard: text, items: order, notes: notes, repeat: order.length ? 0 : repeatQty(text) };
   }
 
-  // 확인 단계에서 "네 / 아니요 / 직원" 같은 말 판별
+  // 확인 단계에서 하는 말 판별: staff(직원) / more(추가) / no(처음부터) / yes(주문) / unknown
   function parseIntent(text) {
     var t = (text || '').replace(/\s+/g, '');
     if (/직원|사람불러|도와|도움/.test(t)) return 'staff';
-    if (/^(아니|아뇨|틀|다시|취소|잘못|안맞|안돼)/.test(t)) return 'no';
-    if (/^(네|넵|예|응|그래|맞|좋|확인|주문|그렇)/.test(t)) return 'yes';
+    if (/빼|지워|삭제/.test(t)) return 'remove';
+    if (/추가|더있|더할|더주문|있어요|있습니다|하나더|더요/.test(t) && !/없/.test(t)) return 'more';
+    if (/^(아니|아뇨|틀|다시|취소|잘못|안맞|안돼)|처음부터|다시할/.test(t)) return 'no';
+    if (/^(네|넵|예|응|그래|맞|좋|확인|주문|그렇|없어|없습|됐|괜찮|결제|그게다|이게다|다예요|다입니다)/.test(t)) return 'yes';
     return 'unknown';
   }
 
@@ -108,7 +138,7 @@
     return items.map(function (i) { return labelOf(i) + ' ' + qtyWord(i.qty); }).join(', ');
   }
 
-  var api = { parseOrder: parseOrder, parseIntent: parseIntent, describe: describe, tempWord: tempWord, labelOf: labelOf, qtyWord: qtyWord };
+  var api = { normalize: normalize, parseOrder: parseOrder, parseIntent: parseIntent, describe: describe, tempWord: tempWord, labelOf: labelOf, qtyWord: qtyWord };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.OrderParser = api;
 })(typeof window !== 'undefined' ? window : this);

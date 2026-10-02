@@ -219,11 +219,8 @@
   }
 
   // ---------- 문장 해석 (규칙 먼저, 못 알아들으면 AI) ----------
-  async function parseText(text) {
-    if (!text) return [];
-    var local = P.parseOrder(text, menu).items;
-    if (local.length) return local;
-    if (!aiOn) return [];
+  async function aiParse(text) {
+    if (!text || !aiOn) return [];
     try {
       var r = await fetch('api/parse', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ text: text }), signal: AbortSignal.timeout(7000) });
       if (!r.ok) return [];
@@ -264,35 +261,46 @@
   }
 
   // ---------- 음성 대화 ----------
+  var CHOICES = '맞으면 네, 더 시키려면 추가, 다시 하려면 아니요, 라고 말씀해 주세요.';
+  function summary(notes) { return (notes && notes.length ? notes.join(' ') + ' ' : '') + P.describe(order) + '. 합계 ' + won(sum()) + '. ' + CHOICES; }
+
   async function voiceSession() {
     busy = true; cancelled = false; fails = 0;
     try {
-      var prompt = order.length ? '더 필요한 메뉴를 말씀해 주세요.' : '어서 오세요. 드시고 싶은 메뉴를 말씀해 주세요.';
+      var prompt = order.length ? summary() : '어서 오세요. 드시고 싶은 메뉴를 말씀해 주세요.';
       while (!cancelled) {
         await speak(prompt); if (cancelled) return;
         var heard = await listen(); if (cancelled) return;
         if (heard.error === 'not-allowed' || heard.error === 'service-not-allowed') { setSay('마이크를 쓸 수 없어요. 메뉴를 눌러 주문하시거나 직원을 불러 주세요.', 'warn'); return; }
         if (heard.error === 'unsupported') { setSay('이 기기에서는 말로 주문할 수 없어요. 메뉴를 눌러 주문해 주세요.', 'warn'); return; }
-        if (P.parseIntent(heard.text) === 'staff') { await callStaff(); return; }
-        var items = await parseText(heard.text); if (cancelled) return;
-        if (!items.length) {
-          fails++;
-          if (fails >= 2) { await speak(serverOn ? '죄송해요. 직원을 불러 드릴게요.' : '죄송해요. 메뉴를 눌러 주문하시거나 카운터로 와 주세요.'); if (serverOn) await callStaff(); return; }
-          prompt = '잘 못 알아들었어요. 천천히 다시 말씀해 주세요.'; continue;
-        }
-        fails = 0; viaVoice = true; addAll(items); render();
-        await speak(P.describe(order) + '. 합계 ' + won(sum()) + '. 맞으세요?'); if (cancelled) return;
-        var ans = await listen(); if (cancelled) return;
-        var intent = P.parseIntent(ans.text);
-        if (intent === 'unknown') {
-          await speak('주문하시려면 네, 다시 하시려면 아니요, 라고 말씀해 주세요.'); if (cancelled) return;
-          ans = await listen(); if (cancelled) return;
-          intent = P.parseIntent(ans.text);
-        }
-        if (intent === 'yes') { await submit(); return; }
+        var text = heard.text, added = false, notes = [];
+        var intent = P.parseIntent(text);
         if (intent === 'staff') { await callStaff(); return; }
-        if (intent === 'no') { order = []; render(); prompt = '알겠어요. 다시 말씀해 주세요.'; continue; }
-        await speak('화면의 버튼으로 이어서 주문해 주세요.'); return;
+
+        var local = P.parseOrder(text, menu);
+        if (local.items.length) { addAll(local.items); notes = local.notes; added = true; }
+        else if (local.repeat && order.length) { var last = order[order.length - 1]; addItem(last.id, last.temp, local.repeat); added = true; }
+        else if (intent === 'yes' && order.length) { await submit(); return; }
+        else if (intent === 'more') { prompt = '어떤 메뉴를 더 드릴까요?'; continue; }
+        else if (intent === 'no') { order = []; render(); fails = 0; prompt = '알겠어요. 처음부터 다시 말씀해 주세요.'; continue; }
+        else if (intent === 'remove' && order.length) {
+          var gone = order.pop(); render();
+          prompt = '방금 담은 ' + P.labelOf(gone) + '를 뺐어요. ' + (order.length ? summary() : '다시 메뉴를 말씀해 주세요.'); continue;
+        } else if (intent === 'unknown' || !order.length) {
+          var ai = await aiParse(text); if (cancelled) return;
+          if (ai.length) { addAll(ai); added = true; }
+        }
+
+        if (!added) {
+          fails++;
+          if (fails >= 3) { await speak(serverOn ? '죄송해요. 직원을 불러 드릴게요.' : '죄송해요. 화면의 메뉴를 눌러 주문하시거나 카운터로 와 주세요.'); if (serverOn) await callStaff(); return; }
+          prompt = /커피/.test(text) ? '아메리카노, 카페라떼, 카푸치노 같은 메뉴가 있어요. 어떤 걸로 드릴까요?'
+            : text ? '메뉴에서 찾지 못했어요. 메뉴 이름을 천천히 다시 말씀해 주세요.'
+            : '잘 못 들었어요. 천천히 다시 말씀해 주세요.';
+          continue;
+        }
+        fails = 0; viaVoice = true; render();
+        prompt = summary(notes);
       }
     } finally { busy = false; setMode('idle'); }
   }
