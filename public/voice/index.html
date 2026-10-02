@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GBRICK 말로 주문</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* 지브릭 메뉴 페이지(gbrick-menu.html)와 같은 색을 씁니다 */
+    --brick: #a94b25;
+    --brick-dark: #7c3418;
+    --chalk: #f6f2ee;
+    --ink: #1f1b18;
+    --mortar: #d9d0c8;
+    --muted: #5e554f;
+    --ok: #1e6b4b;
+    --ok-dark: #17533a;
+    --paper: #ffffff;
+    --radius: 6px;
+  }
+  * { box-sizing: border-box; }
+  html { font-size: 20px; }
+  body {
+    margin: 0; background: var(--chalk); color: var(--ink);
+    font-family: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    line-height: 1.5;
+  }
+  button { font: inherit; cursor: pointer; border: 0; border-radius: var(--radius); min-height: 64px; padding: 0 1.2rem; }
+  button:focus-visible { outline: 4px solid var(--ink); outline-offset: 3px; }
+  h2 { font-size: 1.15rem; margin: 0 0 .6rem; font-weight: 700; }
+
+  .top { padding: 1rem 1.25rem; display: flex; align-items: baseline; gap: .9rem; border-bottom: 3px solid var(--ink); }
+  .top strong { font-size: 1.4rem; letter-spacing: .01em; }
+  .top span { color: #4b5058; }
+
+  .stage { display: grid; gap: 1.5rem; padding: 1.25rem; max-width: 1180px; margin: 0 auto; }
+  @media (min-width: 900px) { .stage { grid-template-columns: 1.1fr .9fr; align-items: start; } .menu { grid-column: 1 / -1; } }
+
+  .say { font-size: clamp(1.5rem, 4.4vw, 2.2rem); font-weight: 700; line-height: 1.35; margin: 0 0 .4rem; min-height: 3.6em; }
+  .say.warn { color: var(--brick-dark); }
+  .heard { min-height: 1.6em; margin: 0 0 1rem; color: #4b5058; font-size: 1.1rem; }
+
+  .mic {
+    width: 100%; min-height: 150px; font-size: 1.7rem; font-weight: 700; color: #fff;
+    background-color: var(--brick);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='88' height='88'%3E%3Cg stroke='rgba(255,255,255,.2)' stroke-width='2' fill='none'%3E%3Cpath d='M0 1H88M0 45H88M1 0V44M45 44V88'/%3E%3C/g%3E%3C/svg%3E");
+    box-shadow: 0 6px 0 var(--brick-dark);
+    display: flex; align-items: center; justify-content: center; gap: .8rem; text-align: center;
+  }
+  .mic:active { transform: translateY(3px); box-shadow: 0 3px 0 var(--brick-dark); }
+  .mic[data-mode="listening"] { background-color: var(--ink); box-shadow: 0 6px 0 #000; animation: breathe 1.4s ease-in-out infinite; }
+  .mic[data-mode="speaking"] { background-color: #4b5058; box-shadow: 0 6px 0 #33373d; }
+  @keyframes breathe { 50% { filter: brightness(1.35); } }
+  .mic svg { width: 44px; height: 44px; flex: none; }
+
+  .helpers { display: flex; gap: .75rem; margin-top: 1rem; flex-wrap: wrap; }
+  .ghost { background: var(--paper); color: var(--ink); border: 2px solid var(--ink); font-weight: 600; }
+
+  /* 주문 내용: 벽돌을 쌓듯 한 줄씩 어긋나게 */
+  .bricks { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; min-height: 120px; }
+  .bricks:empty::before { content: "아직 담긴 메뉴가 없어요. 말씀하시거나 아래 메뉴를 눌러 주세요."; color: #4b5058; padding: .5rem 0; }
+  .brick {
+    display: flex; align-items: center; gap: .6rem; background: var(--paper); border: 2px solid var(--ink);
+    border-radius: 4px; padding: .5rem .8rem; margin-left: 0; font-size: 1.15rem; font-weight: 600;
+  }
+  .brick:nth-child(even) { margin-left: 28px; }
+  .brick .name { flex: 1; }
+  .brick .qty { min-width: 3.2rem; text-align: center; font-size: 1.3rem; }
+  .step { min-height: 52px; width: 52px; padding: 0; background: var(--mortar); color: var(--ink); font-size: 1.6rem; font-weight: 700; }
+
+  .total { display: flex; justify-content: space-between; align-items: baseline; margin: 1rem 0 .8rem; font-size: 1.3rem; font-weight: 700; }
+  .actions { display: grid; gap: .75rem; }
+  .go { background: var(--ok); color: #fff; font-size: 1.4rem; font-weight: 700; box-shadow: 0 5px 0 var(--ok-dark); }
+  .go[disabled] { background: var(--mortar); color: #6a6e74; box-shadow: none; cursor: not-allowed; }
+
+  .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 8px; }
+  .item { background: var(--paper); border: 2px solid var(--ink); border-radius: var(--radius); padding: .6rem .8rem .7rem; }
+  .item .nm { font-weight: 600; line-height: 1.35; }
+  .opts { display: flex; gap: 6px; margin-top: .45rem; }
+  .opt { flex: 1; min-height: 52px; padding: 0 .4rem; background: var(--chalk); border: 2px solid var(--ink); color: var(--ink); font-size: .95rem; font-weight: 600; }
+  .opt:active { background: var(--mortar); }
+  .cat { font-size: 1.05rem; margin: 1.1rem 0 .45rem; font-weight: 700; }
+
+  .done { position: fixed; inset: 0; background: var(--ink); color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 2rem; z-index: 10; }
+  .done[hidden] { display: none; }
+  .done .no { font-size: clamp(5rem, 22vw, 10rem); font-weight: 700; line-height: 1; margin: .5rem 0; }
+  .done p { font-size: 1.5rem; margin: .3rem 0; }
+  .done button { margin-top: 1.5rem; background: #fff; color: var(--ink); font-weight: 700; }
+  .note { font-size: .85rem; color: #4b5058; margin-top: .5rem; }
+
+  @media (prefers-reduced-motion: reduce) { .mic[data-mode="listening"] { animation: none; } }
+</style>
+</head>
+<body>
+<header class="top"><strong>GBRICK Coffee</strong><span>말로 주문하기</span></header>
+
+<main class="stage">
+  <section class="talk" aria-label="음성 주문">
+    <p id="say" class="say" aria-live="polite">아래 큰 버튼을 누르고, 드시고 싶은 걸 말씀해 주세요.</p>
+    <p id="heard" class="heard" aria-live="off"></p>
+    <button id="mic" class="mic" data-mode="idle" type="button">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 15a4 4 0 0 0 4-4V6a4 4 0 0 0-8 0v5a4 4 0 0 0 4 4zm6-4a1 1 0 1 0-2 0 4 4 0 0 1-8 0 1 1 0 1 0-2 0 6 6 0 0 0 5 5.9V19H8a1 1 0 1 0 0 2h8a1 1 0 1 0 0-2h-3v-2.1A6 6 0 0 0 18 11z"/></svg>
+      <span id="micLabel">눌러서 말씀하세요</span>
+    </button>
+    <div class="helpers">
+      <button id="staff" class="ghost" type="button">직원 부르기</button>
+    </div>
+    <p id="env" class="note"></p>
+  </section>
+
+  <section class="wall" aria-label="주문 내용">
+    <h2>주문 내용</h2>
+    <ol id="order" class="bricks"></ol>
+    <div class="total"><span>합계</span><span id="total">0원</span></div>
+    <div class="actions">
+      <button id="send" class="go" type="button" disabled>이대로 주문하기</button>
+      <button id="clear" class="ghost" type="button">처음부터 다시</button>
+    </div>
+  </section>
+
+  <section class="menu" aria-label="메뉴">
+    <h2>메뉴를 눌러서 담을 수도 있어요</h2>
+    <div id="menu" class="menu-grid"></div>
+  </section>
+</main>
+
+<div id="done" class="done" hidden role="dialog" aria-live="assertive">
+  <p id="doneTitle">주문이 접수됐어요</p>
+  <div class="no" id="doneNo">0</div>
+  <p id="doneText"></p>
+  <button id="doneClose" type="button">확인</button>
+</div>
+
+<noscript><p style="padding:1rem;font-size:1.2rem">이 화면은 자바스크립트가 필요해요. 설정을 확인하시거나 카운터에서 직접 주문해 주세요.</p></noscript>
+
+<script src="parser.js"></script>
+<script>
+(function () {
+  var $ = function (s) { return document.querySelector(s); };
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  var menu = null, aiOn = false, serverOn = false, order = [], busy = false, cancelled = false, fails = 0, viaVoice = false, currentRec = null, resetTimer = null;
+  var P = window.OrderParser;
+
+  function won(n) { return n.toLocaleString('ko-KR') + '원'; }
+  function setSay(text, kind) { var el = $('#say'); el.textContent = text; el.className = 'say' + (kind === 'warn' ? ' warn' : ''); }
+  function setMode(mode) {
+    var m = $('#mic'); m.dataset.mode = mode;
+    $('#micLabel').textContent = mode === 'listening' ? '듣고 있어요. 말씀하세요' : mode === 'speaking' ? '안내하고 있어요 (누르면 멈춰요)' : '눌러서 말씀하세요';
+  }
+
+  // ---------- 음성 출력 ----------
+  function speak(text) {
+    return new Promise(function (resolve) {
+      setSay(text); setMode('speaking');
+      if (!('speechSynthesis' in window)) return resolve();
+      var u = new SpeechSynthesisUtterance(text);
+      u.lang = 'ko-KR'; u.rate = 0.92;
+      var v = speechSynthesis.getVoices().filter(function (x) { return x.lang && x.lang.indexOf('ko') === 0; })[0];
+      if (v) u.voice = v;
+      var finished = false;
+      function done() { if (!finished) { finished = true; resolve(); } }
+      u.onend = done; u.onerror = done;
+      speechSynthesis.cancel(); speechSynthesis.speak(u);
+      setTimeout(done, 15000);
+    });
+  }
+
+  // ---------- 음성 입력 ----------
+  function listen() {
+    return new Promise(function (resolve) {
+      if (!SR) return resolve({ text: '', error: 'unsupported' });
+      var rec = new SR(), finalText = '', interim = '', err = '', done = false;
+      currentRec = rec;
+      rec.lang = 'ko-KR'; rec.interimResults = true; rec.maxAlternatives = 1; rec.continuous = false;
+      function finish() { if (done) return; done = true; currentRec = null; setMode('idle'); resolve({ text: (finalText || interim).trim(), error: err }); }
+      rec.onresult = function (e) {
+        interim = '';
+        for (var i = e.resultIndex; i < e.results.length; i++) {
+          if (e.results[i].isFinal) finalText += e.results[i][0].transcript; else interim += e.results[i][0].transcript;
+        }
+        $('#heard').textContent = '들린 말: ' + (finalText + interim);
+      };
+      rec.onerror = function (e) { err = e.error || 'error'; finish(); };
+      rec.onend = finish;
+      setMode('listening'); $('#heard').textContent = '';
+      try { rec.start(); } catch (e) { err = 'error'; finish(); }
+      setTimeout(function () { try { rec.stop(); } catch (e) {} }, 9000);
+    });
+  }
+
+  // ---------- 주문 상태 ----------
+  function findItem(id) { return menu.items.filter(function (i) { return i.id === id; })[0]; }
+  function addItem(id, temp, qty) {
+    var it = findItem(id); if (!it) return;
+    var t = it.temps.indexOf(temp) === -1 ? it.temps[0] : temp;
+    var ex = order.filter(function (o) { return o.id === id && o.temp === t; })[0];
+    if (ex) ex.qty = Math.min(ex.qty + qty, 20); else order.push({ id: id, name: it.name, temp: t, qty: qty, price: it.prices[t] });
+  }
+  function addAll(items) { items.forEach(function (i) { addItem(i.id, i.temp, i.qty); }); }
+  function sum() { return order.reduce(function (s, o) { return s + o.price * o.qty; }, 0); }
+
+  function render() {
+    var ol = $('#order'); ol.textContent = '';
+    order.forEach(function (o, idx) {
+      var li = document.createElement('li'); li.className = 'brick';
+      var name = document.createElement('span'); name.className = 'name'; name.textContent = P.labelOf(o);
+      var minus = document.createElement('button'); minus.className = 'step'; minus.type = 'button'; minus.textContent = '−'; minus.setAttribute('aria-label', o.name + ' 하나 빼기');
+      var q = document.createElement('span'); q.className = 'qty'; q.textContent = o.qty + '잔';
+      var plus = document.createElement('button'); plus.className = 'step'; plus.type = 'button'; plus.textContent = '+'; plus.setAttribute('aria-label', o.name + ' 하나 더하기');
+      minus.onclick = function () { o.qty--; if (o.qty <= 0) order.splice(idx, 1); render(); };
+      plus.onclick = function () { o.qty = Math.min(o.qty + 1, 20); render(); };
+      li.appendChild(name); li.appendChild(minus); li.appendChild(q); li.appendChild(plus); ol.appendChild(li);
+    });
+    $('#total').textContent = won(sum());
+    $('#send').disabled = order.length === 0;
+  }
+
+  // ---------- 문장 해석 (규칙 먼저, 못 알아들으면 AI) ----------
+  async function parseText(text) {
+    if (!text) return [];
+    var local = P.parseOrder(text, menu).items;
+    if (local.length) return local;
+    if (!aiOn) return [];
+    try {
+      var r = await fetch('api/parse', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ text: text }), signal: AbortSignal.timeout(7000) });
+      if (!r.ok) return [];
+      return (await r.json()).items || [];
+    } catch (e) { return []; }
+  }
+
+  // ---------- 주문 접수 ----------
+  async function submit() {
+    var items = order.slice(), total = sum(), no = null;
+    if (serverOn) {
+      try {
+        var r = await fetch('api/order', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ items: items, via: viaVoice ? 'voice' : 'touch' }) });
+        if (r.ok) { var d = await r.json(); no = d.no; total = d.total; }
+      } catch (e) {}
+    }
+    var sent = no !== null;
+    $('#doneTitle').textContent = sent ? '주문이 접수됐어요' : '주문 내용을 확인했어요';
+    $('#doneNo').textContent = sent ? no : '✓';
+    $('#doneText').textContent = P.describe(items) + ', 합계 ' + won(total) + '.' + (sent ? ' 결제는 카운터에서 도와 드려요.' : ' 아직 체험 단계예요. 이 화면을 카운터 직원에게 보여 주세요.');
+    $('#done').hidden = false;
+    $('#doneClose').focus();
+    order = []; viaVoice = false; render();
+    clearTimeout(resetTimer); resetTimer = setTimeout(closeDone, 30000);
+    if (!cancelled) await speak(sent ? '주문이 접수됐어요. 주문번호는 ' + no + '번입니다. 합계 ' + won(total) + '. 카운터에서 결제해 주세요.' : '주문 내용을 확인했어요. 합계 ' + won(total) + '. 이 화면을 카운터 직원에게 보여 주세요.');
+  }
+  function closeDone() { $('#done').hidden = true; $('#doneTitle').textContent = '주문이 접수됐어요'; setSay('아래 큰 버튼을 누르고, 드시고 싶은 걸 말씀해 주세요.'); setMode('idle'); }
+
+  async function callStaff() {
+    if (!serverOn) {
+      setSay('아직 체험 단계라 직원 호출이 연결되어 있지 않아요. 카운터로 와 주세요.', 'warn');
+      await speak('아직 체험 단계라 직원 호출이 연결되어 있지 않아요. 카운터로 와 주세요.');
+      return;
+    }
+    setSay('직원을 불러요. 잠시만 기다려 주세요.');
+    try { fetch('api/staff', { method: 'POST' }); } catch (e) {}
+    await speak('직원을 불러 드릴게요. 잠시만 기다려 주세요.');
+  }
+
+  // ---------- 음성 대화 ----------
+  async function voiceSession() {
+    busy = true; cancelled = false; fails = 0;
+    try {
+      var prompt = order.length ? '더 필요한 메뉴를 말씀해 주세요.' : '어서 오세요. 드시고 싶은 메뉴를 말씀해 주세요.';
+      while (!cancelled) {
+        await speak(prompt); if (cancelled) return;
+        var heard = await listen(); if (cancelled) return;
+        if (heard.error === 'not-allowed' || heard.error === 'service-not-allowed') { setSay('마이크를 쓸 수 없어요. 메뉴를 눌러 주문하시거나 직원을 불러 주세요.', 'warn'); return; }
+        if (heard.error === 'unsupported') { setSay('이 기기에서는 말로 주문할 수 없어요. 메뉴를 눌러 주문해 주세요.', 'warn'); return; }
+        if (P.parseIntent(heard.text) === 'staff') { await callStaff(); return; }
+        var items = await parseText(heard.text); if (cancelled) return;
+        if (!items.length) {
+          fails++;
+          if (fails >= 2) { await speak(serverOn ? '죄송해요. 직원을 불러 드릴게요.' : '죄송해요. 메뉴를 눌러 주문하시거나 카운터로 와 주세요.'); if (serverOn) await callStaff(); return; }
+          prompt = '잘 못 알아들었어요. 천천히 다시 말씀해 주세요.'; continue;
+        }
+        fails = 0; viaVoice = true; addAll(items); render();
+        await speak(P.describe(order) + '. 합계 ' + won(sum()) + '. 맞으세요?'); if (cancelled) return;
+        var ans = await listen(); if (cancelled) return;
+        var intent = P.parseIntent(ans.text);
+        if (intent === 'unknown') {
+          await speak('주문하시려면 네, 다시 하시려면 아니요, 라고 말씀해 주세요.'); if (cancelled) return;
+          ans = await listen(); if (cancelled) return;
+          intent = P.parseIntent(ans.text);
+        }
+        if (intent === 'yes') { await submit(); return; }
+        if (intent === 'staff') { await callStaff(); return; }
+        if (intent === 'no') { order = []; render(); prompt = '알겠어요. 다시 말씀해 주세요.'; continue; }
+        await speak('화면의 버튼으로 이어서 주문해 주세요.'); return;
+      }
+    } finally { busy = false; setMode('idle'); }
+  }
+
+  function stopAll() { cancelled = true; if (window.speechSynthesis) speechSynthesis.cancel(); if (currentRec) { try { currentRec.abort(); } catch (e) {} } setMode('idle'); setSay('멈췄어요. 큰 버튼을 누르면 다시 시작해요.'); }
+
+  // ---------- 시작 ----------
+  async function init() {
+    menu = await (await fetch('menu.json')).json();
+    var grid = $('#menu'), lastCat = null, wrap = null;
+    var TL = { hot: '따뜻하게', ice: '시원하게', one: '담기' };
+    menu.items.forEach(function (it) {
+      if (it.category !== lastCat) {
+        lastCat = it.category;
+        var h = document.createElement('h3'); h.className = 'cat'; h.textContent = it.category; grid.appendChild(h);
+        wrap = document.createElement('div'); wrap.className = 'menu-grid'; grid.appendChild(wrap);
+      }
+      var box = document.createElement('div'); box.className = 'item';
+      var nm = document.createElement('div'); nm.className = 'nm'; nm.textContent = it.name; box.appendChild(nm);
+      var opts = document.createElement('div'); opts.className = 'opts';
+      it.temps.forEach(function (t) {
+        var b = document.createElement('button'); b.type = 'button'; b.className = 'opt';
+        b.textContent = TL[t] + ' ' + won(it.prices[t]);
+        b.setAttribute('aria-label', it.name + ' ' + TL[t] + ' ' + won(it.prices[t]));
+        b.onclick = function () { addItem(it.id, t, 1); render(); };
+        opts.appendChild(b);
+      });
+      box.appendChild(opts); wrap.appendChild(box);
+    });
+    try { var h = await (await fetch('api/health')).json(); serverOn = h.ok === true; aiOn = serverOn && h.ai === true; } catch (e) { serverOn = false; aiOn = false; }
+    if (!serverOn) $('#env').textContent = '체험 단계예요. 주문은 아직 매장에 전달되지 않으니, 확인 화면을 카운터에 보여 주세요.';
+    if (!SR) { $('#env').textContent += ' 이 브라우저는 음성 인식을 지원하지 않아요. 안드로이드 크롬이나 PC 크롬을 사용해 주세요. 지금은 메뉴를 눌러 주문할 수 있어요.'; }
+    render();
+  }
+
+  $('#mic').onclick = function () { if (busy) stopAll(); else voiceSession(); };
+  $('#staff').onclick = function () { if (busy) stopAll(); callStaff(); };
+  $('#clear').onclick = function () { order = []; viaVoice = false; render(); setSay('비웠어요. 다시 말씀하시거나 메뉴를 눌러 주세요.'); };
+  $('#send').onclick = function () { if (order.length) submit(); };
+  $('#doneClose').onclick = function () { clearTimeout(resetTimer); if (window.speechSynthesis) speechSynthesis.cancel(); closeDone(); };
+  if (window.speechSynthesis) speechSynthesis.getVoices();
+  init();
+})();
+</script>
+</body>
+</html>
