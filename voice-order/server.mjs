@@ -27,6 +27,30 @@ const MIME = {
   '.png': 'image/png',
 };
 
+/**
+ * knowledge.json을 파일이 바뀔 때마다 다시 읽는다 — 대표가 고치면 재시작 없이 다음 질문부터 반영.
+ * 매장 PC의 knowledge.json은 저장소·업데이트 zip에 들어 있지 않다(덮어쓰기 방지).
+ * 없으면 knowledge.example.json(빈 틀)을 복사해 만든다.
+ */
+export function knowledgeLoader(file = path.join(ROOT, 'data', 'knowledge.json')) {
+  const example = path.join(path.dirname(file), 'knowledge.example.json');
+  if (!fs.existsSync(file) && fs.existsSync(example)) fs.copyFileSync(example, file);
+  let cache = {};
+  let stamp = 0;
+  return () => {
+    try {
+      const m = fs.statSync(file).mtimeMs;
+      if (m !== stamp) {
+        cache = JSON.parse(fs.readFileSync(file, 'utf8'));
+        stamp = m;
+      }
+    } catch (e) {
+      console.warn(`[경고] knowledge.json을 읽지 못했습니다 (이전 내용 유지): ${e.message}`);
+    }
+    return cache;
+  };
+}
+
 export function loadMenu(file = path.join(ROOT, 'data', 'menu.json')) {
   return JSON.parse(fs.readFileSync(file, 'utf8'));
 }
@@ -138,6 +162,7 @@ function main() {
   const service = createOrderService({
     store: createJsonStore(dataFile),
     menu: loadMenu(),
+    getKnowledge: knowledgeLoader(),
     printProvider: createPrintProvider(),
   });
   const handler = createHandler(service);
@@ -162,7 +187,8 @@ function main() {
   }
   for (const ip of ips) console.log(` 같은 Wi-Fi(HTTP): http://${ip}:${port}   (텍스트만)`);
   if (!ips.length) console.log(' (네트워크 IP를 찾지 못했습니다. Wi-Fi 연결을 확인하세요)');
-  console.log(` 주문 기록 파일 : ${dataFile}\n${line}\n`);
+  console.log(` 주문 기록 파일 : ${dataFile}`);
+  console.log(` 메뉴 지식 문서 : ${path.join(ROOT, 'data', 'knowledge.json')}  (고치면 바로 반영)\n${line}\n`);
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main();

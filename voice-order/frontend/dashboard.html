@@ -31,6 +31,14 @@
     <div class="banner">DEMO / TEST DATA<small>실제 POS 매출 데이터가 아닙니다. 결제는 모두 카운터(PAY_AT_COUNTER)에서 별도로 처리됩니다.</small></div>
     <h1>오늘 테스트 현황 <span id="date"></span></h1>
     <div class="kpis" id="kpis"></div>
+    <h1>답 못 한 질문 <small class="meta">(최근 7일 · 많이 나온 순)</small></h1>
+    <p class="meta">손님이 했지만 시스템이 답하지 못한 말입니다. 답을 정해 <code>data/knowledge.json</code>(메뉴 지식 문서)에 적으면 재시작 없이 다음 질문부터 반영됩니다.</p>
+    <div class="table-wrap">
+      <table class="orders">
+        <thead><tr><th>손님이 한 말</th><th>횟수</th><th>이유</th><th>마지막</th></tr></thead>
+        <tbody id="unanswered"></tbody>
+      </table>
+    </div>
     <h1>최근 주문</h1>
     <div class="table-wrap">
       <table class="orders">

@@ -8,6 +8,8 @@ import {
 } from '../core/dialog.mjs';
 import { createOrderService, quote, STATUS, PAY_AT_COUNTER } from '../backend/orderService.mjs';
 import { createMemoryStore } from '../backend/store.mjs';
+import { answerFromKnowledge } from '../core/knowledge.mjs';
+import { unansweredQuestions } from '../backend/orderService.mjs';
 import { createBrowserPrintProvider, createThermalPrintProvider } from '../backend/print/printService.mjs';
 
 const menu = JSON.parse(fs.readFileSync(new URL('../data/menu.json', import.meta.url), 'utf8'));
@@ -255,7 +257,7 @@ test('메뉴를 모를 때: "따뜻한 음료 뭐 먹으면 될까" → 메뉴�
 });
 
 test('대표 지적 2026-10-03: "따뜻한 음료 중 커피 아닌 것" → 커피를 빼고 차·라떼 종류를 보여준다', () => {
-  for (const t of ['따뜻한 음료 중에 커피 아닌 거 추천해 줘', '커피 말고 따뜻한 거 뭐 있어요', '카페인 없는 따뜻한 거 있어요?']) {
+  for (const t of ['따뜻한 음료 중에 커피 아닌 거 추천해 줘', '커피 말고 따뜻한 거 뭐 있어요', '커피 아닌 따뜻한 거 있어요?']) {
     const r = parseOrder(t, menu);
     assert.equal(r.kind, 'suggest', t);
     assert.equal(r.not_coffee, true, t);
@@ -326,4 +328,61 @@ test('보기가 많으면 음성은 몇 가지만 읽는다 (따뜻한 커피 16
   assert.equal(suggestionText(r), `따뜻하게 드실 수 있는 메뉴는 에스프레소, 더블 에스프레소, 스윗 에스프레소, 코코아 에스프레소 등 ${r.suggestions.length}가지가 있어요. 화면에서 골라 주시거나 메뉴 이름을 말씀해 주세요.`);
   // 메뉴판에서 빠진 레몬 아메리카노는 아메리카노로 바꿔 담지 않는다
   assert.deepEqual(parseOrder('레몬 아메리카노 하나', menu).unknown, ['레몬 아메리카노']);
+});
+
+// ---------- 메뉴 지식 문서 (1단계) ----------
+const knowledge = JSON.parse(fs.readFileSync(new URL('../data/knowledge.example.json', import.meta.url), 'utf8'));
+const ask = (t, k = knowledge) => answerFromKnowledge(t, menu, k, parseOrder(t, menu));
+
+test('지식 문서가 비어 있으면 지어내지 않고 "잘 몰라요" (얼음 갈리는 음료, 많이 팔리는 메뉴, 카페인)', () => {
+  for (const t of ['얼음 갈리는 음료는 어떤 거야?', '어떤 게 많이 팔려요?', '인기 메뉴 뭐예요', '카페인 없는 따뜻한 거 있어요?']) {
+    const r = ask(t);
+    assert.equal(r?.kind, 'unanswered', t);
+    assert.match(r.answer, /직원에게 물어봐/);
+  }
+  // 그냥 "추천해 주세요"는 추천 메뉴가 없으면 메뉴 보기로 넘어간다 (막지 않음)
+  assert.equal(ask('추천해 주세요'), null);
+  // 주문은 지식 문서가 가로채지 않는다
+  assert.equal(ask('아이스 아메리카노 하나'), null);
+});
+
+test('대표가 지식 문서를 채우면 그 내용으로만 답한다', () => {
+  const filled = structuredClone(knowledge);
+  filled.tags.find((x) => x.id === 'BLENDED').menu_ids = ['JAVA_CHIP_FRAPPE', 'COOKIE_CREAM_FRAPPE', 'NO_SUCH_ID'];
+  filled.recommended.menu_ids = ['AMERICANO', 'YUZU_TEA'];
+  filled.faq = [{ match: ['덜 달게'], answer: '네, 직원에게 덜 달게 해 달라고 말씀해 주세요.' }];
+
+  const blended = ask('얼음 갈리는 음료는 어떤 거야?', filled);
+  assert.equal(blended.kind, 'suggest');
+  assert.deepEqual(blended.suggestions.map((x) => x.menu_id), ['JAVA_CHIP_FRAPPE', 'COOKIE_CREAM_FRAPPE'], '없는 id는 무시');
+
+  const popular = ask('어떤 게 많이 팔려요?', filled);
+  assert.equal(popular.kind, 'suggest');
+  assert.match(popular.speech, /^판매 순위는 아직 모으지 않았어요\. 대신 저희 매장 추천 메뉴는 아메리카노, 유자차예요/, '판매 순위를 지어내지 않는다');
+  assert.equal(ask('추천해 주세요', filled).source, 'recommended');
+
+  assert.equal(ask('덜 달게 해 주실 수 있어요?', filled).answer, '네, 직원에게 덜 달게 해 달라고 말씀해 주세요.');
+});
+
+test('메뉴 설명은 메뉴판 원문(description)으로 답한다', () => {
+  const r = ask('프라페가 뭐예요?');
+  assert.equal(r.kind, 'info');
+  assert.equal(r.answer, '자바칩 프라페: 파우더 + 소스 + 우유 + 얼음\n쿠키앤크림 프라페: 파우더 + 소스 + 우유 + 얼음');
+  assert.match(ask('라씨는 뭐 들어가요?').answer, /요거트 플레인 라씨: 요거트 \+ 우유 \+ 얼음/);
+  // 설명이 없는 메뉴는 모른다고 한다
+  assert.equal(ask('유자차는 뭐 들어가요?').kind, 'unanswered');
+});
+
+test('답 못 한 질문은 주문 기록에서 자동 집계된다 (같은 말 묶음, 많이 나온 순)', () => {
+  const svc = createOrderService({ store: createMemoryStore(), menu, printProvider: createBrowserPrintProvider(), getKnowledge: () => knowledge });
+  for (const t of ['얼음 갈리는 음료는 어떤 거야?', '얼음 갈리는 음료는 어떤 거야', '아인슈페너 하나', '아이스 아메리카노 하나']) {
+    svc.parse(svc.startSession('VOICE').id, t);
+  }
+  const ua = svc.stats().unanswered;
+  assert.deepEqual(ua.map((q) => [q.text, q.count, q.label]), [
+    ['얼음 갈리는 음료는 어떤 거야', 2, '질문에 답 못 함'],
+    ['아인슈페너 하나', 1, '메뉴에서 못 찾음'],
+  ]);
+  // 7일 지난 기록은 빠진다
+  assert.equal(unansweredQuestions(svc.stats().recent, new Date(Date.now() + 8 * 86400000)).length, 0);
 });

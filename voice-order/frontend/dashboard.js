@@ -45,6 +45,21 @@ async function load() {
       return d;
     }),
   );
+  const ua = s.unanswered || [];
+  document.getElementById('unanswered').replaceChildren(
+    ...(ua.length
+      ? ua.map((q) => {
+          const tr = document.createElement('tr');
+          tr.append(
+            el('td', `“${q.text}”`, 'items'),
+            el('td', String(q.count)),
+            el('td', q.topic ? `${q.label} (${q.topic})` : q.label),
+            el('td', new Date(q.last_at).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })),
+          );
+          return tr;
+        })
+      : [(() => { const tr = document.createElement('tr'); const td = el('td', '아직 없습니다.'); td.colSpan = 4; tr.append(td); return tr; })()]),
+  );
   document.getElementById('rows').replaceChildren(
     ...s.recent.map((r) => {
       const tr = document.createElement('tr');

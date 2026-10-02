@@ -6,6 +6,7 @@
     {
       "menu_id": "ESPRESSO",
       "name": "에스프레소",
+      "description": "싱글샷",
       "category": "COFFEE",
       "price": 2500,
       "unit": "잔",
@@ -26,6 +27,7 @@
     {
       "menu_id": "DOUBLE_ESPRESSO",
       "name": "더블 에스프레소",
+      "description": "더블샷",
       "category": "COFFEE",
       "price": 2800,
       "unit": "잔",
@@ -45,6 +47,7 @@
     {
       "menu_id": "SWEET_ESPRESSO",
       "name": "스윗 에스프레소",
+      "description": "에스프레소 + 비정제원당(화학적 정제를 하지 않은 원당)",
       "category": "COFFEE",
       "price": 2800,
       "unit": "잔",
@@ -64,6 +67,7 @@
     {
       "menu_id": "CHOCOLATE_ESPRESSO",
       "name": "코코아 에스프레소",
+      "description": "에스프레소 + 비정제원당 + 카카오 + 크림우유",
       "category": "COFFEE",
       "price": 2800,
       "unit": "잔",
@@ -84,6 +88,7 @@
     {
       "menu_id": "SALTED_CARAMEL_ESPRESSO",
       "name": "솔티 카라멜 에스프레소",
+      "description": "에스프레소 + 비정제원당 + 솔티카라멜 + 크림우유",
       "category": "COFFEE",
       "price": 2800,
       "unit": "잔",
@@ -103,6 +108,7 @@
     {
       "menu_id": "AMERICANO",
       "name": "아메리카노",
+      "description": "스페셜티 원두(고소한 맛) 또는 이디오피아 예가체프 원두(과일 산미) 중 고를 수 있어요. 원두는 카운터에서 말씀해 주세요.",
       "category": "COFFEE",
       "price": 3500,
       "unit": "잔",
@@ -651,6 +657,7 @@
     {
       "menu_id": "VIN_CHAUD",
       "name": "뱅쇼",
+      "description": "레드와인 + 과일 (무알콜)",
       "category": "DRINK",
       "price": 7800,
       "unit": "잔",
@@ -692,6 +699,7 @@
     {
       "menu_id": "LEMON_ADE",
       "name": "레몬 에이드",
+      "description": "직접 만든 수제청 + 후지산 탄산수 + 얼음",
       "category": "DRINK",
       "price": 5500,
       "unit": "잔",
@@ -710,6 +718,7 @@
     {
       "menu_id": "GRAPEFRUIT_ADE",
       "name": "자몽 에이드",
+      "description": "직접 만든 수제청 + 후지산 탄산수 + 얼음",
       "category": "DRINK",
       "price": 5500,
       "unit": "잔",
@@ -728,6 +737,7 @@
     {
       "menu_id": "OMIJA_ADE",
       "name": "오미자 에이드",
+      "description": "직접 만든 수제청 + 후지산 탄산수 + 얼음",
       "category": "DRINK",
       "price": 5500,
       "unit": "잔",
@@ -746,6 +756,7 @@
     {
       "menu_id": "PASSION_FRUIT_ADE",
       "name": "패션후르츠 에이드",
+      "description": "직접 만든 수제청 + 후지산 탄산수 + 얼음",
       "category": "DRINK",
       "price": 5500,
       "unit": "잔",
@@ -766,6 +777,7 @@
     {
       "menu_id": "PLAIN_LASSI",
       "name": "요거트 플레인 라씨",
+      "description": "요거트 + 우유 + 얼음",
       "category": "DRINK",
       "price": 6500,
       "unit": "잔",
@@ -788,6 +800,7 @@
     {
       "menu_id": "STRAWBERRY_LASSI",
       "name": "딸기 라씨",
+      "description": "리얼과일 + 요거트 + 우유 + 얼음",
       "category": "DRINK",
       "price": 7500,
       "unit": "잔",
@@ -806,6 +819,7 @@
     {
       "menu_id": "MANGO_LASSI",
       "name": "망고 라씨",
+      "description": "리얼과일 + 요거트 + 우유 + 얼음",
       "category": "DRINK",
       "price": 7500,
       "unit": "잔",
@@ -824,6 +838,7 @@
     {
       "menu_id": "BLUEBERRY_LASSI",
       "name": "블루베리 라씨",
+      "description": "리얼과일 + 요거트 + 우유 + 얼음",
       "category": "DRINK",
       "price": 7500,
       "unit": "잔",
@@ -842,6 +857,7 @@
     {
       "menu_id": "JAVA_CHIP_FRAPPE",
       "name": "자바칩 프라페",
+      "description": "파우더 + 소스 + 우유 + 얼음",
       "category": "DRINK",
       "price": 6500,
       "unit": "잔",
@@ -861,6 +877,7 @@
     {
       "menu_id": "COOKIE_CREAM_FRAPPE",
       "name": "쿠키앤크림 프라페",
+      "description": "파우더 + 소스 + 우유 + 얼음",
       "category": "DRINK",
       "price": 6500,
       "unit": "잔",
@@ -1071,6 +1088,7 @@
     {
       "menu_id": "PATBINGSU",
       "name": "수제 팥빙수",
+      "description": "직접 만든 팥 + 인절미 + 우유얼음",
       "category": "DESSERT",
       "price": 12000,
       "unit": "개",
@@ -1090,6 +1108,7 @@
     {
       "menu_id": "MANGO_BINGSU",
       "name": "망고빙수",
+      "description": "애플망고 + 바닐라아이스크림 + 우유얼음",
       "category": "DESSERT",
       "price": 15000,
       "unit": "개",

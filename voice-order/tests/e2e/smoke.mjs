@@ -183,6 +183,29 @@ await step('음성: "따뜻한 음료 중에 커피 아닌 거" → 종류 → "
   await visible('start');
 });
 
+await step('지식 문서가 비어 있으면: "얼음 갈리는 음료는 어떤 거야?" → 지어내지 않고 "잘 모르겠어요" + 직원 안내', async () => {
+  await page.evaluate(() => window.__queue.push('얼음 갈리는 음료는 어떤 거야?'));
+  await page.getByRole('button', { name: /주문 시작/ }).click();
+  await visible('message');
+  assert.equal(await page.textContent('#m-title'), '잘 모르겠어요.');
+  assert.match(await page.textContent('#m-body'), /직원에게 물어봐/);
+  await page.screenshot({ path: `${OUT}06f-unanswered.png` });
+  await page.reload();
+  await visible('start');
+});
+
+await step('메뉴 설명 질문: "프라페가 뭐예요?" → 메뉴판 원문으로 답함', async () => {
+  await page.evaluate(() => window.__queue.push('프라페가 뭐예요?'));
+  await page.getByRole('button', { name: /주문 시작/ }).click();
+  await visible('message');
+  assert.match(await page.textContent('#m-body'), /자바칩 프라페: 파우더 \+ 소스 \+ 우유 \+ 얼음/);
+  const spoken = await page.evaluate(() => window.__spoken.at(-1));
+  assert.match(spoken, /자바칩 프라페에는 파우더, 소스, 우유, 얼음이 들어가요/);
+  await page.screenshot({ path: `${OUT}06g-describe.png` });
+  await page.reload();
+  await visible('start');
+});
+
 await step('음성: 없는 메뉴 "딸기 아메리카노" → 찾지 못했다는 안내', async () => {
   await page.evaluate(() => window.__queue.push('딸기 아메리카노 하나 주세요'));
   await page.getByRole('button', { name: /주문 시작/ }).click();
@@ -215,6 +238,8 @@ await step('대시보드: DEMO / TEST DATA + 집계', async () => {
   await d.goto(`${BASE}/dashboard`);
   await d.getByText('DEMO / TEST DATA').waitFor();
   await d.waitForSelector('#rows tr');
+  await d.waitForFunction(() => document.getElementById('unanswered').textContent.includes('얼음 갈리는 음료는 어떤 거야'));
+  assert.match(await d.textContent('#unanswered'), /질문에 답 못 함 \(얼음을 갈아 만든 음료\)/);
   const kpi = await d.locator('.kpi').allTextContents();
   assert.ok(kpi.some((t) => t.startsWith('완료 주문')));
   await d.setViewportSize({ width: 1100, height: 900 });

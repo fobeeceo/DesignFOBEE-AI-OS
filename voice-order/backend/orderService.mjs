@@ -3,6 +3,7 @@
 // order_id, created_at, input_type, raw_transcript, items, total_amount, payment_status, status, help_requested, print_status
 import crypto from 'node:crypto';
 import { parseOrder } from '../core/parser.mjs';
+import { answerFromKnowledge } from '../core/knowledge.mjs';
 import { itemLabel, priceFor } from '../core/format.mjs';
 
 export const STATUS = {
@@ -65,7 +66,8 @@ export function quote(rawItems, menu) {
   return { items, total_amount: items.reduce((s, l) => s + l.line_total, 0) };
 }
 
-export function createOrderService({ store, menu, printProvider, now = () => new Date() }) {
+// getKnowledge: 매번 최신 knowledge.json을 돌려주는 함수 (파일을 고치면 재시작 없이 반영)
+export function createOrderService({ store, menu, printProvider, getKnowledge = () => ({}), now = () => new Date() }) {
   function mustGet(id) {
     const r = store.get(id);
     if (!r) throw new OrderError('주문 기록을 찾을 수 없습니다.', 404);
@@ -112,11 +114,12 @@ export function createOrderService({ store, menu, printProvider, now = () => new
     parse(sessionId, text) {
       const r = mustGet(sessionId);
       mustBeOpen(r);
-      const result = parseOrder(text, menu);
-      const failed = result.kind === 'not_found' || result.kind === 'unavailable' || result.kind === 'unclear';
+      const parsed = parseOrder(text, menu);
+      const result = answerFromKnowledge(text, menu, getKnowledge(), parsed) || parsed;
+      const failed = ['not_found', 'unavailable', 'unclear', 'unanswered'].includes(result.kind);
       store.update(r.id, {
         raw_transcript: String(text || ''),
-        transcripts: [...r.transcripts, { at: now().toISOString(), text: String(text || ''), kind: result.kind }],
+        transcripts: [...r.transcripts, { at: now().toISOString(), text: String(text || ''), kind: result.kind, ...(result.topic ? { topic: result.topic } : {}) }],
         fail_count: r.fail_count + (failed ? 1 : 0),
       });
       return { ...result, fail_count: store.get(r.id).fail_count };
@@ -191,6 +194,7 @@ export function createOrderService({ store, menu, printProvider, now = () => new
       const durations = confirmed.map((r) => new Date(r.confirmed_at) - new Date(r.created_at));
       return {
         demo: true,
+        unanswered: unansweredQuestions(store.all(), now()),
         date: today,
         test_sessions: sessions.length,
         completed: confirmed.length,
@@ -203,4 +207,26 @@ export function createOrderService({ store, menu, printProvider, now = () => new
       };
     },
   };
+}
+
+const UNANSWERED_KINDS = { unanswered: '질문에 답 못 함', not_found: '메뉴에서 못 찾음', unclear: '알아듣지 못함', unavailable: '판매 중지 메뉴' };
+
+/**
+ * 대시보드 '답 못 한 질문' — 최근 7일, 같은 말끼리 묶어 많이 나온 순.
+ * 따로 저장하지 않고 주문 기록(transcripts)에서 계산한다 (같은 데이터를 두 곳에 두지 않는다).
+ */
+export function unansweredQuestions(records, now, days = 7) {
+  const since = now.getTime() - days * 86400000;
+  const groups = new Map();
+  for (const r of records) {
+    for (const t of r.transcripts || []) {
+      if (!UNANSWERED_KINDS[t.kind] || !t.text || new Date(t.at).getTime() < since) continue;
+      const key = t.text.replace(/[\s.?!~]+/g, ' ').trim();
+      const g = groups.get(key) || { text: key, kind: t.kind, label: UNANSWERED_KINDS[t.kind], topic: t.topic || null, count: 0, last_at: t.at };
+      g.count += 1;
+      if (t.at > g.last_at) g.last_at = t.at;
+      groups.set(key, g);
+    }
+  }
+  return [...groups.values()].sort((a, b) => b.count - a.count || (a.last_at < b.last_at ? 1 : -1)).slice(0, 50);
 }
