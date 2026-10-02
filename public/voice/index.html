@@ -157,8 +157,9 @@
       setSay(text); setMode('speaking');
       if (!('speechSynthesis' in window)) return resolve();
       var u = new SpeechSynthesisUtterance(text);
-      u.lang = 'ko-KR'; u.rate = 0.92;
-      var v = speechSynthesis.getVoices().filter(function (x) { return x.lang && x.lang.indexOf('ko') === 0; })[0];
+      u.lang = 'ko-KR'; u.rate = 0.95;
+      var ko = speechSynthesis.getVoices().filter(function (x) { return x.lang && x.lang.replace('_', '-').toLowerCase().indexOf('ko') === 0; });
+      var v = ko.filter(function (x) { return /google|yuna|sun-?hi|natural|premium|enhanced/i.test(x.name); })[0] || ko[0];
       if (v) u.voice = v;
       var finished = false;
       function done() { if (!finished) { finished = true; resolve(); } }
@@ -245,29 +246,33 @@
     $('#doneClose').focus();
     order = []; viaVoice = false; render();
     clearTimeout(resetTimer); resetTimer = setTimeout(closeDone, 30000);
-    if (!cancelled) await speak(sent ? '주문이 접수됐어요. 주문번호는 ' + no + '번입니다. 합계 ' + won(total) + '. 카운터에서 결제해 주세요.' : '주문 내용을 확인했어요. 합계 ' + won(total) + '. 이 화면을 카운터 직원에게 보여 주세요.');
+    if (!cancelled) await speak(sent ? '감사합니다! 주문 접수됐어요. 주문번호는 ' + no + '번이에요. 합계 ' + won(total) + '이에요. 카운터에서 결제 도와 드릴게요.' : '네, 주문 내용 확인했어요. 합계 ' + won(total) + '이에요. 이 화면을 카운터 직원분께 보여 주세요.');
   }
   function closeDone() { $('#done').hidden = true; $('#doneTitle').textContent = '주문이 접수됐어요'; setSay('아래 큰 버튼을 누르고, 드시고 싶은 걸 말씀해 주세요.'); setMode('idle'); }
 
   async function callStaff() {
     if (!serverOn) {
       setSay('아직 체험 단계라 직원 호출이 연결되어 있지 않아요. 카운터로 와 주세요.', 'warn');
-      await speak('아직 체험 단계라 직원 호출이 연결되어 있지 않아요. 카운터로 와 주세요.');
+      await speak('죄송해요, 아직 체험 중이라 직원 호출은 연결이 안 돼 있어요. 카운터로 와 주시겠어요?');
       return;
     }
     setSay('직원을 불러요. 잠시만 기다려 주세요.');
     try { fetch('api/staff', { method: 'POST' }); } catch (e) {}
-    await speak('직원을 불러 드릴게요. 잠시만 기다려 주세요.');
+    await speak('네, 직원분을 불러 드릴게요. 잠시만 기다려 주세요.');
   }
 
   // ---------- 음성 대화 ----------
-  var CHOICES = '맞으면 네, 더 시키려면 추가, 다시 하려면 아니요, 라고 말씀해 주세요.';
-  function summary(notes) { return (notes && notes.length ? notes.join(' ') + ' ' : '') + P.describe(order) + '. 합계 ' + won(sum()) + '. ' + CHOICES; }
+  var helped = false; // 처음 한 번만 말하는 방법을 자세히 안내하고, 그다음부터는 짧게 묻는다
+  function summary(notes) {
+    var head = (notes && notes.length ? notes.join(' ') + ' ' : '') + P.describe(order) + ', 합계 ' + won(sum()) + '이에요. ';
+    if (!helped) { helped = true; return head + '괜찮으시면 "네"라고 해 주세요. 더 필요하시면 "추가", 다시 하시려면 "아니요"라고 말씀해 주세요.'; }
+    return head + '이대로 드릴까요? 더 필요하시면 "추가"라고 해 주세요.';
+  }
 
   async function voiceSession() {
-    busy = true; cancelled = false; fails = 0;
+    busy = true; cancelled = false; fails = 0; helped = false;
     try {
-      var prompt = order.length ? summary() : '어서 오세요. 드시고 싶은 메뉴를 말씀해 주세요.';
+      var prompt = order.length ? summary() : '어서 오세요! 오늘은 어떤 걸로 드릴까요?';
       while (!cancelled) {
         await speak(prompt); if (cancelled) return;
         var heard = await listen(); if (cancelled) return;
@@ -281,11 +286,11 @@
         if (local.items.length) { addAll(local.items); notes = local.notes; added = true; }
         else if (local.repeat && order.length) { var last = order[order.length - 1]; addItem(last.id, last.temp, local.repeat); added = true; }
         else if (intent === 'yes' && order.length) { await submit(); return; }
-        else if (intent === 'more') { prompt = '어떤 메뉴를 더 드릴까요?'; continue; }
-        else if (intent === 'no') { order = []; render(); fails = 0; prompt = '알겠어요. 처음부터 다시 말씀해 주세요.'; continue; }
+        else if (intent === 'more') { prompt = '네, 어떤 걸 더 드릴까요?'; continue; }
+        else if (intent === 'no') { order = []; render(); fails = 0; prompt = '네, 처음부터 다시 도와 드릴게요. 말씀해 주세요.'; continue; }
         else if (intent === 'remove' && order.length) {
           var gone = order.pop(); render();
-          prompt = '방금 담은 ' + P.labelOf(gone) + '를 뺐어요. ' + (order.length ? summary() : '다시 메뉴를 말씀해 주세요.'); continue;
+          prompt = '네, ' + P.labelOf(gone) + ' 뺐어요. ' + (order.length ? summary() : '다시 말씀해 주세요.'); continue;
         } else if (intent === 'unknown' || !order.length) {
           var ai = await aiParse(text); if (cancelled) return;
           if (ai.length) { addAll(ai); added = true; }
@@ -293,10 +298,10 @@
 
         if (!added) {
           fails++;
-          if (fails >= 3) { await speak(serverOn ? '죄송해요. 직원을 불러 드릴게요.' : '죄송해요. 화면의 메뉴를 눌러 주문하시거나 카운터로 와 주세요.'); if (serverOn) await callStaff(); return; }
-          prompt = /커피/.test(text) ? '아메리카노, 카페라떼, 카푸치노 같은 메뉴가 있어요. 어떤 걸로 드릴까요?'
-            : text ? '메뉴에서 찾지 못했어요. 메뉴 이름을 천천히 다시 말씀해 주세요.'
-            : '잘 못 들었어요. 천천히 다시 말씀해 주세요.';
+          if (fails >= 3) { await speak(serverOn ? '제가 도움이 못 돼서 죄송해요. 직원분을 불러 드릴게요.' : '제가 도움이 못 돼서 죄송해요. 화면의 메뉴를 눌러 주문하시거나 카운터로 와 주세요.'); if (serverOn) await callStaff(); return; }
+          prompt = /커피/.test(text) ? '커피는 아메리카노, 카페라떼, 카푸치노가 있어요. 어떤 걸로 드릴까요?'
+            : text ? '죄송해요, 그 메뉴는 못 찾았어요. 메뉴 이름을 한 번만 더 말씀해 주시겠어요?'
+            : '죄송해요, 제가 잘 못 들었어요. 천천히 다시 한 번 말씀해 주시겠어요?';
           continue;
         }
         fails = 0; viaVoice = true; render();
