@@ -160,9 +160,9 @@ await step('텍스트: 메뉴 보기에서 버튼으로 고르기', async () => 
   await page.fill('#text-input', '시원한 거 뭐 있어요');
   await page.getByRole('button', { name: '주문 분석' }).click();
   await page.locator('#q-choices').getByRole('button', { name: /^커피\s+\(/ }).click();
-  await page.getByRole('button', { name: /레몬 아메리카노/ }).click();
+  await page.getByRole('button', { name: /^아포카토\s+5,400원/ }).click();
   await visible('confirm');
-  assert.equal(await page.textContent('#c-total'), '4,500원');
+  assert.equal(await page.textContent('#c-total'), '5,400원');
   await page.getByRole('button', { name: /다시 말할게요/ }).click();
   await page.getByRole('button', { name: /처음으로/ }).click();
 });

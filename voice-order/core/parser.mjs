@@ -9,7 +9,7 @@ const HOT_STEMS = ['따뜻', '따듯', '뜨거', '뜨겁', '따끈', '뜨끈', '
 const NON_MENU_FLAVORS = [
   '딸기', '녹차', '말차', '초코', '초콜릿', '고구마', '자몽', '유자', '흑당', '카라멜', '캐러멜',
   '헤이즐넛', '민트', '오트', '두유', '망고', '블루베리', '복숭아', '수박', '쑥', '인절미', '콩',
-  '곡물', '토피넛', '밀크티', '연유', '돌체', '시나몬', '꿀', '허니', '모카', '카푸치노', '과일',
+  '곡물', '토피넛', '밀크티', '연유', '돌체', '시나몬', '꿀', '허니', '모카', '카푸치노', '과일', '레몬', '오렌지', '자몽',
 ];
 
 // 메뉴 이름 없이 "따뜻한 거 뭐 있어요?" / "뭘 마시면 될까" → 메뉴판에서 고를 보기를 보여준다
@@ -237,6 +237,21 @@ export function parseOrder(rawText, menu) {
 
   if (result.unknown.length) result.kind = 'not_found';
   else if (result.unavailable.length) result.kind = 'unavailable';
+  else if (result.items.length && result.items.every((it) => it.needs_confirm) && SUGGEST_RE.test(text)) {
+    // "따뜻한 커피 뭐 있어요?" → 아메리카노를 권하지 말고 커피 메뉴를 보여준다
+    const cats = new Set(result.items.map((it) => menu.items.find((m) => m.menu_id === it.menu_id)?.category));
+    const temperature = detectTemperature(text);
+    result.kind = 'suggest';
+    result.temperature = temperature;
+    result.not_coffee = !!notCoffee;
+    result.category = cats.size === 1 ? [...cats][0] : null;
+    result.items = [];
+    result.suggestions = menu.items
+      .filter((m) => m.available !== false && cats.has(m.category))
+      .filter((m) => !temperature || (m.options?.temperature || []).includes(temperature))
+      .map((m) => ({ menu_id: m.menu_id, name: m.name, category: m.category, price: m.price }));
+    result.unrecognized = [];
+  }
   else if (!result.items.length && (SUGGEST_RE.test(text) || detectTemperature(text) || notCoffee || TEA_RE.test(text))) {
     // 추측해서 담지 않는다. 메뉴판에 있는 것 중에서 고르게 한다.
     const temperature = detectTemperature(text);

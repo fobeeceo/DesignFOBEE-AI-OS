@@ -83,7 +83,7 @@ test('5. "커피 하나" → 확정하지 않고 "아메리카노를 말씀하�
 });
 
 test('6. 존재하지 않는 메뉴 → not_found, 메뉴를 만들어내지 않는다', () => {
-  for (const t of ['딸기 아메리카노 하나 주세요', '고구마 아메리카노 하나', '인절미 빙수 하나', '카푸치노 하나 주세요', '수박 주스 하나']) {
+  for (const t of ['딸기 아메리카노 하나 주세요', '고구마 아메리카노 하나', '인절미 빙수 하나', '아인슈페너 하나 주세요', '수박 주스 하나']) {
     const r = parseOrder(t, menu);
     assert.equal(r.kind, 'not_found', t);
     assert.equal(r.items.length, 0, t);
@@ -121,12 +121,12 @@ test('9. 주문번호 → GB-YYYYMMDD-001부터 하루 단위로 증가', () => 
   const svc = service();
   const ids = [1, 2, 3].map(() => {
     const s = svc.startSession('TEXT');
-    return svc.confirm(s.id, [{ menu_id: 'PATBINGSU', quantity: 1 }]).order_id;
+    return svc.confirm(s.id, [{ menu_id: 'ESPRESSO', temperature: 'HOT', quantity: 1 }]).order_id;
   });
   assert.deepEqual(ids, ['GB-20261002-001', 'GB-20261002-002', 'GB-20261002-003']);
   // 한국 시간 자정이 지나면 001부터 (UTC 15:00 = KST 00:00)
   const night = service({ clock: new Date('2026-10-02T14:59:50Z') });
-  const a = night.confirm(night.startSession('TEXT').id, [{ menu_id: 'PATBINGSU', quantity: 1 }]).order_id;
+  const a = night.confirm(night.startSession('TEXT').id, [{ menu_id: 'ESPRESSO', temperature: 'HOT', quantity: 1 }]).order_id;
   assert.equal(a, 'GB-20261003-001');
 });
 
@@ -167,7 +167,7 @@ test('11. 주문 출력 → 주문번호·메뉴·합계·카운터 결제가 �
 test('12. 출력 실패 → PRINT_FAILED 기록, 주문은 그대로 유지', async () => {
   const svc = service({ printProvider: createThermalPrintProvider() });
   const s = svc.startSession('VOICE');
-  const order = svc.confirm(s.id, [{ menu_id: 'PATBINGSU', quantity: 1 }]);
+  const order = svc.confirm(s.id, [{ menu_id: 'ESPRESSO', temperature: 'HOT', quantity: 1 }]);
   const out = await svc.print(order.order_id);
   assert.equal(out.ok, false);
   assert.equal(out.print_status, 'PRINT_FAILED');
@@ -217,18 +217,19 @@ test('자연어 표현 (요구사항 §9)', () => {
     '아이스아메리카노2잔': [['AMERICANO', 'ICE', 2]],
     '아메리카노 아이스로 하나 라떼 따뜻하게 두 잔': [['AMERICANO', 'ICE', 1], ['CAFE_LATTE', 'HOT', 2]],
     '여기요 아이스 아메리카노 한 잔 주세요': [['AMERICANO', 'ICE', 1]],
-    '레몬 아메리카노 하나': [['LEMON_AMERICANO', 'ICE', 1]],
-    '오렌지 아메리카노 두 개': [['ORANGE_AMERICANO', 'ICE', 2]],
-    '팥빙수 하나': [['PATBINGSU', null, 1]],
+    '에스프레소 하나': [['ESPRESSO', 'HOT', 1]],
+    '아포카토 두 개': [['AFFOGATO', 'ICE', 2]],
+    '카푸치노 따뜻하게 한 잔': [['CAPPUCCINO', 'HOT', 1]],
+    '헤이즐넛 라떼 아이스로 하나': [['HAZELNUT_LATTE', 'ICE', 1]],
   };
   for (const [t, want] of Object.entries(cases)) assert.deepEqual(brief(parseOrder(t, menu)), want, t);
   // 아이스만 있는 메뉴를 따뜻하게 주문 → 묻는다
-  const lemon = parseOrder('따뜻한 레몬 아메리카노 하나', menu);
-  assert.equal(nextQuestion(lemon.items, menu).text, '레몬 아메리카노는 아이스만 있어요. 아이스로 드릴까요?');
+  const berry = parseOrder('따뜻한 딸기 라떼 하나', menu);
+  assert.equal(nextQuestion(berry.items, menu).text, '딸기 라떼는 아이스만 있어요. 아이스로 드릴까요?');
   // 알아듣지 못한 말
   assert.equal(parseOrder('음', menu).kind, 'unclear');
   assert.equal(parseOrder('', menu).kind, 'unclear');
-  assert.deepEqual(parseOrder('아메리카노 하나랑 카푸치노 하나', menu).unrecognized, ['카푸치노']);
+  assert.deepEqual(parseOrder('아메리카노 하나랑 아인슈페너 하나', menu).unrecognized, ['아인슈페너']);
 });
 
 test('메뉴를 모를 때: "따뜻한 음료 뭐 먹으면 될까" → 메뉴판의 보기만 제시 (대신 골라 담지 않음)', () => {
@@ -246,7 +247,7 @@ test('메뉴를 모를 때: "따뜻한 음료 뭐 먹으면 될까" → 메뉴�
   assert.deepEqual(groups.map((g) => g.label), ['커피', '라떼·음료', '차']);
   assert.equal(categoryText(r, groups), '따뜻하게 드실 수 있는 메뉴는 커피, 라떼·음료, 차 종류가 있어요. 어떤 종류로 보여드릴까요?');
   // 가격은 MENU_MASTER 그대로
-  assert.equal(r.suggestions[0].price, 3500);
+  assert.equal(r.suggestions.find((x) => x.menu_id === 'AMERICANO').price, 3500);
   assert.equal(parseOrder('따뜻한 거 하나 주세요', menu).kind, 'suggest');
   // 없는 메뉴는 여전히 not_found, 메뉴 이름이 있으면 주문으로
   assert.equal(parseOrder('딸기 아메리카노 뭐 있어요', menu).kind, 'not_found');
@@ -296,4 +297,33 @@ test('음료·차 주문과 온도별 가격 (메뉴판 public/gbrick-menu.html 
       assert.ok(Number.isInteger(p) && p > 0, `${m.name} ${t} 가격 없음`);
     }
   }
+});
+
+test('대표 지시 2026-10-03: 가격은 실제 메뉴판(10/1 승인) 기준', () => {
+  const price = (id, t) => quote([{ menu_id: id, temperature: t, quantity: 1 }], menu).total_amount;
+  assert.equal(price('AMERICANO', 'HOT'), 3500);
+  assert.equal(price('CAFE_LATTE', 'ICE'), 4400);
+  assert.equal(price('VANILLA_LATTE', 'HOT'), 4900); // 지시서 4,800 → 메뉴판 4,900
+  assert.equal(price('HAND_DRIP', 'HOT'), 5000);
+  assert.equal(price('HAND_DRIP', 'ICE'), 6000);
+  // 메뉴판에 없는 레몬·오렌지 아메리카노는 없다
+  assert.ok(!menu.items.some((m) => /LEMON_AMERICANO|ORANGE_AMERICANO/.test(m.menu_id)));
+  // 팥빙수는 12,000원, 하절기 한정 → 지금은 주문 불가
+  const bingsu = menu.items.find((m) => m.menu_id === 'PATBINGSU');
+  assert.equal(bingsu.price, 12000);
+  assert.equal(parseOrder('팥빙수 하나', menu).kind, 'unavailable');
+  // "바닐라라떼"라고 해도 메뉴판 이름(바닐라빈 라떼)으로 받는다
+  assert.deepEqual(brief(parseOrder('아이스 바닐라라떼 하나', menu)), [['VANILLA_LATTE', 'ICE', 1]]);
+  // 차·에이드 둘 다 있는 "오미자"는 바로 담지 않고 묻는다
+  const omija = parseOrder('오미자 하나', menu);
+  assert.equal(nextQuestion(omija.items, menu).text, '오미자차를 말씀하시나요?');
+});
+
+test('보기가 많으면 음성은 몇 가지만 읽는다 (따뜻한 커피 16가지)', () => {
+  const r = parseOrder('따뜻한 커피 뭐 있어요', menu);
+  assert.equal(r.kind, 'suggest');
+  assert.ok(r.suggestions.every((x) => x.category === 'COFFEE'));
+  assert.equal(suggestionText(r), `따뜻하게 드실 수 있는 메뉴는 에스프레소, 더블 에스프레소, 스윗 에스프레소, 코코아 에스프레소 등 ${r.suggestions.length}가지가 있어요. 화면에서 골라 주시거나 메뉴 이름을 말씀해 주세요.`);
+  // 메뉴판에서 빠진 레몬 아메리카노는 아메리카노로 바꿔 담지 않는다
+  assert.deepEqual(parseOrder('레몬 아메리카노 하나', menu).unknown, ['레몬 아메리카노']);
 });

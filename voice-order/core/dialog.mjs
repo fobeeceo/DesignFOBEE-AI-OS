@@ -58,6 +58,7 @@ export function applyAnswer(items, question, answer, menu) {
 }
 
 export const CATEGORY_LABEL = { COFFEE: '커피', DRINK: '라떼·음료', TEA: '차', DESSERT: '빙수' };
+const MAX_SPOKEN = 9; // 음성으로 다 읽어 주는 최대 개수
 export const MAX_DIRECT_CHOICES = 6; // 이보다 많으면 먼저 종류(커피/차/라떼·음료)를 고르게 한다
 
 /** 보기가 너무 많으면 종류별로 묶는다. 묶을 필요 없으면 null */
@@ -90,6 +91,11 @@ export function categoryText(r, groups) {
 /** 추천 보기 안내 문장: "따뜻하게 드실 수 있는 메뉴는 아메리카노, 카페라떼가 있어요. 어떤 걸로 드릴까요?" */
 export function suggestionText(r, suggestions = r.suggestions) {
   const head = headPhrase(r);
+  if (suggestions.length > MAX_SPOKEN) {
+    // 너무 길면 다 읽지 않는다. 몇 가지만 말하고 나머지는 화면 버튼으로
+    const few = suggestions.slice(0, 4).map((x) => x.name).join(', ');
+    return `${head} ${few} 등 ${suggestions.length}가지가 있어요. 화면에서 골라 주시거나 메뉴 이름을 말씀해 주세요.`;
+  }
   const names = suggestions.map((x) => x.name).join(', ');
   return `${head} ${josa(names, '이', '가')} 있어요. 어떤 걸로 드릴까요?`;
 }
