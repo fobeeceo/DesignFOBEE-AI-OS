@@ -121,6 +121,30 @@ await step('음성 주문: "커피 하나" → 확인 질문 → 네 → 아이�
   await page.getByRole('button', { name: /처음으로/ }).click();
 });
 
+await step('음성 대답: 처음엔 못 듣고, 안내 음성 메아리는 무시하고, 다시 들어서 "네" 처리', async () => {
+  await page.evaluate(() => window.__queue.push(
+    '따뜻한 커피 한잔 주문할게', '__nospeech__', '따뜻한 아메리카노를 말씀하시나요', '네',
+    '__nospeech__', '맞아요',
+  ));
+  await page.getByRole('button', { name: /주문 시작/ }).click();
+  await visible('done');
+  assert.match(await page.textContent('#d-lines'), /따뜻한 아메리카노/);
+  await page.getByRole('button', { name: /처음으로/ }).click();
+});
+
+await step('음성 대답 3번 못 들음 → 버튼 안내 + "말로 다시 대답하기"', async () => {
+  await page.evaluate(() => window.__queue.push('아이스 라떼 하나', '__nospeech__', '__nospeech__', '__nospeech__'));
+  await page.getByRole('button', { name: /주문 시작/ }).click();
+  await visible('confirm');
+  await page.locator('#c-listen').waitFor({ state: 'visible', timeout: 5000 });
+  assert.equal(await page.textContent('#c-status'), '버튼을 눌러 주셔도 돼요.');
+  await page.screenshot({ path: `${OUT}06b-answer-fallback.png` });
+  await page.evaluate(() => window.__queue.push('네'));
+  await page.locator('#c-listen').click();
+  await visible('done');
+  await page.getByRole('button', { name: /처음으로/ }).click();
+});
+
 await step('음성: 없는 메뉴 "딸기라떼" → 찾지 못했다는 안내', async () => {
   await page.evaluate(() => window.__queue.push('딸기라떼 하나 주세요'));
   await page.getByRole('button', { name: /주문 시작/ }).click();

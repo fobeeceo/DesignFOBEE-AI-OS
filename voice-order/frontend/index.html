@@ -51,7 +51,8 @@
         <p class="heard" id="q-heard"></p>
         <h2 class="title" id="q-text"></h2>
         <div class="choices" id="q-choices"></div>
-        <p class="hint" id="q-hint" hidden>버튼을 눌러 주셔도 돼요.</p>
+        <p class="listen-status" id="q-status" aria-live="polite"></p>
+        <button class="btn link" data-action="listen-answer" id="q-listen" hidden>🎤 말로 다시 대답하기</button>
       </section>
 
       <section class="screen" data-screen="confirm" hidden>
@@ -62,7 +63,8 @@
         <p class="ask" id="c-ask"></p>
         <button class="btn primary" data-action="confirm-yes">네, 맞아요</button>
         <button class="btn secondary" data-action="retry">다시 말할게요</button>
-        <p class="hint" id="c-hint" hidden>버튼을 눌러 주셔도 돼요.</p>
+        <p class="listen-status" id="c-status" aria-live="polite"></p>
+        <button class="btn link" data-action="listen-answer" id="c-listen" hidden>🎤 말로 다시 대답하기</button>
       </section>
 
       <section class="screen" data-screen="message" hidden>

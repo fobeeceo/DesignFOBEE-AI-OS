@@ -7,6 +7,9 @@ import { createSpeechProvider, Speaker, SpeechFailure } from '/speech.js';
 const HOME_AFTER_DONE_SEC = 10;
 const IDLE_RESET_SEC = 90;
 const MAX_FAILS = 3;
+const ANSWER_TRIES = 3; // 대답은 한 번 놓쳐도 다시 듣는다 (어르신은 대답이 늦을 수 있다)
+// 스피커에서 나온 안내 음성을 마이크가 다시 들은 것 → 대답으로 치지 않는다
+const ECHO_RE = /(말씀하시나요|맞으실까요|드릴까요|어떤 걸로|듣고 있습니다)/;
 const EXAMPLES = [
   '아이스 아메리카노 하나',
   '따뜻한 라떼 하나',
@@ -222,7 +225,7 @@ async function askQuestion(q) {
   s.question = q;
   $('q-heard').textContent = s.heard ? `들은 말: “${s.heard}”` : '';
   $('q-text').textContent = q.text;
-  $('q-hint').hidden = true;
+  resetAnswerUi('q');
   const answer = (a) => () => onAnswer(a);
   buttons(
     $('q-choices'),
@@ -239,19 +242,43 @@ async function askQuestion(q) {
   );
   show('question');
   await say(q.text);
-  if (my === flow && s.mode === 'VOICE') listenAnswer(my, onAnswer, 'q-hint');
+  if (my === flow && s.mode === 'VOICE') {
+    const prompt = q.type === 'choose_temperature' ? '“따뜻하게” 또는 “아이스”' : '“네” 또는 “아니요”';
+    listenAnswer(my, 'q', onAnswer, prompt);
+  }
 }
 
-async function listenAnswer(my, handler, hintId) {
-  try {
-    const text = await stt.listen();
+function resetAnswerUi(prefix) {
+  $(`${prefix}-status`).textContent = '';
+  $(`${prefix}-listen`).hidden = true;
+}
+
+/** 대답 듣기: 못 들었거나 모르는 말이면 ANSWER_TRIES번까지 다시 듣는다. handler가 false면 처리 못 한 대답 */
+async function listenAnswer(my, prefix, handler, prompt) {
+  s.answer = { prefix, handler, prompt };
+  const status = $(`${prefix}-status`);
+  $(`${prefix}-listen`).hidden = true;
+  for (let i = 0; i < ANSWER_TRIES; i++) {
     if (my !== flow) return;
+    status.textContent = `🎤 듣고 있어요. ${prompt}라고 말씀해 주세요.`;
+    await new Promise((r) => setTimeout(r, 300)); // 안내 음성 끝자락이 마이크에 들어가지 않게
+    let text;
+    try {
+      text = await stt.listen((t) => (status.textContent = `🎤 “${t}”`));
+    } catch (e) {
+      if (my !== flow) return;
+      if (['not-allowed', 'audio-capture', 'unsupported'].includes(e.code)) break;
+      continue; // 말소리 없음 → 다시 듣기
+    }
+    if (my !== flow) return;
+    if (ECHO_RE.test(text)) continue;
     s.heard = text;
     const a = interpretAnswer(text);
-    if (a) handler(a);
-    else $(hintId).hidden = false;
-  } catch {
-    if (my === flow) $(hintId).hidden = false; // 대답을 못 들어도 탓하지 않고 버튼 안내만
+    if (a && handler(a) !== false) return;
+  }
+  if (my === flow) {
+    status.textContent = '버튼을 눌러 주셔도 돼요.';
+    $(`${prefix}-listen`).hidden = false;
   }
 }
 
@@ -259,10 +286,7 @@ function onAnswer(a) {
   stt.cancel();
   const next = applyAnswer(s.items, s.question, a, menu);
   if (next === null) return retry();
-  if (next === s.items) {
-    $('q-hint').hidden = false;
-    return;
-  }
+  if (next === s.items) return false;
   s.items = next;
   proceed();
 }
@@ -286,15 +310,15 @@ async function showConfirm() {
   $('c-note').textContent = s.unrecognized.length
     ? `‘${s.unrecognized.join(', ')}’는 알아듣지 못해 빠졌어요. 필요하시면 ‘다시 말할게요’를 눌러 주세요.`
     : '';
-  $('c-hint').hidden = true;
+  resetAnswerUi('c');
   show('confirm');
   await say(`${spoken} 맞으실까요? 총 ${won(priced.total_amount)}입니다.`);
   if (my === flow && s.mode === 'VOICE') {
-    listenAnswer(my, (a) => {
-      if (a === 'yes') confirmOrder();
-      else if (a === 'no') retry();
-      else $('c-hint').hidden = false;
-    }, 'c-hint');
+    listenAnswer(my, 'c', (a) => {
+      if (a === 'yes') return confirmOrder();
+      if (a === 'no') return retry();
+      return false;
+    }, '“네” 또는 “아니요”');
   }
 }
 
@@ -392,6 +416,7 @@ const ACTIONS = {
   reset,
   help: requestHelp,
   print: () => s.lastOrder && printOrder(s.lastOrder.order_id),
+  'listen-answer': () => s.answer && listenAnswer(flow, s.answer.prefix, s.answer.handler, s.answer.prompt),
 };
 
 document.addEventListener('click', (e) => {

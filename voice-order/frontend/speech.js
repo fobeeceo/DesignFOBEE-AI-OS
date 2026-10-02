@@ -46,7 +46,7 @@ export class BrowserSpeechProvider {
         if (settled) return;
         settled = true;
         clearTimeout(timer);
-        this.rec = null;
+        if (this.rec === rec) this.rec = null; // 늦게 끝난 이전 듣기가 새 듣기를 지우지 않게
         fn(v);
       };
       const timer = setTimeout(() => {
