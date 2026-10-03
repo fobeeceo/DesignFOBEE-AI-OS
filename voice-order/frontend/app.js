@@ -2,10 +2,11 @@
 // 가격 계산·주문번호는 서버가 한다. 여기서는 화면과 음성만 다룬다.
 import {
   nextQuestion, applyAnswer, interpretAnswer, suggestionText, groupSuggestions, categoryText, interpretCategory, CATEGORY_LABEL,
-} from '/core/dialog.mjs';
-import { parseOrder } from '/core/parser.mjs';
-import { won, speakItems, priceLabel } from '/core/format.mjs';
-import { createSpeechProvider, Speaker, SpeechFailure } from '/speech.js';
+} from './core/dialog.mjs';
+import { parseOrder } from './core/parser.mjs';
+import { won, speakItems, priceLabel } from './core/format.mjs';
+import { createSpeechProvider, Speaker, SpeechFailure } from './speech.js';
+import { api } from './api.js';
 
 const HOME_AFTER_DONE_SEC = 10;
 const IDLE_RESET_SEC = 90;
@@ -38,16 +39,8 @@ function freshState() {
 }
 
 // ---------- 공통 ----------
-async function api(path, body) {
-  const res = await fetch(path, {
-    method: body === undefined ? 'GET' : 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: body === undefined ? undefined : JSON.stringify(body),
-  });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
-  return data;
-}
+// 웹 체험판(fobee.co.kr): 주문이 매장에 가지 않으므로 '완료'·'직원 호출'을 사실대로 바꿔 말한다
+const WEB_DEMO = document.documentElement.dataset.mode === 'web-demo';
 
 function show(name) {
   document.querySelectorAll('[data-screen]').forEach((el) => {
@@ -446,7 +439,14 @@ function showDone(order) {
   s.lastOrder = order;
   s.session = null; // 확정된 세션은 닫힘
   show('done');
-  say(`주문이 완료되었습니다. 주문번호는 ${shortNo}번입니다. 카운터에서 결제해 주세요.`);
+  if (WEB_DEMO) {
+    $('d-title').textContent = '체험 주문이 끝났어요.';
+    $('d-pay').textContent = '이 주문은 매장에 전달되지 않아요.\n실제 주문은 매장에서 해 주세요.';
+    $('d-print').hidden = true;
+    say('체험 주문이 끝났어요. 이 주문은 매장에 전달되지 않아요. 실제 주문은 매장에서 해 주세요.');
+  } else {
+    say(`주문이 완료되었습니다. 주문번호는 ${shortNo}번입니다. 카운터에서 결제해 주세요.`);
+  }
   if (autoPrint) printOrder(order.order_id);
   let left = HOME_AFTER_DONE_SEC;
   $('d-count').textContent = left;
@@ -481,6 +481,12 @@ async function requestHelp() {
   ++flow;
   await api('/api/help', { session_id: s.session }).catch(() => {});
   show('help');
+  if (WEB_DEMO) {
+    $('h-title').textContent = '체험판에서는 직원 호출이 되지 않아요.';
+    $('h-body').textContent = '매장에서는 이 버튼을 누르면 직원이 와서 도와드려요.';
+    say('체험판에서는 직원 호출이 되지 않아요. 매장에서는 이 버튼을 누르면 직원이 와서 도와드려요.');
+    return;
+  }
   say('직원을 호출했습니다. 잠시만 기다려 주세요.');
 }
 

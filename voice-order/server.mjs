@@ -10,6 +10,7 @@ import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { createJsonStore } from './backend/store.mjs';
 import { createOrderService, OrderError } from './backend/orderService.mjs';
+import { route } from './backend/router.mjs';
 import { createPrintProvider } from './backend/print/printService.mjs';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
@@ -97,31 +98,11 @@ export function createHandler(service, { shareKey = process.env.SHARE_KEY || '' 
     if (req.headers['cf-connecting-ip'] && ADMIN_PATHS.has(pathname) && (!shareKey || searchParams.get('key') !== shareKey)) {
       return send(res, 403, '대시보드는 매장 PC 또는 키가 들어 있는 주소로만 열 수 있습니다.', 'text/plain; charset=utf-8');
     }
-    const m = (re) => pathname.match(re);
-    let match;
     try {
       if (!pathname.startsWith('/api/')) return serveStatic(req, res);
-      if (req.method === 'GET' && pathname === '/api/health') return send(res, 200, { ok: true });
-      if (req.method === 'GET' && pathname === '/api/menu') return send(res, 200, service.menu);
-      if (req.method === 'GET' && pathname === '/api/stats') return send(res, 200, service.stats());
-      if (req.method !== 'POST') return send(res, 404, { error: 'not found' });
-
-      const body = await readJson(req);
-      if (pathname === '/api/sessions') return send(res, 201, service.startSession(body.input_type));
-      if (pathname === '/api/quote') return send(res, 200, service.quote(body.items));
-      if (pathname === '/api/help') return send(res, 200, service.requestHelp(body.session_id || null));
-      if ((match = m(/^\/api\/sessions\/([\w-]+)\/(parse|fail|confirm|cancel)$/))) {
-        const [, id, action] = match;
-        if (action === 'parse') return send(res, 200, service.parse(id, body.text));
-        if (action === 'fail') return send(res, 200, service.recordFailure(id, body.reason));
-        if (action === 'confirm') return send(res, 200, service.confirm(id, body.items));
-        if (action === 'cancel') return send(res, 200, service.cancel(id));
-      }
-      if ((match = m(/^\/api\/orders\/(GB-\d{8}-\d{3,})\/print$/))) return send(res, 200, await service.print(match[1]));
-      if ((match = m(/^\/api\/orders\/(GB-\d{8}-\d{3,})\/print-result$/))) {
-        return send(res, 200, service.reportPrint(match[1], body.ok === true));
-      }
-      return send(res, 404, { error: 'not found' });
+      const body = req.method === 'POST' ? await readJson(req) : {};
+      const out = await route(service, req.method, pathname, body);
+      return send(res, out.status, out.body);
     } catch (e) {
       if (e instanceof OrderError) return send(res, e.status, { error: e.message });
       console.error(e);

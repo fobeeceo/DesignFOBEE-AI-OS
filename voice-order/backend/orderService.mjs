@@ -1,7 +1,6 @@
 // 주문 흐름의 서버 쪽 규칙: 세션 기록, 분석 기록, 가격 계산, 주문번호, 확정, 출력, 직원 호출, 통계.
 // ORDER 필드는 향후 GBRICK AI OS ORDER와 맞춘다:
 // order_id, created_at, input_type, raw_transcript, items, total_amount, payment_status, status, help_requested, print_status
-import crypto from 'node:crypto';
 import { parseOrder } from '../core/parser.mjs';
 import { answerFromKnowledge } from '../core/knowledge.mjs';
 import { itemLabel, priceFor } from '../core/format.mjs';
@@ -13,6 +12,12 @@ export const STATUS = {
   CANCELLED: 'CANCELLED',
 };
 export const PAY_AT_COUNTER = 'PAY_AT_COUNTER';
+
+// 서버(Node 18+)와 브라우저 모두에서 동작하는 고유 id
+function newId() {
+  if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+}
 const MAX_QTY = 20;
 
 export class OrderError extends Error {
@@ -93,7 +98,7 @@ export function createOrderService({ store, menu, printProvider, getKnowledge = 
     startSession(inputType) {
       const input_type = inputType === 'TEXT' ? 'TEXT' : inputType === 'VOICE' ? 'VOICE' : 'NONE';
       return store.insert({
-        id: crypto.randomUUID(),
+        id: newId(),
         order_id: null,
         created_at: now().toISOString(),
         confirmed_at: null,

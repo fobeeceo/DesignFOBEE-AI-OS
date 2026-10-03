@@ -34,17 +34,4 @@ export function createJsonStore(filePath) {
   };
 }
 
-/** 테스트용 메모리 저장소 */
-export function createMemoryStore() {
-  const records = [];
-  return {
-    all: () => records,
-    get: (id) => records.find((r) => r.id === id) || null,
-    findByOrderId: (orderId) => records.find((r) => r.order_id === orderId) || null,
-    insert: (r) => (records.push(r), r),
-    update(id, patch) {
-      const r = records.find((x) => x.id === id);
-      return r ? Object.assign(r, patch) : null;
-    },
-  };
-}
+export { createMemoryStore } from './memoryStore.mjs';

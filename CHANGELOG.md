@@ -4,6 +4,13 @@
 
 ## [Unreleased]
 
+### 「대화로 주문」 웹 체험판 — fobee.co.kr/gbrick-order (2026-10-03, 대표 지시)
+- 매장용 음성 주문(voice-order/)을 홈페이지에서 휴대폰으로 체험할 수 있게 했다. 원본은 voice-order/ 하나이고, `next.config.mjs`가 빌드 때 `scripts/sync-voice-order.mjs`로 `public/gbrick-order/`에 복사한다(복사본은 git 제외 — 같은 코드를 두 곳에 두지 않음).
+- **사실대로 표시**: 홈페이지(Vercel)는 매장 PC와 연결되어 있지 않아 주문이 매장에 가지 않는다. 그래서 첫 화면·완료 화면에 "체험판이에요. 여기서 하는 주문은 매장에 전달되지 않아요"를 적고, 주문서 출력 버튼을 숨기고, 직원 호출은 "체험판에서는 되지 않아요"로 안내한다(§0 원칙 1·3). 검색 노출 제외(noindex), 메뉴(내비게이션) 링크 없음.
+- 같은 주문 엔진을 브라우저 안에서 돌린다(`voice-order/frontend/web-demo.js`, API 경로표 `backend/router.mjs`를 매장 서버와 공유). 체험 기록은 그 기기 브라우저에만 저장.
+- **검증**: `npm run qa` 통과(lint 0 · tsc · build 45페이지 · vitest 141) · `next start` 운영 빌드에서 /gbrick-order 200, JS MIME 정상, 홈 200 · 아이폰 크기 브라우저 8단계(음성 모의·텍스트·완료 문구·직원 호출 문구·JS 끔) PASS · voice-order 자체 테스트 28 + 브라우저 21 PASS.
+- **확인하지 못한 것**: 배포 후 실제 fobee.co.kr 화면과 실제 아이폰 마이크 — 이 작업 환경에서는 fobee.co.kr에 접속이 막혀 있다.
+
 ### GBRICK AI VOICE ORDER MVP v0.1 — 독립 데모 `voice-order/` (2026-10-02, 대표 지시)
 - **기존 시스템과 분리**: 저장소 안 별도 폴더, 의존성 0개 Node 서버. 홈페이지 빌드·lint·tsc·배포 대상이 아니다. POS·키오스크·결제·HERMES·JARVIS·ERP·DB는 건드리지 않았다.
 - 음성(Web Speech API)/텍스트 → 규칙 기반 주문 분석 → 확인 질문 → 주문 확인 → `GB-YYYYMMDD-001` → 브라우저 인쇄 주문서 → "결제는 카운터에서" (`PAY_AT_COUNTER`). 테스트 대시보드 상단 **DEMO / TEST DATA**.

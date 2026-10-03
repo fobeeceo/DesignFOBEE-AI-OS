@@ -1,4 +1,5 @@
-import { won } from '/core/format.mjs';
+import { won } from './core/format.mjs';
+import { api } from './api.js';
 
 const INPUT = { VOICE: '음성', TEXT: '텍스트', NONE: '-' };
 const STATUS = { CONFIRMED: '완료', FAILED: '실패', CANCELLED: '취소', IN_PROGRESS: '진행 중' };
@@ -16,19 +17,17 @@ function time(iso) {
 }
 
 async function reprint(orderId) {
-  const r = await fetch(`/api/orders/${orderId}/print`, { method: 'POST' }).then((x) => x.json());
+  const r = await api(`/api/orders/${orderId}/print`, {});
   if (!r.ok) return alert(`출력 실패: ${r.error}`);
   document.getElementById('print-area').innerHTML = r.html;
   window.print();
-  await fetch(`/api/orders/${orderId}/print-result`, {
-    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ok: true }),
-  });
+  await api(`/api/orders/${orderId}/print-result`, { ok: true });
   load();
 }
 
 async function load() {
   const key = new URLSearchParams(location.search).get('key'); // 인터넷 공유 때만 필요
-  const s = await fetch(`/api/stats${key ? `?key=${encodeURIComponent(key)}` : ''}`).then((r) => r.json());
+  const s = await api(`/api/stats${key ? `?key=${encodeURIComponent(key)}` : ''}`);
   document.getElementById('date').textContent = `(${s.date.slice(0, 4)}-${s.date.slice(4, 6)}-${s.date.slice(6)})`;
   const kpis = [
     ['오늘 테스트 주문', s.test_sessions],
