@@ -95,9 +95,10 @@ export function createOrderService({ store, menu, printProvider, getKnowledge = 
   return {
     menu,
 
-    startSession(inputType) {
+    startSession(inputType, extra = {}) {
       const input_type = inputType === 'TEXT' ? 'TEXT' : inputType === 'VOICE' ? 'VOICE' : 'NONE';
       return store.insert({
+        ...extra,
         id: newId(),
         order_id: null,
         created_at: now().toISOString(),

@@ -45,6 +45,19 @@ npm start
 > 인증서 경고 없이 쓰려면 `cloudflared tunnel --url http://localhost:3100` 같은 HTTPS 터널을 쓸 수 있다 (외부 서비스 — 데모 주소가 인터넷에 열리므로 시연 때만).
 > PC IP가 바뀌면 `certs/` 폴더를 지우고 다시 `npm start`.
 
+## 2-0. 본점 실매장 파일럿 (STORE MODE v0.2)
+
+`npm start` 하면 기존 데모와 함께 **매장 주문 서버**가 TEST 모드로 켜진다.
+
+| 화면 | 주소 |
+|---|---|
+| 손님 태블릿 | `https://<매장PC IP>:3443/store/GBRICK_MAIN` |
+| 카운터 | `http://localhost:3100/counter/GBRICK_MAIN` |
+
+손님 확인 → 주문번호(TEST `T001` / 실제 `A001`) → 카운터 표시·소리 → 주문서 출력 → 제조 → 기존 POS 결제.
+PRODUCTION은 `VOICE_ORDER_MODE=production` + `STORE_STAFF_KEY`(직원 PIN)가 모두 있어야 켜진다(대표 승인 후).
+설치 SOP·데이터 구조·장애 대응: **[GBRICK-AI-VOICE-ORDER-STORE-MVP.md](GBRICK-AI-VOICE-ORDER-STORE-MVP.md)** · 단계 계획: [GBRICK-AI-VOICE-ORDER-ROADMAP.md](GBRICK-AI-VOICE-ORDER-ROADMAP.md)
+
 ## 2-1. 밖에서 휴대폰으로 열기 (인터넷 공유)
 
 매장 Wi-Fi 밖(집·외부)에서 휴대폰으로 시연할 때. 매장 PC가 켜져 있어야 한다.

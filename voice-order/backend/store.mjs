@@ -35,3 +35,24 @@ export function createJsonStore(filePath) {
 }
 
 export { createMemoryStore } from './memoryStore.mjs';
+
+/** 하나의 JSON 문서를 통째로 읽고 쓰는 저장소 (STORE MODE 주문 서버용). 쓰기는 임시 파일 → 교체라 도중에 꺼져도 파일이 깨지지 않는다 */
+export function createJsonDb(filePath) {
+  return {
+    load() {
+      if (!fs.existsSync(filePath)) return null;
+      return JSON.parse(fs.readFileSync(filePath, 'utf8') || 'null');
+    },
+    save(data) {
+      fs.mkdirSync(path.dirname(filePath), { recursive: true });
+      const tmp = `${filePath}.tmp`;
+      fs.writeFileSync(tmp, JSON.stringify(data, null, 1));
+      fs.renameSync(tmp, filePath);
+    },
+  };
+}
+
+export const createMemoryDb = (initial = null) => {
+  let data = initial;
+  return { load: () => data, save: (d) => (data = d) };
+};

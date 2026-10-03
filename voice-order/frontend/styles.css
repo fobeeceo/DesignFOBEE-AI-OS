@@ -165,3 +165,14 @@ textarea:focus { outline: 4px solid #e08a1e; border-color: var(--brand); }
 
 /* 대답을 듣는 중인지 항상 보여준다 */
 .listen-status { margin: 0; min-height: 1.5em; font-size: 1.15rem; font-weight: 700; color: var(--brand); }
+.receipt .r-no { font-size: 20pt; font-weight: 900; }
+.receipt .r-opt { font-size: 10pt; padding-left: 1em; }
+.receipt .r-test { border: 2px solid #000; padding: 2px; }
+
+/* STORE MODE: 서버 연결 상태 */
+.conn { font-size: 0.8rem; font-weight: 800; padding: 2px 10px; border-radius: 999px; white-space: nowrap; }
+.conn.ok { background: #e3f4e8; color: #1d6b3a; }
+.conn.bad { background: #fde3e1; color: #a1251b; }
+.top { gap: 8px; }
+.note.warn { background: #fde3e1; border-color: #e7a19b; font-weight: 800; }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }

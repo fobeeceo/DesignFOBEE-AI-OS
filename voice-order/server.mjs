@@ -8,7 +8,9 @@ import os from 'node:os';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { createJsonStore } from './backend/store.mjs';
+import { createJsonStore, createJsonDb } from './backend/store.mjs';
+import { createStoreOrders, MODES } from './backend/storeOrders.mjs';
+import { routeStore, isStaffApi } from './backend/storeRouter.mjs';
 import { createOrderService, OrderError } from './backend/orderService.mjs';
 import { route } from './backend/router.mjs';
 import { createPrintProvider } from './backend/print/printService.mjs';
@@ -75,8 +77,33 @@ async function readJson(req) {
   }
 }
 
-function serveStatic(req, res) {
+/**
+ * STORE MODE 화면: /store/GBRICK_MAIN (손님 태블릿), /counter/GBRICK_MAIN (카운터).
+ * 같은 index.html에 매장 ID·모드를 심고 <base href="/">로 자원 경로를 맞춘다.
+ */
+function storePage(res, file, storeId, mode) {
+  const html = fs
+    .readFileSync(path.join(ROOT, 'frontend', file), 'utf8')
+    .replace('<html lang="ko">', `<html lang="ko" data-mode="store" data-store-id="${storeId}" data-order-mode="${mode}">`)
+    .replace('<meta charset="utf-8" />', '<meta charset="utf-8" />\n  <base href="/" />');
+  return send(res, 200, html, MIME['.html']);
+}
+
+function serveStatic(req, res, storeCtx) {
   const url = decodeURIComponent(new URL(req.url, 'http://x').pathname);
+  // 태블릿(아이패드)이 매장 PC의 자체 인증서를 한 번 '신뢰'하도록 내려받는 주소. 공개 인증서라 비밀이 아니다
+  if (url === '/certificate.pem') {
+    const cert = path.join(ROOT, 'certs', 'cert-v2.pem');
+    if (!fs.existsSync(cert)) return send(res, 404, '인증서가 아직 없습니다. HTTPS가 켜진 뒤 다시 시도하세요.', 'text/plain; charset=utf-8');
+    return send(res, 200, fs.readFileSync(cert), 'application/x-x509-ca-cert');
+  }
+  const sm = url.match(/^\/(store|counter)\/([A-Z0-9_]+)\/?$/);
+  if (sm) {
+    if (!storeCtx || !storeCtx.orders.stores.some((x) => x.store_id === sm[2])) {
+      return send(res, 404, '등록되지 않은 매장입니다.', 'text/plain; charset=utf-8');
+    }
+    return storePage(res, sm[1] === 'store' ? 'index.html' : 'counter.html', sm[2], storeCtx.orders.mode);
+  }
   const routes = { '/': '/index.html', '/dashboard': '/dashboard.html' };
   const p = routes[url] || url;
   const prefix = Object.keys(STATIC).find((k) => p.startsWith(k));
@@ -92,15 +119,30 @@ function serveStatic(req, res) {
 // Cloudflare 터널을 거친 요청에는 cf-connecting-ip 헤더가 붙는다. 매장 PC·같은 Wi-Fi에서는 그대로 열린다.
 const ADMIN_PATHS = new Set(['/dashboard', '/dashboard.html', '/api/stats']);
 
-export function createHandler(service, { shareKey = process.env.SHARE_KEY || '' } = {}) {
+/**
+ * @param storeCtx  STORE MODE 주문 서버 { orders, engine, sessions } — 없으면 /store·/counter는 404
+ * @param staffKey  카운터(직원용 API) 키. 설정되면 X-Staff-Key 헤더가 맞아야 한다.
+ *                  설정이 없어도 인터넷 공유(터널)로 들어온 직원용 요청은 막는다.
+ */
+export function createHandler(service, { shareKey = process.env.SHARE_KEY || '', storeCtx = null, staffKey = process.env.STORE_STAFF_KEY || '' } = {}) {
   return async function handler(req, res) {
     const { pathname, searchParams } = new URL(req.url, 'http://x');
-    if (req.headers['cf-connecting-ip'] && ADMIN_PATHS.has(pathname) && (!shareKey || searchParams.get('key') !== shareKey)) {
+    const external = !!req.headers['cf-connecting-ip'];
+    if (external && ADMIN_PATHS.has(pathname) && (!shareKey || searchParams.get('key') !== shareKey)) {
       return send(res, 403, '대시보드는 매장 PC 또는 키가 들어 있는 주소로만 열 수 있습니다.', 'text/plain; charset=utf-8');
     }
+    if (isStaffApi(pathname)) {
+      const given = req.headers['x-staff-key'] || '';
+      const expected = staffKey || (external ? shareKey : '');
+      if ((expected && given !== expected) || (external && !expected)) {
+        return send(res, 401, { error: '직원 키가 필요합니다.' });
+      }
+    }
     try {
-      if (!pathname.startsWith('/api/')) return serveStatic(req, res);
+      if (!pathname.startsWith('/api/')) return serveStatic(req, res, storeCtx);
       const body = req.method === 'POST' ? await readJson(req) : {};
+      const storeOut = storeCtx ? await routeStore(storeCtx, req.method, pathname, body) : null;
+      if (storeOut) return send(res, storeOut.status, storeOut.body);
       const out = await route(service, req.method, pathname, body);
       return send(res, out.status, out.body);
     } catch (e) {
@@ -130,30 +172,62 @@ function findOpenssl() {
 
 /** 자체 서명 인증서 (openssl 필요). 없으면 HTTPS 없이 HTTP만 연다. */
 function ensureCert(dir, ips) {
-  const key = path.join(dir, 'key.pem');
-  const cert = path.join(dir, 'cert.pem');
+  // v2: 아이폰·아이패드가 신뢰할 수 있도록 serverAuth 용도를 넣은 인증서. 예전 cert.pem은 쓰지 않고 새로 만든다
+  const key = path.join(dir, 'key-v2.pem');
+  const cert = path.join(dir, 'cert-v2.pem');
   if (!fs.existsSync(key) || !fs.existsSync(cert)) {
     fs.mkdirSync(dir, { recursive: true });
     const san = ['DNS:localhost', 'IP:127.0.0.1', ...ips.map((ip) => `IP:${ip}`)].join(',');
     execFileSync(findOpenssl(), [
       'req', '-x509', '-newkey', 'rsa:2048', '-nodes', '-sha256', '-days', '825',
-      '-keyout', key, '-out', cert, '-subj', '/CN=GBRICK Voice Order (DEMO)', '-addext', `subjectAltName=${san}`,
+      '-keyout', key, '-out', cert, '-subj', '/CN=GBRICK Voice Order (Store PC)', '-addext', `subjectAltName=${san}`, '-addext', 'extendedKeyUsage=serverAuth',
     ], { stdio: 'ignore' });
   }
   return { key: fs.readFileSync(key), cert: fs.readFileSync(cert) };
+}
+
+/**
+ * STORE MODE 준비. 기본은 TEST. PRODUCTION은 VOICE_ORDER_MODE=production 과 STORE_STAFF_KEY(직원 키)가 모두 있어야 켜진다.
+ * 모드마다 파일을 따로 써서 테스트 주문이 실제 주문·통계에 섞이지 않는다.
+ */
+export function createStoreContext({ menu, getKnowledge, dir = path.join(ROOT, 'data'), env = process.env } = {}) {
+  const wanted = String(env.VOICE_ORDER_MODE || MODES.TEST).toLowerCase();
+  if (wanted !== MODES.TEST && wanted !== MODES.PRODUCTION) {
+    throw new Error(`VOICE_ORDER_MODE는 test 또는 production 이어야 합니다 (지금: ${env.VOICE_ORDER_MODE})`);
+  }
+  if (wanted === MODES.PRODUCTION && !env.STORE_STAFF_KEY) {
+    throw new Error('PRODUCTION 모드는 STORE_STAFF_KEY(카운터 직원 키)를 함께 설정해야 켜집니다.');
+  }
+  const stores = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'stores.json'), 'utf8')).stores;
+  const sessions = createJsonStore(path.join(dir, `store-sessions.${wanted}.json`));
+  return {
+    mode: wanted,
+    sessions,
+    engine: createOrderService({ store: sessions, menu, getKnowledge, printProvider: createPrintProvider('browser') }),
+    orders: createStoreOrders({ db: createJsonDb(path.join(dir, `store-orders.${wanted}.json`)), menu, stores, mode: wanted }),
+  };
 }
 
 function main() {
   const port = Number(process.env.PORT || 3100);
   const httpsPort = Number(process.env.HTTPS_PORT || 3443);
   const dataFile = process.env.VOICE_ORDER_DATA || path.join(ROOT, 'data', 'orders.json');
+  const menu = loadMenu();
+  const getKnowledge = knowledgeLoader();
   const service = createOrderService({
     store: createJsonStore(dataFile),
-    menu: loadMenu(),
-    getKnowledge: knowledgeLoader(),
+    menu,
+    getKnowledge,
     printProvider: createPrintProvider(),
   });
-  const handler = createHandler(service);
+  let storeCtx;
+  try {
+    storeCtx = createStoreContext({ menu, getKnowledge, dir: process.env.VOICE_ORDER_STORE_DIR || undefined });
+  } catch (e) {
+    console.error(`\n[중단] ${e.message}\n`);
+    process.exit(1);
+  }
+  const handler = createHandler(service, { storeCtx });
   const ips = lanAddresses();
 
   http.createServer(handler).listen(port, '0.0.0.0');
@@ -176,7 +250,17 @@ function main() {
   for (const ip of ips) console.log(` 같은 Wi-Fi(HTTP): http://${ip}:${port}   (텍스트만)`);
   if (!ips.length) console.log(' (네트워크 IP를 찾지 못했습니다. Wi-Fi 연결을 확인하세요)');
   console.log(` 주문 기록 파일 : ${dataFile}`);
-  console.log(` 메뉴 지식 문서 : ${path.join(ROOT, 'data', 'knowledge.json')}  (고치면 바로 반영)\n${line}\n`);
+  console.log(` 메뉴 지식 문서 : ${path.join(ROOT, 'data', 'knowledge.json')}  (고치면 바로 반영)`);
+  const modeLabel = storeCtx.mode === MODES.PRODUCTION ? 'PRODUCTION (실제 주문)' : 'TEST (연습 주문 · 실제 매출 아님)';
+  console.log(`${line}\n STORE MODE : ${modeLabel}`);
+  for (const st of storeCtx.orders.stores) {
+    const host = ips[0] || 'localhost';
+    console.log(` ${st.name} 손님 태블릿 : https://${host}:${httpsPort}/store/${st.store_id}`);
+    console.log(` ${st.name} 카운터 화면 : http://localhost:${port}/counter/${st.store_id}`);
+  }
+  if (ips[0]) console.log(` 아이패드 인증서(처음 한 번) : http://${ips[0]}:${port}/certificate.pem`);
+  if (!process.env.STORE_STAFF_KEY) console.log(' (직원 키 STORE_STAFF_KEY 미설정 — 같은 Wi-Fi 안에서는 카운터가 키 없이 열립니다)');
+  console.log(`${line}\n`);
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main();

@@ -1,0 +1,6 @@
+{
+  "_comment": "STORE MODE 매장 목록. 이번 파일럿은 본점 하나만 등록한다(대표 지시 2026-10-03). 다른 매장은 실제 운영 정보 확인 후 추가.",
+  "stores": [
+    { "store_id": "GBRICK_MAIN", "name": "GBRICK Coffee 본점", "order_prefix": "A" }
+  ]
+}

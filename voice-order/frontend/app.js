@@ -41,6 +41,21 @@ function freshState() {
 // ---------- 공통 ----------
 // 웹 체험판(fobee.co.kr): 주문이 매장에 가지 않으므로 '완료'·'직원 호출'을 사실대로 바꿔 말한다
 const WEB_DEMO = document.documentElement.dataset.mode === 'web-demo';
+// STORE MODE(매장 태블릿 /store/:id): 주문이 매장 서버에 저장되고 카운터로 간다
+const STORE = document.documentElement.dataset.mode === 'store';
+const STORE_ID = document.documentElement.dataset.storeId || '';
+const STORE_TEST = STORE && document.documentElement.dataset.orderMode !== 'production';
+let online = true;
+
+/** 매장 모드에서는 대화·가격·도움 요청을 그 매장 경로로 보낸다 (/api/store/:id/...) */
+function call(path, body) {
+  const p = STORE ? path.replace(/^\/api\/(sessions|quote|help)/, `/api/store/${STORE_ID}/$1`) : path;
+  return api(p, body);
+}
+
+function newKey() {
+  return globalThis.crypto?.randomUUID ? globalThis.crypto.randomUUID() : `k-${Date.now()}-${Math.random().toString(36).slice(2, 12)}`;
+}
 
 function show(name) {
   document.querySelectorAll('[data-screen]').forEach((el) => {
@@ -91,10 +106,10 @@ function say(text) {
 
 async function ensureSession(mode) {
   if (s.session && s.mode === mode) return;
-  if (s.session) await api(`/api/sessions/${s.session}/cancel`, {}).catch(() => {});
+  if (s.session) await call(`/api/sessions/${s.session}/cancel`, {}).catch(() => {});
   s = freshState();
   s.mode = mode;
-  s.session = (await api('/api/sessions', { input_type: mode })).id;
+  s.session = (await call('/api/sessions', { input_type: mode })).id;
 }
 
 // ---------- 시작 ----------
@@ -136,7 +151,7 @@ async function listenOrder() {
 async function handleText(text) {
   const my = flow;
   s.heard = text;
-  const r = await api(`/api/sessions/${s.session}/parse`, { text });
+  const r = await call(`/api/sessions/${s.session}/parse`, { text });
   if (my !== flow) return;
   s.failCount = r.fail_count;
   if (r.kind === 'ok' || r.kind === 'clarify') {
@@ -182,7 +197,7 @@ function helpOrRetry() {
 async function handleHearFail(code) {
   if (code === 'aborted') return;
   if (code === 'unsupported') return startText();
-  const r = await api(`/api/sessions/${s.session}/fail`, { reason: code }).catch(() => null);
+  const r = await call(`/api/sessions/${s.session}/fail`, { reason: code }).catch(() => null);
   if (r) s.failCount = r.fail_count;
   if (code === 'not-allowed' || code === 'audio-capture') {
     return showMessage({
@@ -238,6 +253,7 @@ function proceed() {
 async function askQuestion(q) {
   const my = ++flow;
   s.question = q;
+  s.clarifications = (s.clarifications || 0) + 1;
   $('q-heard').textContent = s.heard ? `들은 말: “${s.heard}”` : '';
   $('q-text').textContent = q.text;
   resetAnswerUi('q');
@@ -386,12 +402,13 @@ async function showConfirm() {
   const my = ++flow;
   let priced;
   try {
-    priced = await api('/api/quote', { items: s.items });
+    priced = await call('/api/quote', { items: s.items });
   } catch {
     return showNotHeard();
   }
   if (my !== flow) return;
   s.priced = priced;
+  s.orderKey = null; // 확인 화면이 새로 열리면 새 주문 — 이전 키를 다시 쓰지 않는다
   linesHtml($('c-lines'), priced.items);
   $('c-total').textContent = won(priced.total_amount);
   const spoken = speakItems(priced.items);
@@ -414,6 +431,7 @@ async function showConfirm() {
 
 async function confirmOrder() {
   stt.cancel();
+  if (STORE) return submitStoreOrder();
   const my = ++flow;
   try {
     const order = await api(`/api/sessions/${s.session}/confirm`, { items: s.items });
@@ -426,6 +444,56 @@ async function confirmOrder() {
       buttons: [['직원에게 도움 요청', 'primary', requestHelp], ['처음으로', 'secondary', reset]],
     });
   }
+}
+
+// ---------- 매장 주문 접수 (STORE MODE) ----------
+/**
+ * 서버에 저장된 것이 확인되어야만 '주문 완료'를 보여준다.
+ * 같은 주문은 같은 키(idempotency_key)로 보내므로 다시 보내기·두 번 누름에도 주문이 하나만 생긴다.
+ */
+async function submitStoreOrder() {
+  if (s.submitting) return;
+  s.submitting = true;
+  s.orderKey ||= newKey();
+  const my = ++flow;
+  try {
+    const order = await call(`/api/store/${STORE_ID}/orders`, {
+      session_id: s.session,
+      items: s.items,
+      order_source: s.mode,
+      idempotency_key: s.orderKey,
+      clarification_count: s.clarifications || 0,
+    });
+    if (my !== flow) return;
+    showStoreDone(order);
+  } catch {
+    if (my !== flow) return;
+    showMessage({
+      title: '주문이 아직 접수되지 않았습니다.',
+      body: '직원에게 말씀해 주세요.',
+      buttons: [['다시 보내기', 'primary', submitStoreOrder], ['직원에게 도움 요청', 'secondary', requestHelp]],
+      speak: '주문이 아직 접수되지 않았습니다. 직원에게 말씀해 주세요.',
+    });
+  } finally {
+    s.submitting = false;
+  }
+}
+
+function showStoreDone(order) {
+  $('d-title').textContent = '주문이 완료되었습니다.';
+  $('d-no').textContent = order.order_number;
+  $('d-id').textContent = STORE_TEST ? '테스트 주문 · 실제 주문이 아닙니다' : '';
+  linesHtml($('d-lines'), order.items.map((l) => ({ display_name: l.display_name, quantity: l.quantity, unit: l.unit || '잔' })));
+  $('d-total').textContent = won(order.total_amount);
+  $('d-pay').textContent = '카운터에서 결제해주세요.';
+  $('d-print').hidden = true; // 주문서는 카운터에서 출력한다
+  $('d-print-msg').hidden = true;
+  s.lastOrder = order;
+  s.session = null;
+  show('done');
+  const [letter, num] = [order.order_number.slice(0, 1), parseInt(order.order_number.slice(1), 10)];
+  say(`주문이 완료되었습니다. 주문번호는 ${letter} ${num}번입니다. 카운터에서 결제해 주세요.`);
+  startDoneCountdown();
 }
 
 // ---------- 완료 ----------
@@ -448,6 +516,10 @@ function showDone(order) {
     say(`주문이 완료되었습니다. 주문번호는 ${shortNo}번입니다. 카운터에서 결제해 주세요.`);
   }
   if (autoPrint) printOrder(order.order_id);
+  startDoneCountdown();
+}
+
+function startDoneCountdown() {
   let left = HOME_AFTER_DONE_SEC;
   $('d-count').textContent = left;
   clearInterval(doneTimer);
@@ -479,8 +551,18 @@ export async function printOrder(orderId) {
 async function requestHelp() {
   stt.cancel();
   ++flow;
-  await api('/api/help', { session_id: s.session }).catch(() => {});
+  let delivered = true;
+  await call('/api/help', { session_id: s.session, order_id: s.lastOrder?.order_id }).catch(() => {
+    delivered = false;
+  });
   show('help');
+  if (STORE && !delivered) {
+    // 호출이 카운터에 가지 않았으면 그렇다고 말한다
+    $('h-title').textContent = '직원 호출이 전달되지 않았어요.';
+    $('h-body').textContent = '카운터로 와 주시거나 손을 들어 주세요.';
+    say('직원 호출이 전달되지 않았어요. 카운터로 와 주시거나 손을 들어 주세요.');
+    return;
+  }
   if (WEB_DEMO) {
     $('h-title').textContent = '체험판에서는 직원 호출이 되지 않아요.';
     $('h-body').textContent = '매장에서는 이 버튼을 누르면 직원이 와서 도와드려요.';
@@ -505,7 +587,7 @@ async function reset() {
   stt.cancel();
   speaker.cancel();
   clearInterval(doneTimer);
-  if (s.session) await api(`/api/sessions/${s.session}/cancel`, {}).catch(() => {});
+  if (s.session) await call(`/api/sessions/${s.session}/cancel`, {}).catch(() => {});
   s = freshState();
   show('start');
 }
@@ -539,6 +621,38 @@ buttons(
   $('examples'),
   EXAMPLES.map((t) => [t, 'chip', () => ($('text-input').value = t)]),
 );
+
+// ---------- 매장 서버 연결 상태 (STORE MODE) ----------
+function setOnline(ok) {
+  online = ok;
+  const el = $('conn');
+  el.hidden = false;
+  el.textContent = ok ? '🟢 연결 정상' : '🔴 연결 끊김';
+  el.className = `conn ${ok ? 'ok' : 'bad'}`;
+  $('store-offline').hidden = ok;
+  document.querySelectorAll('[data-action="start-voice"], [data-action="start-text"]').forEach((b) => (b.disabled = !ok));
+}
+
+async function checkServer() {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), 4000);
+  try {
+    const r = await fetch(`/api/store/${STORE_ID}/health`, { cache: 'no-store', signal: ctrl.signal });
+    setOnline(r.ok);
+  } catch {
+    setOnline(false);
+  } finally {
+    clearTimeout(t);
+  }
+}
+
+if (STORE) {
+  document.querySelector('.demo-tag').textContent = STORE_TEST ? '테스트 모드' : '지브릭 본점';
+  $('c-cancel').hidden = false;
+  if (!STORE_TEST) document.querySelector('[data-action="start-text"]').hidden = true; // 실제 운영 화면에는 테스트 기능을 두지 않는다
+  checkServer();
+  setInterval(checkServer, 10000);
+}
 
 menu = await api('/api/menu');
 if (!stt.isSupported()) $('voice-unsupported').hidden = false;

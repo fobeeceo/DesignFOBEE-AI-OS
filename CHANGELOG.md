@@ -4,6 +4,17 @@
 
 ## [Unreleased]
 
+### GBRICK AI VOICE ORDER — 본점 실매장 파일럿 STORE MODE v0.2 (2026-10-03, 대표 지시서 v0.2 FINAL)
+- **매장 PC 주문 서버**(voice-order/server.mjs)에 STORE MODE 추가: `/store/GBRICK_MAIN`(손님 태블릿) → 주문 저장·주문번호 → `/counter/GBRICK_MAIN`(카운터: 새 주문·도움 요청 소리 알림, 상태 버튼, 브라우저 주문서 출력) → 기존 POS 결제. POS·결제 미연동.
+- 데이터: ORDER·ORDER_ITEM·ORDER_EVENT·VOICE_LOG·HELP_REQUEST 표준 구조, 매장 PC JSON 파일(모드별 분리). 주문번호는 서버가 매장·영업일·모드별 발급(TEST `T001`, 실제 `A001`), 확인 키로 중복 주문 방지. 개인정보·음성 원본 저장 안 함.
+- 상태 NEW→CONFIRMED→PRINTED→PREPARING→READY→COMPLETED / CANCELLED, 잘못된 변경 거절·전부 로그.
+- 기본 TEST. PRODUCTION은 `VOICE_ORDER_MODE=production` + `STORE_STAFF_KEY` 둘 다 있어야 켜짐. 직원용 API는 직원 키, 인터넷 공유(터널)로는 키 없이 불가.
+- 저장되지 않은 주문은 '완료'로 보이지 않는다("주문이 아직 접수되지 않았습니다" + 다시 보내기). 태블릿에 서버 연결 🟢/🔴.
+- **왜 fobee.co.kr이 아닌 매장 PC인가**: 홈페이지 DB(Supabase)가 저장소 기록상 일시정지·미확인이고 새 테이블은 마이그레이션 승인이 필요 — 확인 못 하는 저장소에 실제 주문을 맡기지 않는다. `/gbrick-order` 체험판은 그대로.
+- 아이패드용 자체 인증서에 serverAuth 용도 추가(cert-v2), `/certificate.pem` 내려받기.
+- **검증**: voice-order 자동 테스트 42건(지시서 TEST 01~12 포함) PASS · 매장 브라우저 E2E 11단계(태블릿+카운터 동시, 네트워크 끊김·다시 보내기·두 번 누름) PASS · 기존 데모 E2E 21단계 PASS · `npm run qa`(lint·tsc·build·vitest 141) PASS · `next start`에서 /gbrick-order 체험판 8단계 PASS.
+- **확인하지 못한 것**: 실제 아이패드 인증서 신뢰·마이크, 실제 매장 Wi-Fi·프린터.
+
 ### 「대화로 주문」 웹 체험판 — fobee.co.kr/gbrick-order (2026-10-03, 대표 지시)
 - 매장용 음성 주문(voice-order/)을 홈페이지에서 휴대폰으로 체험할 수 있게 했다. 원본은 voice-order/ 하나이고, `next.config.mjs`가 빌드 때 `scripts/sync-voice-order.mjs`로 `public/gbrick-order/`에 복사한다(복사본은 git 제외 — 같은 코드를 두 곳에 두지 않음).
 - **사실대로 표시**: 홈페이지(Vercel)는 매장 PC와 연결되어 있지 않아 주문이 매장에 가지 않는다. 그래서 첫 화면·완료 화면에 "체험판이에요. 여기서 하는 주문은 매장에 전달되지 않아요"를 적고, 주문서 출력 버튼을 숨기고, 직원 호출은 "체험판에서는 되지 않아요"로 안내한다(§0 원칙 1·3). 검색 노출 제외(noindex), 메뉴(내비게이션) 링크 없음.

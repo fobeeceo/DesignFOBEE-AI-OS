@@ -35,3 +35,33 @@ export function renderReceipt(order) {
   <div class="r-center r-small">DEMO · 결제 전 주문서입니다</div>
 </div>`;
 }
+
+function kstTime(iso) {
+  return new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' }).format(new Date(iso));
+}
+
+/** STORE MODE 주문서 — 직원이 보고 제조하는 종이. 결제는 기존 POS(카운터). TEST 모드면 크게 표시 */
+export function renderStoreReceipt(order, store) {
+  const lines = order.items
+    .map((l) => {
+      const opt = l.options?.temperature ? `<tr><td class="r-opt" colspan="3">${l.options.temperature}</td></tr>` : '';
+      return `<tr><td>${esc(l.menu_name)}</td><td class="qty">${l.quantity}</td><td class="amt">${won(l.amount)}</td></tr>${opt}`;
+    })
+    .join('');
+  const test = order.mode !== 'production' ? '<div class="r-center r-big r-test">*** TEST 주문 · 연습용 ***</div>' : '';
+  return `<div class="receipt">
+  <div class="r-center r-brand">GBRICK COFFEE</div>
+  <div class="r-center">${esc(store?.name || order.store_id)}</div>
+  ${test}
+  <div class="r-rule double"></div>
+  <div class="r-center r-no">주문번호 ${esc(order.order_number)}</div>
+  <div class="r-rule double"></div>
+  <table>${lines}</table>
+  <div class="r-rule"></div>
+  <div class="r-big">합계 ${won(order.total_amount)}</div>
+  <div>결제: 카운터 (기존 POS)</div>
+  <div class="r-rule"></div>
+  <div>주문시간 ${formatKst(order.created_at).slice(0, 10)} ${kstTime(order.created_at)}</div>
+  <div class="r-rule double"></div>
+</div>`;
+}
