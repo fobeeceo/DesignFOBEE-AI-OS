@@ -45,6 +45,19 @@ npm start
 > 인증서 경고 없이 쓰려면 `cloudflared tunnel --url http://localhost:3100` 같은 HTTPS 터널을 쓸 수 있다 (외부 서비스 — 데모 주소가 인터넷에 열리므로 시연 때만).
 > PC IP가 바뀌면 `certs/` 폴더를 지우고 다시 `npm start`.
 
+## 2-1. 밖에서 휴대폰으로 열기 (인터넷 공유)
+
+매장 Wi-Fi 밖(집·외부)에서 휴대폰으로 시연할 때. 매장 PC가 켜져 있어야 한다.
+
+1. **한 번만** 설치 (PowerShell): `winget install --id Cloudflare.cloudflared` → PowerShell을 새로 연다
+2. `voice-order` 폴더에서 `npm run share` (또는 `share.bat` 더블클릭)
+3. 화면에 나온 `https://xxxx.trycloudflare.com` 주소를 카카오톡 '나와의 채팅'으로 보내 휴대폰에서 연다
+
+- 진짜 HTTPS라 **아이폰에서도 인증서 경고 없이 마이크가 된다**
+- 대시보드는 밖에서 **키가 들어 있는 주소**(`.../dashboard?key=...`, 화면에 표시)로만 열린다
+- 이 창을 닫으면 주소가 사라지고, 다시 켜면 주소가 바뀐다. 주문 화면 주소를 아는 사람은 누구나 테스트 주문을 할 수 있으니 시연이 끝나면 닫는다
+- Cloudflare의 가입 없는 임시 터널이다 (무료, 가동 보장 없음). 상시 운영용이 아니라 **시연용**
+
 ## 3. 사용 방법
 
 | 테스트 | 방법 |

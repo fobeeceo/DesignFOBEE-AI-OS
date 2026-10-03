@@ -12,7 +12,7 @@ let base;
 
 test.before(async () => {
   const service = createOrderService({ store: createMemoryStore(), menu: loadMenu(), printProvider: createBrowserPrintProvider() });
-  server = http.createServer(createHandler(service));
+  server = http.createServer(createHandler(service, { shareKey: 'k123' }));
   await new Promise((r) => server.listen(0, '127.0.0.1', r));
   base = `http://127.0.0.1:${server.address().port}`;
 });
@@ -64,4 +64,20 @@ test('오류는 고객 탓 없는 문구 + 올바른 상태 코드', async () =>
   assert.equal(bad.status, 400);
   const help = (await call('/api/help', {})).data;
   assert.equal(help.help_requested, true);
+});
+
+test('인터넷 공유(Cloudflare 터널) 때 밖에서 온 요청은 대시보드·통계를 키 없이 못 본다', async () => {
+  const ext = { 'cf-connecting-ip': '203.0.113.7' };
+  const get = (p, headers = {}) => fetch(base + p, { headers }).then((r) => r.status);
+  assert.equal(await get('/dashboard', ext), 403);
+  assert.equal(await get('/api/stats', ext), 403);
+  assert.equal(await get('/api/stats?key=wrong', ext), 403);
+  assert.equal(await get('/dashboard?key=k123', ext), 200);
+  assert.equal(await get('/api/stats?key=k123', ext), 200);
+  // 손님 주문 화면과 메뉴는 열린다
+  assert.equal(await get('/', ext), 200);
+  assert.equal(await get('/api/menu', ext), 200);
+  // 매장 PC·같은 Wi-Fi(터널 아님)는 그대로
+  assert.equal(await get('/dashboard'), 200);
+  assert.equal(await get('/api/stats'), 200);
 });

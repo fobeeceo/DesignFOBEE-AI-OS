@@ -87,9 +87,16 @@ function serveStatic(req, res) {
   send(res, 200, fs.readFileSync(file), MIME[path.extname(file)] || 'application/octet-stream');
 }
 
-export function createHandler(service) {
+// 인터넷 공유(npm run share) 때 밖에서 들어온 요청은 대시보드·통계를 키 없이 볼 수 없다.
+// Cloudflare 터널을 거친 요청에는 cf-connecting-ip 헤더가 붙는다. 매장 PC·같은 Wi-Fi에서는 그대로 열린다.
+const ADMIN_PATHS = new Set(['/dashboard', '/dashboard.html', '/api/stats']);
+
+export function createHandler(service, { shareKey = process.env.SHARE_KEY || '' } = {}) {
   return async function handler(req, res) {
-    const { pathname } = new URL(req.url, 'http://x');
+    const { pathname, searchParams } = new URL(req.url, 'http://x');
+    if (req.headers['cf-connecting-ip'] && ADMIN_PATHS.has(pathname) && (!shareKey || searchParams.get('key') !== shareKey)) {
+      return send(res, 403, '대시보드는 매장 PC 또는 키가 들어 있는 주소로만 열 수 있습니다.', 'text/plain; charset=utf-8');
+    }
     const m = (re) => pathname.match(re);
     let match;
     try {

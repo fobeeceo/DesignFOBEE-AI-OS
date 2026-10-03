@@ -4,10 +4,13 @@
   "private": true,
   "description": "GBRICK AI VOICE ORDER MVP v0.1 — 독립 데모 (POS·결제 미연동)",
   "type": "module",
-  "engines": { "node": ">=18" },
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "start": "node server.mjs",
     "test": "node --test",
-    "test:e2e": "node tests/e2e/smoke.mjs"
+    "test:e2e": "node tests/e2e/smoke.mjs",
+    "share": "node scripts/share.mjs"
   }
 }

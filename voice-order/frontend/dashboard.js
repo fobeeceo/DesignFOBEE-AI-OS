@@ -27,7 +27,8 @@ async function reprint(orderId) {
 }
 
 async function load() {
-  const s = await fetch('/api/stats').then((r) => r.json());
+  const key = new URLSearchParams(location.search).get('key'); // 인터넷 공유 때만 필요
+  const s = await fetch(`/api/stats${key ? `?key=${encodeURIComponent(key)}` : ''}`).then((r) => r.json());
   document.getElementById('date').textContent = `(${s.date.slice(0, 4)}-${s.date.slice(4, 6)}-${s.date.slice(6)})`;
   const kpis = [
     ['오늘 테스트 주문', s.test_sessions],
