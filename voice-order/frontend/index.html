@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#3b2416" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>GBRICK 음성 주문</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="top">
+      <span class="brand">GBRICK COFFEE</span>
+      <span class="demo-tag">DEMO</span>
+    </header>
+
+    <main>
+      <!-- 시작 화면: JS 없이도 보이는 기본 화면 -->
+      <section class="screen" data-screen="start">
+        <h1 class="hello">안녕하세요.</h1>
+        <p class="lead">말씀만 해주세요.<br />제가 주문을 도와드릴게요.</p>
+        <button class="btn primary huge" data-action="start-voice">
+          <span class="mic" aria-hidden="true">🎤</span> 주문 시작
+        </button>
+        <p class="hint" id="voice-unsupported" hidden>이 브라우저는 음성 주문이 안 돼요.<br />직원에게 말씀해 주시거나<br />아래 ‘텍스트로 테스트’를 눌러 주세요.</p>
+        <button class="btn link" data-action="start-text">텍스트로 테스트</button>
+        <noscript><p class="hint">이 화면은 자바스크립트가 켜져 있어야 주문할 수 있습니다.<br />직원에게 말씀해 주세요.</p></noscript>
+      </section>
+
+      <section class="screen" data-screen="listening" hidden>
+        <div class="pulse" aria-hidden="true">🎤</div>
+        <h2 class="title">듣고 있습니다.</h2>
+        <p class="lead small">예) “아이스 아메리카노 한 잔 주세요.”</p>
+        <p class="heard" id="interim" aria-live="polite"></p>
+        <button class="btn secondary" data-action="reset">처음으로</button>
+      </section>
+
+      <section class="screen" data-screen="text" hidden>
+        <h2 class="title">텍스트로 테스트</h2>
+        <form id="text-form" class="text-form">
+          <label for="text-input" class="sr-only">주문 내용</label>
+          <textarea id="text-input" rows="3" placeholder="예) 아이스 아메리카노 두 잔하고 라떼 하나 주세요."></textarea>
+          <button type="submit" class="btn primary">주문 분석</button>
+        </form>
+        <div class="examples" id="examples"></div>
+        <button class="btn secondary" data-action="reset">처음으로</button>
+      </section>
+
+      <section class="screen" data-screen="question" hidden>
+        <p class="heard" id="q-heard"></p>
+        <h2 class="title" id="q-text"></h2>
+        <div class="choices" id="q-choices"></div>
+        <p class="listen-status" id="q-status" aria-live="polite"></p>
+        <button class="btn link" data-action="listen-answer" id="q-listen" hidden>🎤 말로 다시 대답하기</button>
+      </section>
+
+      <section class="screen" data-screen="confirm" hidden>
+        <h2 class="title">주문 확인</h2>
+        <ul class="lines" id="c-lines"></ul>
+        <p class="total">총 <strong id="c-total"></strong></p>
+        <p class="note" id="c-note" hidden></p>
+        <p class="ask" id="c-ask"></p>
+        <button class="btn primary" data-action="confirm-yes">네, 맞아요</button>
+        <button class="btn secondary" data-action="retry">다시 말할게요</button>
+        <p class="listen-status" id="c-status" aria-live="polite"></p>
+        <button class="btn link" data-action="listen-answer" id="c-listen" hidden>🎤 말로 다시 대답하기</button>
+      </section>
+
+      <section class="screen" data-screen="message" hidden>
+        <h2 class="title" id="m-title"></h2>
+        <p class="lead" id="m-body"></p>
+        <p class="heard" id="m-heard"></p>
+        <div class="choices" id="m-buttons"></div>
+      </section>
+
+      <section class="screen" data-screen="done" hidden>
+        <h2 class="title" id="d-title">주문이 완료되었습니다.</h2>
+        <p class="label">주문번호</p>
+        <p class="order-no" id="d-no"></p>
+        <p class="order-id" id="d-id"></p>
+        <ul class="lines" id="d-lines"></ul>
+        <p class="total">총 <strong id="d-total"></strong></p>
+        <p class="pay" id="d-pay">결제는 카운터에서 해주세요.</p>
+        <p class="thanks">감사합니다.</p>
+        <p class="note" id="d-print-msg" hidden></p>
+        <button class="btn secondary" data-action="print" id="d-print">🖨 주문서 출력</button>
+        <button class="btn link" data-action="reset">처음으로 (<span id="d-count">10</span>초 후 자동)</button>
+      </section>
+
+      <section class="screen" data-screen="help" hidden>
+        <div class="bell" aria-hidden="true">🔔</div>
+        <h2 class="title" id="h-title">직원을 호출했습니다.</h2>
+        <p class="lead" id="h-body">잠시만 기다려 주세요.</p>
+        <button class="btn secondary" data-action="reset">처음으로</button>
+      </section>
+    </main>
+
+    <footer class="bottom" id="help-bar">
+      <button class="btn help" data-action="help">🙋 직원에게 도움 요청</button>
+    </footer>
+  </div>
+
+  <!-- 인쇄 전용 영역: 화면에는 안 보이고 인쇄할 때만 나온다 -->
+  <div id="print-area" aria-hidden="true"></div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,1126 @@
+{
+  "_comment": "MENU_MASTER — 가격·메뉴는 이 파일 한 곳에서만 관리한다. 전 품목 대표 승인 메뉴판 public/gbrick-menu.html(은평 본점, 2026-10-01) 기준(대표 지시 2026-10-03). price는 숫자(온도 무관) 또는 {HOT, ICE}(온도별). 계절 한정은 available=false로 두고 판매 시작 시 true로 바꾼다.",
+  "version": "2026-10-03",
+  "currency": "KRW",
+  "items": [
+    {
+      "menu_id": "ESPRESSO",
+      "name": "에스프레소",
+      "description": "싱글샷",
+      "category": "COFFEE",
+      "price": 2500,
+      "unit": "잔",
+      "options": {
+        "temperature": [
+          "HOT"
+        ]
+      },
+      "aliases": [
+        "에스프레소",
+        "에스프레쏘",
+        "싱글샷"
+      ],
+      "suggest_for": [],
+      "available": true,
+      "source": "public/gbrick-menu.html (2026-10-01)"
+    },
+    {
+      "menu_id": "DOUBLE_ESPRESSO",
+      "name": "더블 에스프레소",
+      "description": "더블샷",
+      "category": "COFFEE",
+      "price": 2800,
+      "unit": "잔",
+      "options": {
+        "temperature": [
+          "HOT"
+        ]
+      },
+      "aliases": [
+        "더블에스프레소",
+        "더블샷"
+      ],
+      "suggest_for": [],
+      "available": true,
+      "source": "public/gbrick-menu.html (2026-10-01)"
+    },
+    {
+      "menu_id": "SWEET_ESPRESSO",
+      "name": "스윗 에스프레소",
+      "description": "에스프레소 + 비정제원당(화학적 정제를 하지 않은 원당)",
+      "category": "COFFEE",
+      "price": 2800,
+      "unit": "잔",
+      "options": {
+        "temperature": [
+          "HOT"
+        ]
+      },
+      "aliases": [
+        "스윗에스프레소",
+        "스위트에스프레소"
+      ],
+      "suggest_for": [],
+      "available": true,
+      "source": "public/gbrick-menu.html (2026-10-01)"
+    },
+    {
+      "menu_id": "CHOCOLATE_ESPRESSO",
+      "name": "코코아 에스프레소",
+      "description": "에스프레소 + 비정제원당 + 카카오 + 크림우유",
+      "category": "COFFEE",
+      "price": 2800,
+      "unit": "잔",
+      "options": {
+        "temperature": [
+          "HOT"
+        ]
+      },
+      "aliases": [
+        "코코아에스프레소",
+        "초코에스프레소",
+        "초콜릿에스프레소"
+      ],
+      "suggest_for": [],
+      "available": true,
+      "source": "public/gbrick-menu.html (2026-10-01)"
+    },
+    {
+      "menu_id": "SALTED_CARAMEL_ESPRESSO",
+      "name": "솔티 카라멜 에스프레소",
+      "description": "에스프레소 + 비정제원당 + 솔티카라멜 + 크림우유",
+      "category": "COFFEE",
+      "price": 2800,
+      "unit": "잔",
+      "options": {
+        "temperature": [
+          "HOT"
+        ]
+      },
+      "aliases": [
+        "솔티카라멜에스프레소",
+        "솔트카라멜에스프레소"
+      ],
+      "suggest_for": [],
+      "available": true,
+      "source": "public/gbrick-menu.html (2026-10-01)"
+    },
+    {
+      "menu_id": "AMERICANO",
+      "name": "아메리카노",
+      "description": "스페셜티 원두(고소한 맛) 또는 이디오피아 예가체프 원두(과일 산미) 중 고를 수 있어요. 원두는 카운터에서 말씀해 주세요.",
+      "category": "COFFEE",
+      "price": 3500,
+      "unit": "잔",
+      "options": {
+        "temperature": [
+          "HOT",
+          "ICE"
+        ]
+      },
+      "aliases": [
+        "아메리카노",
+        "아메리까노",
+        "어메리카노"
+      ],
+      "suggest_for": [
+        "커피",
+        "블랙커피",
+        "원두커피"
+      ],
+      "available": true,
+      "source": "public/gbrick-menu.html (2026-10-01)",
+      "note": "메뉴판의 스페셜티·예가체프 원두는 가격이 같다(3,500원). 원두 선택은 카운터에서."
+    },
+    {
+      "menu_id": "CAFE_LATTE",
+      "name": "카페라떼",
+      "category": "COFFEE",
+      "price": 4400,
+      "unit": "잔",
+      "options": {
+        "temperature": [
+          "HOT",
+          "ICE"
+        ]
+      },
+      "aliases": [
+        "카페라떼",
+        "카페라테",
+        "까페라떼",
+        "라떼",
+        "라테"
+      ],
+      "suggest_for": [],
+      "available": true,
+      "source": "public/gbrick-menu.html (2026-10-01)"
+    },
+    {
+      "menu_id": "CAPPUCCINO",
+      "name": "카푸치노",
+      "category": "COFFEE",
+      "price": 4400,
+      "unit": "잔",
+      "options": {
+        "temperature": [
+          "HOT",
+          "ICE"
+        ]
+      },
+      "aliases": [
+        "카푸치노",
+        "카프치노"
+      ],
+      "suggest_for": [],
+      "available": true,
+      "source": "public/gbrick-menu.html (2026-10-01)"
+    },
+    {
+      "menu_id": "VANILLA_LATTE",
+      "name": "바닐라빈 라떼",
+      "category": "COFFEE",
+      "price": 4900,
+      "unit": "잔",
+      "options": {
+        "temperature": [
+          "HOT",
+          "ICE"
+        ]
+      },
+      "aliases": [
+        "바닐라빈라떼",
+        "바닐라라떼",
+        "바닐라라테",
+        "바닐라빈",
+        "바닐라"
+      ],
+      "suggest_for": [],
+      "available": true,
+      "source": "public/gbrick-menu.html (2026-10-01)"
+    },
+    {
+      "menu_id": "HAZELNUT_LATTE",
+      "name": "헤이즐넛 라떼",
+      "category": "COFFEE",
+      "price": 4900,
+      "unit": "잔",
+      "options": {
+        "temperature": [
+          "HOT",
+          "ICE"
+        ]
+      },
+      "aliases": [
+        "헤이즐넛라떼",
+        "헤이즐넛라테",
+        "헤이즐넛"
+      ],
+      "suggest_for": [],
+      "available": true,
+      "source": "public/gbrick-menu.html (2026-10-01)"
+    },
+    {
+      "menu_id": "DOLCE_LATTE",
+      "name": "돌체 라떼",
+      "category": "COFFEE",
+      "price": 4900,
+      "unit": "잔",
+      "options": {
+        "temperature": [
+          "HOT",
+          "ICE"
+        ]
+      },
+      "aliases": [
+        "돌체라떼",
+        "돌체라테",
+        "돌체"
+      ],
+      "suggest_for": [],
+      "available": true,
+      "source": "public/gbrick-menu.html (2026-10-01)"
+    },
+    {
+      "menu_id": "CAFE_MOCHA",
+      "name": "카페모카",
+      "category": "COFFEE",
+      "price": 5400,
+      "unit": "잔",
+      "options": {
+        "temperature": [
+          "HOT",
+          "ICE"
+        ]
+      },
+      "aliases": [
+        "카페모카",
+        "모카"
+      ],
+      "suggest_for": [],
+      "available": true,
+      "source": "public/gbrick-menu.html (2026-10-01)"
+    },
+    {
+      "menu_id": "CARAMEL_MACCHIATO",
+      "name": "카라멜 마끼아또",
+      "category": "COFFEE",
+      "price": 5400,
+      "unit": "잔",
+      "options": {
+        "temperature": [
+          "HOT",
+          "ICE"
+        ]
+      },
+      "aliases": [
+        "카라멜마끼아또",
+        "캐러멜마끼아또",
+        "카라멜마키아토",
+        "마끼아또"
+      ],
+      "suggest_for": [],
+      "available": true,
+      "source": "public/gbrick-menu.html (2026-10-01)"
+    },
+    {
+      "menu_id": "AFFOGATO",
+      "name": "아포카토",
+      "category": "COFFEE",
+      "price": 5400,
+      "unit": "잔",
+      "options": {
+        "temperature": [
+          "ICE"
+        ]
+      },
+      "aliases": [
+        "아포카토",
+        "아포가토",
+        "아포카또"
+      ],
+      "suggest_for": [],
+      "available": true,
+      "source": "public/gbrick-menu.html (2026-10-01)"
+    },
+    {
+      "menu_id": "AFFOGATO_LATTE",
+      "name": "아포카토 라떼",
+      "category": "COFFEE",
+      "price": 6000,
+      "unit": "잔",
+      "options": {
+        "temperature": [
+          "ICE"
+        ]
+      },
+      "aliases": [
+        "아포카토라떼",
+        "아포가토라떼"
+      ],
+      "suggest_for": [],
+      "available": true,
+      "source": "public/gbrick-menu.html (2026-10-01)"
+    },
+    {
+      "menu_id": "DUTCH_COFFEE",
+      "name": "더치 커피",
+      "category": "COFFEE",
+      "price": 4500,
+      "unit": "잔",
+      "options": {
+        "temperature": [
+          "HOT",
+          "ICE"
+        ]
+      },
+      "aliases": [
+        "더치커피",
+        "콜드브루",
+        "콜드브루커피",
+        "더치"
+      ],
+      "suggest_for": [],
+      "available": true,
+      "source": "public/gbrick-menu.html (2026-10-01)"
+    },
+    {
+      "menu_id": "DUTCH_LATTE",
+      "name": "더치 라떼",
+      "category": "COFFEE",
+      "price": 5000,
+      "unit": "잔",
+      "options": {
+        "temperature": [
+          "HOT",
+          "ICE"
+        ]
+      },
+      "aliases": [
+        "더치라떼",
+        "콜드브루라떼"
+      ],
+      "suggest_for": [],
+      "available": true,
+      "source": "public/gbrick-menu.html (2026-10-01)"
+    },
+    {
+      "menu_id": "DUTCH_SODA",
+      "name": "더치 소다",
+      "category": "COFFEE",
+      "price": 5000,
+      "unit": "잔",
+      "options": {
+        "temperature": [
+          "ICE"
+        ]
+      },
+      "aliases": [
+        "더치소다",
+        "콜드브루소다"
+      ],
+      "suggest_for": [],
+      "available": true,
+      "source": "public/gbrick-menu.html (2026-10-01)"
+    },
+    {
+      "menu_id": "HAND_DRIP",
+      "name": "핸드드립",
+      "category": "COFFEE",
+      "price": {
+        "HOT": 5000,
+        "ICE": 6000
+      },
+      "unit": "잔",
+      "options": {
+        "temperature": [
+          "HOT",
+          "ICE"
+        ]
+      },
+      "aliases": [
+        "핸드드립커피",
+        "핸드드립",
+        "드립커피"
+      ],
+      "suggest_for": [],
+      "available": true,
+      "source": "public/gbrick-menu.html (2026-10-01)",
+      "note": "블랜딩·케냐AA·예가체프 원두 가격이 같다. 원두 선택은 카운터에서."
+    },
+    {
+      "menu_id": "MILK_TEA",
+      "name": "밀크티",
+      "category": "DRINK",
+      "price": 6000,
+      "unit": "잔",
+      "options": {
+        "temperature": [
+          "HOT",
+          "ICE"
+        ]
+      },
+      "aliases": [
+        "밀크티",
+        "밀크 티"
+      ],
+      "suggest_for": [],
+      "available": false,
+      "source": "public/gbrick-menu.html (2026-10-01)",
+      "season": "WINTER",
+      "note": "동절기 한정 — 판매 시작 시 available을 true로"
+    },
+    {
+      "menu_id": "MATCHA_LATTE",
+      "name": "말차 라떼",
+      "category": "DRINK",
+      "price": {
+        "HOT": 4900,
+        "ICE": 5500
+      },
+      "unit": "잔",
+      "options": {
+        "temperature": [
+          "HOT",
+          "ICE"
+        ]
+      },
+      "aliases": [
+        "말차라떼",
+        "말차라테",
+        "녹차라떼",
+        "녹차라테"
+      ],
+      "suggest_for": [],
+      "available": true,
+      "source": "public/gbrick-menu.html (2026-10-01)"
+    },
+    {
+      "menu_id": "STRAWBERRY_LATTE",
+      "name": "딸기 라떼",
+      "category": "DRINK",
+      "price": 4900,
+      "unit": "잔",
+      "options": {
+        "temperature": [
+          "ICE"
+        ]
+      },
+      "aliases": [
+        "딸기라떼",
+        "딸기라테"
+      ],
+      "suggest_for": [],
+      "available": true,
+      "source": "public/gbrick-menu.html (2026-10-01)"
+    },
+    {
+      "menu_id": "CHOCO_LATTE",
+      "name": "초코 라떼",
+      "category": "DRINK",
+      "price": 4900,
+      "unit": "잔",
+      "options": {
+        "temperature": [
+          "HOT",
+          "ICE"
+        ]
+      },
+      "aliases": [
+        "초코라떼",
+        "초코라테",
+        "핫초코",
+        "초코"
+      ],
+      "suggest_for": [],
+      "available": true,
+      "source": "public/gbrick-menu.html (2026-10-01)"
+    },
+    {
+      "menu_id": "SWEET_POTATO_LATTE",
+      "name": "고구마 라떼",
+      "category": "DRINK",
+      "price": 4900,
+      "unit": "잔",
+      "options": {
+        "temperature": [
+          "HOT",
+          "ICE"
+        ]
+      },
+      "aliases": [
+        "고구마라떼",
+        "고구마라테",
+        "고구마"
+      ],
+      "suggest_for": [],
+      "available": true,
+      "source": "public/gbrick-menu.html (2026-10-01)"
+    },
+    {
+      "menu_id": "GINGER_LATTE",
+      "name": "생강 라떼",
+      "category": "DRINK",
+      "price": 4900,
+      "unit": "잔",
+      "options": {
+        "temperature": [
+          "HOT",
+          "ICE"
+        ]
+      },
+      "aliases": [
+        "생강라떼",
+        "생강라테",
+        "진저라떼"
+      ],
+      "suggest_for": [],
+      "available": true,
+      "source": "public/gbrick-menu.html (2026-10-01)"
+    },
+    {
+      "menu_id": "GRAIN_LATTE",
+      "name": "12곡 라떼",
+      "category": "DRINK",
+      "price": 4900,
+      "unit": "잔",
+      "options": {
+        "temperature": [
+          "HOT",
+          "ICE"
+        ]
+      },
+      "aliases": [
+        "12곡라떼",
+        "12곡라테",
+        "십이곡라떼",
+        "곡물라떼"
+      ],
+      "suggest_for": [],
+      "available": true,
+      "source": "public/gbrick-menu.html (2026-10-01)"
+    },
+    {
+      "menu_id": "MANGO_JUICE",
+      "name": "망고 주스",
+      "category": "DRINK",
+      "price": 6000,
+      "unit": "잔",
+      "options": {
+        "temperature": [
+          "ICE"
+        ]
+      },
+      "aliases": [
+        "망고주스",
+        "망고쥬스"
+      ],
+      "suggest_for": [],
+      "available": true,
+      "source": "public/gbrick-menu.html (2026-10-01)"
+    },
+    {
+      "menu_id": "BLUEBERRY_JUICE",
+      "name": "블루베리 주스",
+      "category": "DRINK",
+      "price": 6000,
+      "unit": "잔",
+      "options": {
+        "temperature": [
+          "ICE"
+        ]
+      },
+      "aliases": [
+        "블루베리주스",
+        "블루베리쥬스"
+      ],
+      "suggest_for": [],
+      "available": true,
+      "source": "public/gbrick-menu.html (2026-10-01)"
+    },
+    {
+      "menu_id": "TOMATO_JUICE",
+      "name": "토마토 주스",
+      "category": "DRINK",
+      "price": 6500,
+      "unit": "잔",
+      "options": {
+        "temperature": [
+          "ICE"
+        ]
+      },
+      "aliases": [
+        "토마토주스",
+        "토마토쥬스"
+      ],
+      "suggest_for": [],
+      "available": true,
+      "source": "public/gbrick-menu.html (2026-10-01)"
+    },
+    {
+      "menu_id": "ICED_TEA",
+      "name": "아이스티",
+      "category": "DRINK",
+      "price": 3800,
+      "unit": "잔",
+      "options": {
+        "temperature": [
+          "ICE"
+        ]
+      },
+      "aliases": [
+        "아이스티",
+        "아이스 티"
+      ],
+      "suggest_for": [],
+      "available": true,
+      "source": "public/gbrick-menu.html (2026-10-01)"
+    },
+    {
+      "menu_id": "BUBBLE_TEA",
+      "name": "브라운 버블티",
+      "category": "DRINK",
+      "price": 5500,
+      "unit": "잔",
+      "options": {
+        "temperature": [
+          "ICE"
+        ]
+      },
+      "aliases": [
+        "브라운버블티",
+        "버블티"
+      ],
+      "suggest_for": [],
+      "available": true,
+      "source": "public/gbrick-menu.html (2026-10-01)"
+    },
+    {
+      "menu_id": "VIN_CHAUD",
+      "name": "뱅쇼",
+      "description": "레드와인 + 과일 (무알콜)",
+      "category": "DRINK",
+      "price": 7800,
+      "unit": "잔",
+      "options": {
+        "temperature": [
+          "HOT"
+        ]
+      },
+      "aliases": [
+        "뱅쇼",
+        "뱅쑈"
+      ],
+      "suggest_for": [],
+      "available": false,
+      "source": "public/gbrick-menu.html (2026-10-01)",
+      "season": "WINTER",
+      "note": "동절기 한정 — 판매 시작 시 available을 true로"
+    },
+    {
+      "menu_id": "YUZU_MINT",
+      "name": "유자 민트",
+      "category": "DRINK",
+      "price": 6000,
+      "unit": "잔",
+      "options": {
+        "temperature": [
+          "HOT",
+          "ICE"
+        ]
+      },
+      "aliases": [
+        "유자민트",
+        "유자민트티"
+      ],
+      "suggest_for": [],
+      "available": true,
+      "source": "public/gbrick-menu.html (2026-10-01)"
+    },
+    {
+      "menu_id": "LEMON_ADE",
+      "name": "레몬 에이드",
+      "description": "직접 만든 수제청 + 후지산 탄산수 + 얼음",
+      "category": "DRINK",
+      "price": 5500,
+      "unit": "잔",
+      "options": {
+        "temperature": [
+          "ICE"
+        ]
+      },
+      "aliases": [
+        "레몬에이드"
+      ],
+      "suggest_for": [],
+      "available": true,
+      "source": "public/gbrick-menu.html (2026-10-01)"
+    },
+    {
+      "menu_id": "GRAPEFRUIT_ADE",
+      "name": "자몽 에이드",
+      "description": "직접 만든 수제청 + 후지산 탄산수 + 얼음",
+      "category": "DRINK",
+      "price": 5500,
+      "unit": "잔",
+      "options": {
+        "temperature": [
+          "ICE"
+        ]
+      },
+      "aliases": [
+        "자몽에이드"
+      ],
+      "suggest_for": [],
+      "available": true,
+      "source": "public/gbrick-menu.html (2026-10-01)"
+    },
+    {
+      "menu_id": "OMIJA_ADE",
+      "name": "오미자 에이드",
+      "description": "직접 만든 수제청 + 후지산 탄산수 + 얼음",
+      "category": "DRINK",
+      "price": 5500,
+      "unit": "잔",
+      "options": {
+        "temperature": [
+          "ICE"
+        ]
+      },
+      "aliases": [
+        "오미자에이드"
+      ],
+      "suggest_for": [],
+      "available": true,
+      "source": "public/gbrick-menu.html (2026-10-01)"
+    },
+    {
+      "menu_id": "PASSION_FRUIT_ADE",
+      "name": "패션후르츠 에이드",
+      "description": "직접 만든 수제청 + 후지산 탄산수 + 얼음",
+      "category": "DRINK",
+      "price": 5500,
+      "unit": "잔",
+      "options": {
+        "temperature": [
+          "ICE"
+        ]
+      },
+      "aliases": [
+        "패션후르츠에이드",
+        "패션프루트에이드",
+        "패션후르츠"
+      ],
+      "suggest_for": [],
+      "available": true,
+      "source": "public/gbrick-menu.html (2026-10-01)"
+    },
+    {
+      "menu_id": "PLAIN_LASSI",
+      "name": "요거트 플레인 라씨",
+      "description": "요거트 + 우유 + 얼음",
+      "category": "DRINK",
+      "price": 6500,
+      "unit": "잔",
+      "options": {
+        "temperature": [
+          "ICE"
+        ]
+      },
+      "aliases": [
+        "플레인라씨",
+        "요거트라씨",
+        "요거트플레인라씨"
+      ],
+      "suggest_for": [
+        "라씨"
+      ],
+      "available": true,
+      "source": "public/gbrick-menu.html (2026-10-01)"
+    },
+    {
+      "menu_id": "STRAWBERRY_LASSI",
+      "name": "딸기 라씨",
+      "description": "리얼과일 + 요거트 + 우유 + 얼음",
+      "category": "DRINK",
+      "price": 7500,
+      "unit": "잔",
+      "options": {
+        "temperature": [
+          "ICE"
+        ]
+      },
+      "aliases": [
+        "딸기라씨"
+      ],
+      "suggest_for": [],
+      "available": true,
+      "source": "public/gbrick-menu.html (2026-10-01)"
+    },
+    {
+      "menu_id": "MANGO_LASSI",
+      "name": "망고 라씨",
+      "description": "리얼과일 + 요거트 + 우유 + 얼음",
+      "category": "DRINK",
+      "price": 7500,
+      "unit": "잔",
+      "options": {
+        "temperature": [
+          "ICE"
+        ]
+      },
+      "aliases": [
+        "망고라씨"
+      ],
+      "suggest_for": [],
+      "available": true,
+      "source": "public/gbrick-menu.html (2026-10-01)"
+    },
+    {
+      "menu_id": "BLUEBERRY_LASSI",
+      "name": "블루베리 라씨",
+      "description": "리얼과일 + 요거트 + 우유 + 얼음",
+      "category": "DRINK",
+      "price": 7500,
+      "unit": "잔",
+      "options": {
+        "temperature": [
+          "ICE"
+        ]
+      },
+      "aliases": [
+        "블루베리라씨"
+      ],
+      "suggest_for": [],
+      "available": true,
+      "source": "public/gbrick-menu.html (2026-10-01)"
+    },
+    {
+      "menu_id": "JAVA_CHIP_FRAPPE",
+      "name": "자바칩 프라페",
+      "description": "파우더 + 소스 + 우유 + 얼음",
+      "category": "DRINK",
+      "price": 6500,
+      "unit": "잔",
+      "options": {
+        "temperature": [
+          "ICE"
+        ]
+      },
+      "aliases": [
+        "자바칩프라페",
+        "자바칩"
+      ],
+      "suggest_for": [],
+      "available": true,
+      "source": "public/gbrick-menu.html (2026-10-01)"
+    },
+    {
+      "menu_id": "COOKIE_CREAM_FRAPPE",
+      "name": "쿠키앤크림 프라페",
+      "description": "파우더 + 소스 + 우유 + 얼음",
+      "category": "DRINK",
+      "price": 6500,
+      "unit": "잔",
+      "options": {
+        "temperature": [
+          "ICE"
+        ]
+      },
+      "aliases": [
+        "쿠키앤크림프라페",
+        "쿠키앤크림",
+        "쿠앤크"
+      ],
+      "suggest_for": [],
+      "available": true,
+      "source": "public/gbrick-menu.html (2026-10-01)"
+    },
+    {
+      "menu_id": "CHAMOMILE",
+      "name": "캐모마일",
+      "category": "TEA",
+      "price": 6000,
+      "unit": "잔",
+      "options": {
+        "temperature": [
+          "HOT",
+          "ICE"
+        ]
+      },
+      "aliases": [
+        "캐모마일티",
+        "카모마일티",
+        "캐모마일",
+        "카모마일"
+      ],
+      "suggest_for": [],
+      "available": true,
+      "source": "public/gbrick-menu.html (2026-10-01)"
+    },
+    {
+      "menu_id": "PEPPERMINT",
+      "name": "페퍼민트",
+      "category": "TEA",
+      "price": 6000,
+      "unit": "잔",
+      "options": {
+        "temperature": [
+          "HOT",
+          "ICE"
+        ]
+      },
+      "aliases": [
+        "페퍼민트티",
+        "페퍼민트",
+        "페파민트"
+      ],
+      "suggest_for": [],
+      "available": true,
+      "source": "public/gbrick-menu.html (2026-10-01)"
+    },
+    {
+      "menu_id": "GREEN_TEA",
+      "name": "녹차",
+      "category": "TEA",
+      "price": 6000,
+      "unit": "잔",
+      "options": {
+        "temperature": [
+          "HOT",
+          "ICE"
+        ]
+      },
+      "aliases": [
+        "녹차",
+        "그린티"
+      ],
+      "suggest_for": [],
+      "available": true,
+      "source": "public/gbrick-menu.html (2026-10-01)"
+    },
+    {
+      "menu_id": "PUER_TEA",
+      "name": "보이차",
+      "category": "TEA",
+      "price": 8000,
+      "unit": "잔",
+      "options": {
+        "temperature": [
+          "HOT"
+        ]
+      },
+      "aliases": [
+        "보이차",
+        "운남성보이차",
+        "운남보이차"
+      ],
+      "suggest_for": [],
+      "available": true,
+      "source": "public/gbrick-menu.html (2026-10-01)"
+    },
+    {
+      "menu_id": "GRAPEFRUIT_TEA",
+      "name": "자몽차",
+      "category": "TEA",
+      "price": 6000,
+      "unit": "잔",
+      "options": {
+        "temperature": [
+          "HOT",
+          "ICE"
+        ]
+      },
+      "aliases": [
+        "생자몽차",
+        "자몽차",
+        "자몽티"
+      ],
+      "suggest_for": [
+        "자몽"
+      ],
+      "available": true,
+      "source": "public/gbrick-menu.html (2026-10-01)"
+    },
+    {
+      "menu_id": "OMIJA_TEA",
+      "name": "오미자차",
+      "category": "TEA",
+      "price": 6000,
+      "unit": "잔",
+      "options": {
+        "temperature": [
+          "HOT",
+          "ICE"
+        ]
+      },
+      "aliases": [
+        "오미자차",
+        "오미자티"
+      ],
+      "suggest_for": [
+        "오미자"
+      ],
+      "available": true,
+      "source": "public/gbrick-menu.html (2026-10-01)"
+    },
+    {
+      "menu_id": "LEMON_TEA",
+      "name": "레몬차",
+      "category": "TEA",
+      "price": 6000,
+      "unit": "잔",
+      "options": {
+        "temperature": [
+          "HOT",
+          "ICE"
+        ]
+      },
+      "aliases": [
+        "레몬차",
+        "레몬티"
+      ],
+      "suggest_for": [],
+      "available": true,
+      "source": "public/gbrick-menu.html (2026-10-01)"
+    },
+    {
+      "menu_id": "YUZU_TEA",
+      "name": "유자차",
+      "category": "TEA",
+      "price": 6000,
+      "unit": "잔",
+      "options": {
+        "temperature": [
+          "HOT",
+          "ICE"
+        ]
+      },
+      "aliases": [
+        "유자차",
+        "유자티"
+      ],
+      "suggest_for": [
+        "유자"
+      ],
+      "available": true,
+      "source": "public/gbrick-menu.html (2026-10-01)"
+    },
+    {
+      "menu_id": "GINGER_TEA",
+      "name": "생강차",
+      "category": "TEA",
+      "price": 6000,
+      "unit": "잔",
+      "options": {
+        "temperature": [
+          "HOT",
+          "ICE"
+        ]
+      },
+      "aliases": [
+        "생강차",
+        "진저티"
+      ],
+      "suggest_for": [],
+      "available": true,
+      "source": "public/gbrick-menu.html (2026-10-01)"
+    },
+    {
+      "menu_id": "PATBINGSU",
+      "name": "수제 팥빙수",
+      "description": "직접 만든 팥 + 인절미 + 우유얼음",
+      "category": "DESSERT",
+      "price": 12000,
+      "unit": "개",
+      "options": {},
+      "aliases": [
+        "수제팥빙수",
+        "팥빙수"
+      ],
+      "suggest_for": [
+        "빙수"
+      ],
+      "available": false,
+      "source": "public/gbrick-menu.html (2026-10-01)",
+      "season": "SUMMER",
+      "note": "하절기 한정 — 판매 시작 시 available을 true로"
+    },
+    {
+      "menu_id": "MANGO_BINGSU",
+      "name": "망고빙수",
+      "description": "애플망고 + 바닐라아이스크림 + 우유얼음",
+      "category": "DESSERT",
+      "price": 15000,
+      "unit": "개",
+      "options": {},
+      "aliases": [
+        "망고빙수"
+      ],
+      "suggest_for": [],
+      "available": false,
+      "source": "public/gbrick-menu.html (2026-10-01)",
+      "season": "SUMMER",
+      "note": "하절기 한정 — 판매 시작 시 available을 true로"
+    }
+  ]
+}

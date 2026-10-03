@@ -1,0 +1,7 @@
+# 테스트 주문 기록과 기기별 인증서는 저장소에 올리지 않는다
+data/orders.json
+# 매장 PC에서 대표가 고치는 메뉴 지식 문서 — 업데이트 때 덮어쓰지 않도록 저장소에는 빈 틀(knowledge.example.json)만 둔다
+data/knowledge.json
+data/orders.json.tmp
+certs/
+tests/e2e/screenshots/

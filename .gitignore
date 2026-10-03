@@ -33,3 +33,6 @@ __pycache__/
 *.pyc
 .pytest_cache/
 .coverage
+
+# 「대화로 주문」 체험판 — 빌드 때 voice-order/에서 자동 생성(scripts/sync-voice-order.mjs). 원본은 voice-order/
+public/gbrick-order/
