@@ -386,3 +386,30 @@ test('답 못 한 질문은 주문 기록에서 자동 집계된다 (같은 말 
   // 7일 지난 기록은 빠진다
   assert.equal(unansweredQuestions(svc.stats().recent, new Date(Date.now() + 8 * 86400000)).length, 0);
 });
+
+test('BUG-01: 수량 뒤에 말한 온도도 알아듣는다 (TEST A~H)', () => {
+  const cases = [
+    ['A', '아메리카노 한 잔 차갑게 주세요', [['AMERICANO', 'ICE', 1]]],
+    ['B', '아메리카노 한 잔 따뜻하게 주세요', [['AMERICANO', 'HOT', 1]]],
+    ['C', '유자차 한 잔 따뜻하게 주세요', [['YUZU_TEA', 'HOT', 1]]],
+    ['D', '아메리카노 차갑게 한 잔 주세요', [['AMERICANO', 'ICE', 1]]],
+    ['E', '따뜻한 아메리카노 한 잔 주세요', [['AMERICANO', 'HOT', 1]]],
+    ['F', '아이스 아메리카노 하나 주세요', [['AMERICANO', 'ICE', 1]]],
+    ['H', '아메리카노 한 잔 차갑게 하고 라떼 한 잔 따뜻하게 주세요', [['AMERICANO', 'ICE', 1], ['CAFE_LATTE', 'HOT', 1]]],
+    ['H-그리고', '아메리카노 한 잔 차갑게 그리고 라떼 한 잔 따뜻하게 주세요', [['AMERICANO', 'ICE', 1], ['CAFE_LATTE', 'HOT', 1]]],
+    ['H-랑', '아메리카노 한 잔 차갑게랑 라떼 한 잔 따뜻하게요', [['AMERICANO', 'ICE', 1], ['CAFE_LATTE', 'HOT', 1]]],
+  ];
+  for (const [id, text, want] of cases) {
+    const r = parseOrder(text, menu);
+    assert.equal(r.kind, 'ok', `TEST ${id}: ${text}`);
+    assert.deepEqual(brief(r), want, `TEST ${id}: ${text}`);
+  }
+  // TEST G: 온도를 말하지 않으면 추측하지 않고 묻는다
+  const g = parseOrder('라떼 한 잔 주세요', menu);
+  assert.deepEqual(brief(g), [['CAFE_LATTE', null, 1]]);
+  assert.equal(nextQuestion(g.items, menu).type, 'choose_temperature');
+  // 앞 메뉴의 온도가 다음 메뉴로 넘어가지 않는다
+  assert.deepEqual(brief(parseOrder('아이스 아메리카노 한 잔 하고 라떼 한 잔', menu)), [['AMERICANO', 'ICE', 1], ['CAFE_LATTE', null, 1]]);
+  // 모순된 말은 묻는다
+  assert.deepEqual(brief(parseOrder('아메리카노 한 잔 따뜻하게 차갑게', menu)), [['AMERICANO', null, 1]]);
+});

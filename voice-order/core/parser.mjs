@@ -195,8 +195,11 @@ export function parseOrder(rawText, menu) {
     else if (conn) ownEnd = conn.index;
     else ownEnd = idx + 1 < mentions.length ? 0 : suffix.length;
     const prefix = text.slice(cursor, m.start);
+    // 수량 뒤 온도("한 잔 차갑게")도 이 메뉴 몫 — 연결어 앞까지, 연결어가 없으면 마지막 메뉴일 때만 (다음 메뉴 앞말과 섞지 않는다)
+    const tailEnd = qty && conn && conn.index >= qty.end ? conn.index : qty && idx + 1 === mentions.length ? suffix.length : ownEnd;
     const own = `${prefix} ${suffix.slice(0, ownEnd)}`;
-    cursor = m.end + (conn && (!qty || conn.index < qty.start) ? conn.index + conn[0].length : ownEnd);
+    const tempRegion = `${own} ${suffix.slice(ownEnd, tailEnd)}`;
+    cursor = m.end + (conn && (!qty || conn.index < qty.start || conn.index >= qty.end) ? conn.index + conn[0].length : ownEnd);
 
     if (unknownName) {
       result.unknown.push(unknownName.trim());
@@ -211,7 +214,7 @@ export function parseOrder(rawText, menu) {
     const prefixQty = qty ? null : parseQty(prefix);
     const quantity = qty ? qty.n : prefixQty ? prefixQty.n : 1;
     const allowed = item.options?.temperature || [];
-    let temperature = allowed.length ? detectTemperature(`${own} ${m.raw}`) : null; // "핫초코"처럼 이름에 온도가 들어간 경우 포함
+    let temperature = allowed.length ? detectTemperature(`${tempRegion} ${m.raw}`) : null; // "핫초코"처럼 이름에 온도가 들어간 경우 포함
     let temperatureUnavailable = null;
     if (temperature && !allowed.includes(temperature)) {
       temperatureUnavailable = temperature; // 예: 따뜻한 레몬 아메리카노 → "아이스만 있어요"
