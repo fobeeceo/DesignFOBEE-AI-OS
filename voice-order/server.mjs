@@ -257,6 +257,7 @@ function main() {
     const host = ips[0] || 'localhost';
     console.log(` ${st.name} 손님 태블릿 : https://${host}:${httpsPort}/store/${st.store_id}`);
     console.log(` ${st.name} 카운터 화면 : http://localhost:${port}/counter/${st.store_id}`);
+    console.log(` 이 컴퓨터에서 손님 화면 시험 : http://localhost:${port}/store/${st.store_id}`);
   }
   if (ips[0]) console.log(` 아이패드 인증서(처음 한 번) : http://${ips[0]}:${port}/certificate.pem`);
   if (!process.env.STORE_STAFF_KEY) console.log(' (직원 키 STORE_STAFF_KEY 미설정 — 같은 Wi-Fi 안에서는 카운터가 키 없이 열립니다)');

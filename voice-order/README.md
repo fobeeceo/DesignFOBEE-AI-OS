@@ -54,6 +54,8 @@ npm start
 | 손님 태블릿 | `https://<매장PC IP>:3443/store/GBRICK_MAIN` |
 | 카운터 | `http://localhost:3100/counter/GBRICK_MAIN` |
 
+**이 컴퓨터 한 대로 시험하기:** `store-test.bat` 더블클릭 → 서버가 TEST 모드로 켜지고 브라우저에 손님 화면(`http://localhost:3100/store/GBRICK_MAIN`)과 카운터 화면이 함께 열린다. 아이패드·인증서 없이 PC 마이크(Chrome·Edge)로 주문하고, 카운터에서 상태 변경·주문서 출력(이 PC의 기본 프린터)까지 확인할 수 있다. 마이크가 없으면 손님 화면의 '텍스트로 테스트'.
+
 손님 확인 → 주문번호(TEST `T001` / 실제 `A001`) → 카운터 표시·소리 → 주문서 출력 → 제조 → 기존 POS 결제.
 PRODUCTION은 `VOICE_ORDER_MODE=production` + `STORE_STAFF_KEY`(직원 PIN)가 모두 있어야 켜진다(대표 승인 후).
 설치 SOP·데이터 구조·장애 대응: **[GBRICK-AI-VOICE-ORDER-STORE-MVP.md](GBRICK-AI-VOICE-ORDER-STORE-MVP.md)** · 단계 계획: [GBRICK-AI-VOICE-ORDER-ROADMAP.md](GBRICK-AI-VOICE-ORDER-ROADMAP.md)
