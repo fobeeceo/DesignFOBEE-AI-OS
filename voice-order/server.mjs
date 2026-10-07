@@ -253,6 +253,13 @@ function main() {
   console.log(` 메뉴 지식 문서 : ${path.join(ROOT, 'data', 'knowledge.json')}  (고치면 바로 반영)`);
   const modeLabel = storeCtx.mode === MODES.PRODUCTION ? 'PRODUCTION (실제 주문)' : 'TEST (연습 주문 · 실제 매출 아님)';
   console.log(`${line}\n STORE MODE : ${modeLabel}`);
+  const td = menu.takeout_discount;
+  if (td) {
+    // 이 줄이 안 보이면 예전 버전이 켜져 있는 것이다
+    const nameOf = (id) => menu.items.find((m) => m.menu_id === id)?.name || id;
+    const special = Object.entries(td.by_menu || {}).map(([id, w]) => `${nameOf(id)} ${w.toLocaleString('ko-KR')}원`);
+    console.log(` 포장 할인 : ${[...special, `그 밖의 음료 ${td.default.toLocaleString('ko-KR')}원`].join(' · ')} (할인 없음: ${(td.exclude || []).map(nameOf).join(', ')}, 디저트)`);
+  }
   for (const st of storeCtx.orders.stores) {
     const host = ips[0] || 'localhost';
     console.log(` ${st.name} 손님 태블릿 : https://${host}:${httpsPort}/store/${st.store_id}`);

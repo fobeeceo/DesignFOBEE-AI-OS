@@ -414,22 +414,22 @@ test('BUG-01: 수량 뒤에 말한 온도도 알아듣는다 (TEST A~H)', () => 
   assert.deepEqual(brief(parseOrder('아메리카노 한 잔 따뜻하게 차갑게', menu)), [['AMERICANO', null, 1]]);
 });
 
-test('포장 할인 (대표 지시 2026-10-07): 아메리카노 -1,500원, 그 밖의 음료 -1,000원 (잔당)', () => {
+test('포장 할인 (대표 지시 2026-10-07): 아메리카노 -1,500원, 그 밖의 음료 -1,000원 (잔당), 핸드드립·뱅쇼·빙수는 할인 없음', () => {
   const items = [
     { menu_id: 'AMERICANO', temperature: 'ICE', quantity: 2 }, // 3,500 → 2,000
     { menu_id: 'CAFE_LATTE', temperature: 'HOT', quantity: 1 }, // 4,400 → 3,400
-    { menu_id: 'HAND_DRIP', temperature: 'ICE', quantity: 1 }, // 온도별 가격 6,000 → 5,000
+    { menu_id: 'HAND_DRIP', temperature: 'ICE', quantity: 1 }, // 핸드드립은 할인 안 함 (대표 지시)
     { menu_id: 'YUZU_TEA', temperature: 'HOT', quantity: 1 }, // 차 6,000 → 5,000
   ];
   const take = quote(items, menu, 'TAKEOUT');
   assert.deepEqual(take.items.map((l) => [l.menu_id, l.list_price, l.discount, l.unit_price, l.line_total]), [
     ['AMERICANO', 3500, 1500, 2000, 4000],
     ['CAFE_LATTE', 4400, 1000, 3400, 3400],
-    ['HAND_DRIP', 6000, 1000, 5000, 5000],
+    ['HAND_DRIP', 6000, 0, 6000, 6000],
     ['YUZU_TEA', 6000, 1000, 5000, 5000],
   ]);
   assert.equal(take.list_amount, 3500 * 2 + 4400 + 6000 + 6000);
-  assert.equal(take.discount_amount, 1500 * 2 + 1000 * 3);
+  assert.equal(take.discount_amount, 1500 * 2 + 1000 * 2);
   assert.equal(take.total_amount, take.list_amount - take.discount_amount);
   assert.equal(take.dining, 'TAKEOUT');
   // 매장 / 선택 전에는 정상가
@@ -439,6 +439,10 @@ test('포장 할인 (대표 지시 2026-10-07): 아메리카노 -1,500원, 그 �
     assert.equal(r.total_amount, r.list_amount);
   }
   assert.throws(() => quote(items, menu, 'DELIVERY'), /매장\/포장/);
+  // 뱅쇼·빙수(디저트)도 할인 안 함 — 판매 시작(available=true)해도 마찬가지
+  const seasonal = { ...menu, items: menu.items.map((m) => ({ ...m, available: true })) };
+  const s2 = quote([{ menu_id: 'VIN_CHAUD', temperature: 'HOT', quantity: 1 }, { menu_id: 'PATBINGSU', quantity: 1 }, { menu_id: 'MANGO_BINGSU', quantity: 1 }], seasonal, 'TAKEOUT');
+  assert.equal(s2.discount_amount, 0);
 });
 
 test('매장/포장 말하기: "포장이요"·"가져갈게요" → TAKEOUT, "먹고 갈게요"·"매장에서" → DINE_IN, 말 안 하면 null', () => {

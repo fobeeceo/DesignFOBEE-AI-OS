@@ -39,6 +39,7 @@ export const DINING = { DINE_IN: 'DINE_IN', TAKEOUT: 'TAKEOUT' };
 function takeoutDiscount(def, menu) {
   const rule = menu.takeout_discount;
   if (!rule) return 0;
+  if ((rule.exclude || []).includes(def.menu_id)) return 0; // 할인 안 하는 메뉴 (핸드드립·뱅쇼)
   if (Number.isInteger(rule.by_menu?.[def.menu_id])) return rule.by_menu[def.menu_id];
   return (rule.categories || []).includes(def.category) ? rule.default || 0 : 0;
 }
