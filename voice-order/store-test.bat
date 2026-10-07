@@ -8,13 +8,17 @@ echo.
 where node > nul 2> nul
 if errorlevel 1 goto nonode
 
+rem 이전에 켠 서버가 남아 있으면 새 서버가 켜지지 않는다 (EADDRINUSE) - 먼저 알려준다
+curl.exe -s -o nul http://localhost:3100/
+if not errorlevel 1 goto busy
+
 rem 다른 설정이 남아 있어도 이 파일은 항상 TEST 로만 켠다
 set VOICE_ORDER_MODE=test
 start "GBRICK 주문 서버 - 이 창을 닫으면 멈춥니다" cmd /k node server.mjs
 
 set /a tries=0
 :wait
-curl.exe -s -o nul http://localhost:3100/api/store/GBRICK_MAIN/health
+curl.exe -sf -o nul http://localhost:3100/api/store/GBRICK_MAIN/health
 if not errorlevel 1 goto open
 set /a tries+=1
 if %tries% geq 30 goto fail
@@ -36,6 +40,13 @@ exit /b 0
 
 :nonode
 echo  [안내] Node.js 가 없습니다. https://nodejs.org 에서 LTS 를 설치한 뒤 다시 실행하세요.
+pause
+exit /b 1
+
+:busy
+echo  [안내] 이미 다른 주문 서버가 켜져 있습니다 [3100번 포트].
+echo  예전에 켠 검은 서버 창을 모두 닫거나 PowerShell 에 아래 한 줄을 붙여넣은 뒤 다시 실행하세요.
+echo    Stop-Process -Id (Get-NetTCPConnection -LocalPort 3100 -State Listen).OwningProcess
 pause
 exit /b 1
 
