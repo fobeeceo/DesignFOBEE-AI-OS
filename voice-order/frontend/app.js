@@ -2,6 +2,7 @@
 // 가격 계산·주문번호는 서버가 한다. 여기서는 화면과 음성만 다룬다.
 import {
   nextQuestion, applyAnswer, interpretAnswer, suggestionText, groupSuggestions, categoryText, interpretCategory, CATEGORY_LABEL,
+  DINING_QUESTION, interpretDining,
 } from './core/dialog.mjs';
 import { parseOrder } from './core/parser.mjs';
 import { won, speakItems, priceLabel } from './core/format.mjs';
@@ -13,7 +14,7 @@ const IDLE_RESET_SEC = 90;
 const MAX_FAILS = 3;
 const ANSWER_TRIES = 3; // 대답은 한 번 놓쳐도 다시 듣는다 (어르신은 대답이 늦을 수 있다)
 // 스피커에서 나온 안내 음성을 마이크가 다시 들은 것 → 대답으로 치지 않는다
-const ECHO_RE = /(말씀하시나요|맞으실까요|드릴까요|보여드릴까요|어떤 걸로|듣고 있습니다|드실 수 있는|주문하실 수 있는|추천 메뉴는|판매 순위는)/;
+const ECHO_RE = /(말씀하시나요|맞으실까요|가시나요|드릴까요|보여드릴까요|어떤 걸로|듣고 있습니다|드실 수 있는|주문하실 수 있는|추천 메뉴는|판매 순위는)/;
 const EXAMPLES = [
   '아이스 아메리카노 하나',
   '따뜻한 라떼 하나',
@@ -22,6 +23,9 @@ const EXAMPLES = [
   '커피 말고 따뜻한 거 뭐 있어요?',
   '딸기 아메리카노 하나 주세요.',
 ];
+
+const DINING_LABEL = { DINE_IN: '매장', TAKEOUT: '포장' };
+const DINING_TAG = { DINE_IN: '🍽 매장에서 드시고 가요', TAKEOUT: '🥡 포장' };
 
 const $ = (id) => document.getElementById(id);
 const stt = createSpeechProvider();
@@ -35,7 +39,7 @@ let idleTimer = null;
 let doneTimer = null;
 
 function freshState() {
-  return { session: null, mode: null, items: [], unrecognized: [], question: null, failCount: 0, heard: '' };
+  return { session: null, mode: null, items: [], unrecognized: [], question: null, failCount: 0, heard: '', dining: null };
 }
 
 // ---------- 공통 ----------
@@ -157,6 +161,7 @@ async function handleText(text) {
   if (r.kind === 'ok' || r.kind === 'clarify') {
     s.items = r.items;
     s.unrecognized = r.unrecognized;
+    if (r.dining) s.dining = r.dining; // '아메리카노 하나 포장이요'
     return proceed();
   }
   if (r.kind === 'suggest') return showSuggestions(r);
@@ -247,20 +252,27 @@ function showMessage({ title, body, buttons: list, speak }) {
 function proceed() {
   const q = nextQuestion(s.items, menu);
   if (q) return askQuestion(q);
+  if (!s.dining) return askQuestion(DINING_QUESTION);
   return showConfirm();
 }
 
 async function askQuestion(q) {
   const my = ++flow;
   s.question = q;
-  s.clarifications = (s.clarifications || 0) + 1;
+  const dining = q.type === 'choose_dining';
+  if (!dining) s.clarifications = (s.clarifications || 0) + 1; // 매장/포장은 못 알아들어서 묻는 것이 아니다
   $('q-heard').textContent = s.heard ? `들은 말: “${s.heard}”` : '';
   $('q-text').textContent = q.text;
   resetAnswerUi('q');
   const answer = (a) => () => onAnswer(a);
   buttons(
     $('q-choices'),
-    q.type === 'choose_temperature'
+    dining
+      ? [
+          ['🍽 매장에서 먹어요', 'primary', answer('DINE_IN')],
+          ['🥡 포장해 갈게요', 'primary', answer('TAKEOUT')],
+        ]
+      : q.type === 'choose_temperature'
       ? [
           ['☕ 따뜻하게', 'primary warm', answer('HOT')],
           ['🧊 차갑게 (아이스)', 'primary cool', answer('ICE')],
@@ -274,8 +286,10 @@ async function askQuestion(q) {
   show('question');
   await say(q.text);
   if (my === flow && s.mode === 'VOICE') {
-    const prompt = q.type === 'choose_temperature' ? '“따뜻하게” 또는 “아이스”라고 말씀해 주세요.' : '“네” 또는 “아니요”라고 말씀해 주세요.';
-    listenAnswer(my, 'q', onAnswer, prompt);
+    const prompt = dining
+      ? '“매장” 또는 “포장”이라고 말씀해 주세요.'
+      : q.type === 'choose_temperature' ? '“따뜻하게” 또는 “아이스”라고 말씀해 주세요.' : '“네” 또는 “아니요”라고 말씀해 주세요.';
+    listenAnswer(my, 'q', onAnswer, prompt, dining ? interpretDining : interpretAnswer);
   }
 }
 
@@ -314,6 +328,12 @@ async function listenAnswer(my, prefix, handler, prompt, interpret = interpretAn
 }
 
 function onAnswer(a) {
+  if (s.question?.type === 'choose_dining') {
+    if (a !== 'DINE_IN' && a !== 'TAKEOUT') return false;
+    stt.cancel();
+    s.dining = a;
+    return proceed();
+  }
   stt.cancel();
   const next = applyAnswer(s.items, s.question, a, menu);
   if (next === null) return retry();
@@ -402,7 +422,7 @@ async function showConfirm() {
   const my = ++flow;
   let priced;
   try {
-    priced = await call('/api/quote', { items: s.items });
+    priced = await call('/api/quote', { items: s.items, dining: s.dining });
   } catch {
     return showNotHeard();
   }
@@ -411,7 +431,10 @@ async function showConfirm() {
   s.orderKey = null; // 확인 화면이 새로 열리면 새 주문 — 이전 키를 다시 쓰지 않는다
   linesHtml($('c-lines'), priced.items);
   $('c-total').textContent = won(priced.total_amount);
-  const spoken = speakItems(priced.items);
+  $('c-dining').textContent = DINING_TAG[priced.dining];
+  $('c-disc').hidden = !priced.discount_amount;
+  $('c-disc').textContent = priced.discount_amount ? `포장 할인 -${won(priced.discount_amount)} (정상가 ${won(priced.list_amount)})` : '';
+  const spoken = `${speakItems(priced.items)}, ${DINING_LABEL[priced.dining]}`;
   $('c-ask').textContent = `“${spoken} 맞으실까요?”`;
   $('c-note').hidden = !s.unrecognized.length;
   $('c-note').textContent = s.unrecognized.length
@@ -419,7 +442,8 @@ async function showConfirm() {
     : '';
   resetAnswerUi('c');
   show('confirm');
-  await say(`${spoken} 맞으실까요? 총 ${won(priced.total_amount)}입니다.`);
+  const disc = priced.discount_amount ? '포장 할인 적용해서 ' : '';
+  await say(`${spoken} 맞으실까요? ${disc}총 ${won(priced.total_amount)}입니다.`);
   if (my === flow && s.mode === 'VOICE') {
     listenAnswer(my, 'c', (a) => {
       if (a === 'yes') return confirmOrder();
@@ -434,7 +458,7 @@ async function confirmOrder() {
   if (STORE) return submitStoreOrder();
   const my = ++flow;
   try {
-    const order = await api(`/api/sessions/${s.session}/confirm`, { items: s.items });
+    const order = await api(`/api/sessions/${s.session}/confirm`, { items: s.items, dining: s.dining });
     if (my !== flow) return;
     showDone(order);
   } catch {
@@ -460,6 +484,7 @@ async function submitStoreOrder() {
     const order = await call(`/api/store/${STORE_ID}/orders`, {
       session_id: s.session,
       items: s.items,
+      dining: s.dining,
       order_source: s.mode,
       idempotency_key: s.orderKey,
       clarification_count: s.clarifications || 0,
@@ -485,6 +510,7 @@ function showStoreDone(order) {
   $('d-id').textContent = STORE_TEST ? '테스트 주문 · 실제 주문이 아닙니다' : '';
   linesHtml($('d-lines'), order.items.map((l) => ({ display_name: l.display_name, quantity: l.quantity, unit: l.unit || '잔' })));
   $('d-total').textContent = won(order.total_amount);
+  $('d-dining').textContent = DINING_TAG[order.dining] || '';
   $('d-pay').textContent = '카운터에서 결제해주세요.';
   $('d-print').hidden = true; // 주문서는 카운터에서 출력한다
   $('d-print-msg').hidden = true;
@@ -503,6 +529,7 @@ function showDone(order) {
   $('d-id').textContent = order.order_id;
   linesHtml($('d-lines'), order.items);
   $('d-total').textContent = won(order.total_amount);
+  $('d-dining').textContent = DINING_TAG[order.dining] || '';
   $('d-print-msg').hidden = true;
   s.lastOrder = order;
   s.session = null; // 확정된 세션은 닫힘
@@ -576,6 +603,7 @@ function retry() {
   stt.cancel();
   s.items = [];
   s.question = null;
+  s.dining = null; // '아니요'는 매장/포장이 틀려서일 수도 있다 → 다시 묻는다
   if (s.mode === 'VOICE') return listenOrder();
   ++flow;
   show('text');

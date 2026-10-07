@@ -25,6 +25,10 @@
 .card { background: #fff; border: 3px solid var(--line); border-radius: 18px; padding: 14px; display: flex; flex-direction: column; gap: 8px; }
 .card.NEW { border-color: #e08a1e; box-shadow: 0 0 0 4px #ffe2b0; }
 .card .no { font-size: 2.6rem; font-weight: 900; line-height: 1; color: var(--brand); }
+.card .head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.dining { font-size: 1.4rem; font-weight: 900; padding: 4px 12px; border-radius: 12px; border: 3px solid var(--brand); }
+.dining.TAKEOUT { background: var(--brand); color: #fff; }
+.card .disc { text-align: right; color: var(--muted); font-weight: 700; }
 .card .meta { display: flex; justify-content: space-between; color: var(--muted); font-weight: 700; font-size: 0.95rem; }
 .card ul { list-style: none; margin: 0; padding: 0; }
 .card li { display: flex; justify-content: space-between; font-size: 1.25rem; font-weight: 800; padding: 4px 0; border-bottom: 1px dashed var(--line); }

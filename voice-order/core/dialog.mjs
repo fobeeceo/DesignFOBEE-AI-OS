@@ -1,6 +1,6 @@
 // 확인 질문과 고객 대답 해석. 브라우저와 Node(테스트) 양쪽에서 쓴다.
 import { itemLabel, josa, temperatureLabel } from './format.mjs';
-import { detectTemperature } from './parser.mjs';
+import { detectTemperature, detectDining } from './parser.mjs';
 
 /**
  * 아직 고객에게 물어봐야 할 첫 번째 질문. 없으면 null (→ 주문 확인 단계).
@@ -33,6 +33,14 @@ export function nextQuestion(items, menu) {
     }
   }
   return null;
+}
+
+/** 매장/포장 질문 — 포장 할인 때문에 가격이 달라지므로 말하지 않았으면 묻는다 (추측 금지) */
+export const DINING_QUESTION = { type: 'choose_dining', text: '매장에서 드시고 가시나요, 포장해 가시나요?' };
+
+/** "포장이요" → 'TAKEOUT', "먹고 갈게요" → 'DINE_IN', 모르면 null */
+export function interpretDining(text) {
+  return detectDining(text);
 }
 
 /** 대답을 질문에 반영한 새 items. 'no' 이면 null (→ 처음부터 다시 말하기). */

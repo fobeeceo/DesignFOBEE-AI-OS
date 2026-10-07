@@ -80,6 +80,9 @@ await step('텍스트 주문: 두 메뉴 + 온도 확인 → 주문 확인 11,40
   assert.equal(await page.textContent('#q-text'), '카페라떼는 따뜻한 것과 차가운 것 중 어떤 걸로 드릴까요?');
   await page.screenshot({ path: `${OUT}03-question-temp.png` });
   await page.getByRole('button', { name: /따뜻하게/ }).click();
+  await visible('question');
+  assert.equal(await page.textContent('#q-text'), '매장에서 드시고 가시나요, 포장해 가시나요?');
+  await page.getByRole('button', { name: /매장에서 먹어요/ }).click();
   await visible('confirm');
   assert.equal(await page.textContent('#c-total'), '11,400원');
   await page.screenshot({ path: `${OUT}04-confirm.png` });
@@ -111,20 +114,20 @@ await step('완료 후 자동으로 시작 화면 복귀 (10초)', async () => {
 });
 
 await step('음성 주문: "커피 하나" → 확인 질문 → 네 → 아이스 → 맞아요 → 완료', async () => {
-  await page.evaluate(() => window.__queue.push('커피 하나 주세요', '네', '아이스요', '맞아요'));
+  await page.evaluate(() => window.__queue.push('커피 하나 주세요', '네', '아이스요', '매장이요', '맞아요'));
   await page.getByRole('button', { name: /주문 시작/ }).click();
   await visible('done');
   const spoken = await page.evaluate(() => window.__spoken);
   assert.ok(spoken.includes('듣고 있습니다.'));
   assert.ok(spoken.includes('아메리카노를 말씀하시나요?'));
-  assert.ok(spoken.some((t) => t.startsWith('아이스 아메리카노 한 잔 맞으실까요? 총 3,500원입니다.')));
+  assert.ok(spoken.some((t) => t.startsWith('아이스 아메리카노 한 잔, 매장 맞으실까요? 총 3,500원입니다.')));
   await page.getByRole('button', { name: /처음으로/ }).click();
 });
 
 await step('음성 대답: 처음엔 못 듣고, 안내 음성 메아리는 무시하고, 다시 들어서 "네" 처리', async () => {
   await page.evaluate(() => window.__queue.push(
     '따뜻한 커피 한잔 주문할게', '__nospeech__', '따뜻한 아메리카노를 말씀하시나요', '네',
-    '__nospeech__', '맞아요',
+    '포장이요', '__nospeech__', '맞아요',
   ));
   await page.getByRole('button', { name: /주문 시작/ }).click();
   await visible('done');
@@ -133,7 +136,7 @@ await step('음성 대답: 처음엔 못 듣고, 안내 음성 메아리는 무�
 });
 
 await step('음성 대답 3번 못 들음 → 버튼 안내 + "말로 다시 대답하기"', async () => {
-  await page.evaluate(() => window.__queue.push('아이스 라떼 하나', '__nospeech__', '__nospeech__', '__nospeech__'));
+  await page.evaluate(() => window.__queue.push('아이스 라떼 하나', '매장이요', '__nospeech__', '__nospeech__', '__nospeech__'));
   await page.getByRole('button', { name: /주문 시작/ }).click();
   await visible('confirm');
   await page.locator('#c-listen').waitFor({ state: 'visible', timeout: 5000 });
@@ -146,7 +149,7 @@ await step('음성 대답 3번 못 들음 → 버튼 안내 + "말로 다시 대
 });
 
 await step('음성: "따뜻한 음료 뭐 먹으면 될까" → 메뉴 보기 → "라떼요" → 따뜻한 카페라떼', async () => {
-  await page.evaluate(() => window.__queue.push('따뜻한 음료수 먹고 싶은데 어떤 걸 먹으면 될까', '커피요', '라떼요', '네'));
+  await page.evaluate(() => window.__queue.push('따뜻한 음료수 먹고 싶은데 어떤 걸 먹으면 될까', '커피요', '라떼요', '매장이요', '네'));
   await page.getByRole('button', { name: /주문 시작/ }).click();
   await page.waitForFunction(() => document.getElementById('q-text').textContent.startsWith('따뜻한 메뉴예요.'));
   await page.screenshot({ path: `${OUT}06c-suggest.png` });
@@ -161,6 +164,7 @@ await step('텍스트: 메뉴 보기에서 버튼으로 고르기', async () => 
   await page.getByRole('button', { name: '주문 분석' }).click();
   await page.locator('#q-choices').getByRole('button', { name: /^커피\s+\(/ }).click();
   await page.getByRole('button', { name: /^아포카토\s+5,400원/ }).click();
+  await page.getByRole('button', { name: /매장에서 먹어요/ }).click();
   await visible('confirm');
   assert.equal(await page.textContent('#c-total'), '5,400원');
   await page.getByRole('button', { name: /다시 말할게요/ }).click();
@@ -168,7 +172,7 @@ await step('텍스트: 메뉴 보기에서 버튼으로 고르기', async () => 
 });
 
 await step('음성: "따뜻한 음료 중에 커피 아닌 거" → 종류 → "차요" → "유자차요" → 따뜻한 유자차 6,000원', async () => {
-  await page.evaluate(() => window.__queue.push('따뜻한 음료 중에 커피 아닌 거 추천해 줘', '차요', '유자차요'));
+  await page.evaluate(() => window.__queue.push('따뜻한 음료 중에 커피 아닌 거 추천해 줘', '차요', '유자차요', '매장에서 마실게요'));
   await page.getByRole('button', { name: /주문 시작/ }).click();
   await page.waitForFunction(() => document.getElementById('q-text').textContent.startsWith('따뜻한 커피 아닌 메뉴예요.'));
   const cats = await page.locator('#q-choices button').allTextContents();

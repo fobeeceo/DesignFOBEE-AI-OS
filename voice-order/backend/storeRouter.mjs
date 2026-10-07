@@ -50,12 +50,13 @@ export async function routeStore(ctx, method, pathname, body = {}) {
       if (x[2] === 'fail') return { status: 200, body: engine.recordFailure(x[1], body.reason) };
       return { status: 200, body: engine.cancel(x[1]) };
     }
-    if (rest === '/quote') return { status: 200, body: engine.quote(body.items) };
+    if (rest === '/quote') return { status: 200, body: engine.quote(body.items, body.dining) };
     if (rest === '/orders') {
       const session = body.session_id ? own(body.session_id) : null;
       const order = orders.create({
         store_id: storeId,
         items: body.items,
+        dining: body.dining,
         order_source: body.order_source,
         idempotency_key: body.idempotency_key,
         session,

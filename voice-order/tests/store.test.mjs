@@ -50,7 +50,7 @@ async function order(call, text, answers = [], extra = {}) {
     clar += 1;
     items = applyAnswer(items, q, a, menu);
   }
-  const res = await call(`${S}/orders`, { session_id: sess.id, items, order_source: 'VOICE', idempotency_key: key(), clarification_count: clar, ...extra });
+  const res = await call(`${S}/orders`, { session_id: sess.id, items, dining: 'DINE_IN', order_source: 'VOICE', idempotency_key: key(), clarification_count: clar, ...extra });
   return { sess, parsed, res };
 }
 
@@ -96,10 +96,10 @@ test('TEST 03 없는 메뉴 → 메뉴 없음 안내 (메뉴·가격을 만들�
     assert.equal(p.kind, 'not_found');
     assert.equal(p.items.length, 0);
     // 서버도 메뉴에 없는 id·임의 가격을 받지 않는다
-    const bad = await t.call(`${S}/orders`, { session_id: sess.id, items: [{ menu_id: 'EINSPANNER', quantity: 1 }], idempotency_key: key() });
+    const bad = await t.call(`${S}/orders`, { session_id: sess.id, items: [{ menu_id: 'EINSPANNER', quantity: 1 }], dining: 'DINE_IN', idempotency_key: key() });
     assert.equal(bad.status, 400);
     const forged = await t.call(`${S}/orders`, {
-      items: [{ menu_id: 'AMERICANO', temperature: 'ICE', quantity: 1, unit_price: 100, amount: 100 }], idempotency_key: key(),
+      items: [{ menu_id: 'AMERICANO', temperature: 'ICE', quantity: 1, unit_price: 100, amount: 100 }], dining: 'DINE_IN', idempotency_key: key(),
     });
     assert.equal(forged.data.total_amount, 3500, '클라이언트가 보낸 금액은 무시');
     // 사실 확인: 지시서 예시의 '딸기라떼'는 승인 메뉴판(10/1)에 있는 메뉴(아이스 4,900원)다
@@ -144,7 +144,7 @@ test('TEST 06 주문번호: 동시 주문 50건도 중복 없음, 영업일마�
   const t = await startServer();
   try {
     const res = await Promise.all(
-      Array.from({ length: 50 }, () => t.call(`${S}/orders`, { items: [{ menu_id: 'ESPRESSO', temperature: 'HOT', quantity: 1 }], idempotency_key: key() })),
+      Array.from({ length: 50 }, () => t.call(`${S}/orders`, { items: [{ menu_id: 'ESPRESSO', temperature: 'HOT', quantity: 1 }], dining: 'DINE_IN', idempotency_key: key() })),
     );
     const nums = res.map((r) => r.data.order_number);
     assert.equal(new Set(nums).size, 50);
@@ -157,7 +157,7 @@ test('TEST 06 주문번호: 동시 주문 50건도 중복 없음, 영업일마�
   const { createMemoryDb } = await import('../backend/store.mjs');
   let clock = new Date('2026-10-03T14:59:00Z'); // KST 23:59
   const o = createStoreOrders({ db: createMemoryDb(), menu, stores: [{ store_id: 'GBRICK_MAIN', name: '본점', order_prefix: 'A' }], mode: 'production', now: () => clock });
-  const mk = () => o.create({ store_id: 'GBRICK_MAIN', items: [{ menu_id: 'ESPRESSO', temperature: 'HOT', quantity: 1 }], idempotency_key: key() }).order_number;
+  const mk = () => o.create({ store_id: 'GBRICK_MAIN', items: [{ menu_id: 'ESPRESSO', temperature: 'HOT', quantity: 1 }], dining: 'DINE_IN', idempotency_key: key() }).order_number;
   assert.equal(mk(), 'A001');
   assert.equal(mk(), 'A002');
   clock = new Date('2026-10-03T15:00:30Z'); // KST 10/04 00:00
@@ -228,7 +228,7 @@ test('TEST 10 중복 주문 방지: 같은 확인 키로 여러 번 보내도 �
   const t = await startServer();
   try {
     const k = key();
-    const body = { items: [{ menu_id: 'AMERICANO', temperature: 'ICE', quantity: 1 }], idempotency_key: k };
+    const body = { items: [{ menu_id: 'AMERICANO', temperature: 'ICE', quantity: 1 }], dining: 'DINE_IN', idempotency_key: k };
     const res = await Promise.all(Array.from({ length: 10 }, () => t.call(`${S}/orders`, body)));
     assert.equal(new Set(res.map((r) => r.data.order_id)).size, 1);
     assert.equal(res.filter((r) => r.status === 201).length, 1);
@@ -249,7 +249,7 @@ test('TEST 11 네트워크·서버 오류: 저장되지 않은 주문은 만들�
     assert.equal(t.storeCtx.orders.all().orders.length, 0);
     // 응답을 못 받은 손님이 '다시 보내기'를 눌러도 같은 키라 주문은 하나
     const k = key();
-    const body = { items: [{ menu_id: 'AMERICANO', temperature: 'HOT', quantity: 1 }], idempotency_key: k };
+    const body = { items: [{ menu_id: 'AMERICANO', temperature: 'HOT', quantity: 1 }], dining: 'DINE_IN', idempotency_key: k };
     await t.call(`${S}/orders`, body);
     const retry = await t.call(`${S}/orders`, body);
     assert.equal(retry.status, 200);
@@ -258,7 +258,7 @@ test('TEST 11 네트워크·서버 오류: 저장되지 않은 주문은 만들�
     // 서버를 다시 켜도 파일에서 주문과 번호가 이어진다
     const again = createStoreContext({ menu, getKnowledge: () => ({}), dir: t.dir, env: {} });
     assert.equal(again.orders.all().orders.length, 1);
-    const next = again.orders.create({ store_id: 'GBRICK_MAIN', items: body.items, idempotency_key: key() });
+    const next = again.orders.create({ store_id: 'GBRICK_MAIN', items: body.items, dining: 'DINE_IN', idempotency_key: key() });
     assert.equal(next.order_number, 'T002');
   } finally {
     await t.close();
@@ -273,8 +273,8 @@ test('TEST 12 TEST / PRODUCTION 분리: 기본 TEST, PRODUCTION은 환경변수 
   assert.throws(() => createStoreContext({ menu, dir, env: { VOICE_ORDER_MODE: 'live' } }), /test 또는 production/);
   const prodCtx = createStoreContext({ menu, dir, env: { VOICE_ORDER_MODE: 'production', STORE_STAFF_KEY: 'pin-1234' } });
   const items = [{ menu_id: 'AMERICANO', temperature: 'ICE', quantity: 1 }];
-  const tOrder = testCtx.orders.create({ store_id: 'GBRICK_MAIN', items, idempotency_key: key() });
-  const pOrder = prodCtx.orders.create({ store_id: 'GBRICK_MAIN', items, idempotency_key: key() });
+  const tOrder = testCtx.orders.create({ store_id: 'GBRICK_MAIN', items, dining: 'DINE_IN', idempotency_key: key() });
+  const pOrder = prodCtx.orders.create({ store_id: 'GBRICK_MAIN', items, dining: 'DINE_IN', idempotency_key: key() });
   assert.equal(tOrder.order_number, 'T001');
   assert.equal(pOrder.order_number, 'A001');
   assert.ok(fs.existsSync(path.join(dir, 'store-orders.test.json')));
@@ -342,6 +342,37 @@ test('기존 DEMO(/ 와 /api/sessions)는 그대로, STORE와 데이터가 섞�
     assert.equal(t.storeCtx.orders.all().orders.length, 0, 'DEMO 주문은 매장 주문 서버에 들어가지 않음');
     // 매장 세션 id로 DEMO 경로를, DEMO 세션 id로 매장 경로를 쓸 수 없다
     assert.equal((await t.call(`${S}/sessions/${s.id}/parse`, { text: '라떼' })).status, 404);
+  } finally {
+    await t.close();
+  }
+});
+
+test('포장 주문: 할인 가격으로 저장 · 카운터/주문서에 [포장] 표시 · 매장/포장 없으면 접수 안 함', async () => {
+  const t = await startServer();
+  try {
+    const items = [{ menu_id: 'AMERICANO', temperature: 'ICE', quantity: 1 }, { menu_id: 'CAFE_LATTE', temperature: 'HOT', quantity: 1 }];
+    const none = await t.call(`${S}/orders`, { items, idempotency_key: key() });
+    assert.equal(none.status, 400, '매장/포장을 고르지 않은 주문은 만들지 않는다');
+    assert.match(none.data.error, /포장/);
+    assert.equal(t.storeCtx.orders.all().orders.length, 0);
+
+    const q = await t.call(`${S}/quote`, { items, dining: 'TAKEOUT' });
+    assert.equal(q.data.total_amount, 2000 + 3400);
+    const res = await t.call(`${S}/orders`, { items, dining: 'TAKEOUT', idempotency_key: key() });
+    assert.equal(res.status, 201);
+    const o = res.data;
+    assert.equal(o.dining, 'TAKEOUT');
+    assert.deepEqual([o.list_amount, o.discount_amount, o.total_amount], [7900, 2500, 5400]);
+    assert.deepEqual(o.items.map((l) => [l.menu_id, l.unit_price, l.amount]), [['AMERICANO', 2000, 2000], ['CAFE_LATTE', 3400, 3400]]);
+    const counter = (await t.call(`${S}/counter`)).data;
+    assert.equal(counter.active[0].dining, 'TAKEOUT');
+    const printed = (await t.call(`${S}/orders/${o.order_id}/print`, {})).data;
+    assert.match(printed.html, /\[ 포장 \]/);
+    assert.match(printed.html, /포장 할인 -2,500원/);
+    assert.match(printed.html, /합계 5,400원/);
+
+    const dineIn = (await t.call(`${S}/orders`, { items, dining: 'DINE_IN', idempotency_key: key() })).data;
+    assert.equal(dineIn.total_amount, 7900, '매장은 정상가');
   } finally {
     await t.close();
   }

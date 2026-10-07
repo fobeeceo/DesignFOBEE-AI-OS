@@ -167,6 +167,9 @@ textarea:focus { outline: 4px solid #e08a1e; border-color: var(--brand); }
 .listen-status { margin: 0; min-height: 1.5em; font-size: 1.15rem; font-weight: 700; color: var(--brand); }
 .receipt .r-no { font-size: 20pt; font-weight: 900; }
 .receipt .r-opt { font-size: 10pt; padding-left: 1em; }
+.dining-tag { margin: 0; font-size: 1.3rem; font-weight: 900; color: var(--brand); }
+.dining-tag:empty { display: none; }
+.receipt .r-dining { font-size: 16pt; }
 .receipt .r-test { border: 2px solid #000; padding: 2px; }
 
 /* STORE MODE: 서버 연결 상태 */

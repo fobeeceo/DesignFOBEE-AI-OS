@@ -73,7 +73,7 @@ export function createStoreOrders({ db, menu, stores, mode = MODES.TEST, now = (
      * 고객이 "네"라고 최종 확인한 주문을 만든다.
      * idempotency_key가 같으면 새로 만들지 않고 처음 주문을 그대로 돌려준다(재전송·두 번 누름 방지).
      */
-    create({ store_id, items, order_source, idempotency_key, session = null, clarification_count = 0 }) {
+    create({ store_id, items, dining, order_source, idempotency_key, session = null, clarification_count = 0 }) {
       const store = mustStore(store_id);
       if (typeof idempotency_key !== 'string' || !/^[\w-]{8,64}$/.test(idempotency_key)) {
         throw new OrderError('주문 확인 키가 올바르지 않습니다.');
@@ -81,7 +81,9 @@ export function createStoreOrders({ db, menu, stores, mode = MODES.TEST, now = (
       const dup = data.orders.find((o) => o.store_id === store_id && o.idempotency_key === idempotency_key);
       if (dup) return { ...dup, duplicate: true };
 
-      const priced = quote(items, menu); // 가격은 menu.json에서만. 클라이언트 금액은 받지 않는다
+      // 매장/포장에 따라 가격이 달라지므로 반드시 손님이 고른 값이 있어야 한다 (추측 금지)
+      if (dining !== 'DINE_IN' && dining !== 'TAKEOUT') throw new OrderError('매장에서 드실지 포장하실지 선택해야 합니다.');
+      const priced = quote(items, menu, dining); // 가격은 menu.json에서만. 클라이언트 금액은 받지 않는다
       const at = now().toISOString();
       const order = {
         order_id: newId('ord'),
@@ -101,6 +103,9 @@ export function createStoreOrders({ db, menu, stores, mode = MODES.TEST, now = (
         cancelled_at: null,
         print_count: 0,
         clarification_count: Number.isInteger(clarification_count) ? clarification_count : 0,
+        dining,
+        list_amount: priced.list_amount,
+        discount_amount: priced.discount_amount,
         total_amount: priced.total_amount,
         items: priced.items.map((l) => ({
           menu_id: l.menu_id,
@@ -108,6 +113,8 @@ export function createStoreOrders({ db, menu, stores, mode = MODES.TEST, now = (
           display_name: l.display_name,
           quantity: l.quantity,
           options: l.temperature ? { temperature: l.temperature } : {},
+          list_price: l.list_price,
+          discount: l.discount,
           unit_price: l.unit_price,
           amount: l.line_total,
           unit: l.unit,

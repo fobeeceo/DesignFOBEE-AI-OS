@@ -120,7 +120,10 @@ function renderHelp(help) {
 function card(o) {
   const c = el('article', `card ${o.status}`);
   c.dataset.orderId = o.order_id;
-  c.append(el('div', 'no', o.order_number));
+  const head = el('div', 'head');
+  head.append(el('div', 'no', o.order_number));
+  if (o.dining) head.append(el('span', `dining ${o.dining}`, o.dining === 'TAKEOUT' ? '🥡 포장' : '🍽 매장'));
+  c.append(head);
   const meta = el('div', 'meta');
   meta.append(el('span', '', time(o.created_at)), el('span', '', o.order_source === 'VOICE' ? '🎤 음성' : '⌨ 글자'));
   c.append(meta, el('span', `status ${o.status}`, STATUS_LABEL[o.status]));
@@ -133,7 +136,9 @@ function card(o) {
     li.append(name, el('span', '', `× ${it.quantity}`));
     ul.append(li);
   }
-  c.append(ul, el('div', 'sum', won(o.total_amount)));
+  c.append(ul);
+  if (o.discount_amount) c.append(el('div', 'disc', `포장 할인 -${won(o.discount_amount)}`));
+  c.append(el('div', 'sum', won(o.total_amount)));
   const acts = el('div', 'acts');
   for (const [label, next, strong] of ACTIONS[o.status] || []) {
     const b = el('button', strong ? 'go' : '', label);
@@ -199,7 +204,7 @@ async function load() {
     renderHelp(v.help);
     $('active-count').textContent = `(${v.active.length})`;
     $('active').replaceChildren(...(v.active.length ? v.active.map(card) : [el('p', 'c-empty', '진행 중인 주문이 없습니다.')]));
-    $('done').replaceChildren(...v.done_today.map((o) => el('span', o.status, `${o.order_number} ${STATUS_LABEL[o.status]}`)));
+    $('done').replaceChildren(...v.done_today.map((o) => el('span', o.status, `${o.order_number}${o.dining === 'TAKEOUT' ? ' 포장' : ''} ${STATUS_LABEL[o.status]}`)));
     if (newHelp) beep(4);
     else if (newOrder) beep(2);
     if (newOrder || newHelp) document.title = `🔔 ${newHelp ? '도움 요청' : '새 주문'} · 카운터`;

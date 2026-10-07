@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { parseOrder } from '../core/parser.mjs';
 import {
-  nextQuestion, applyAnswer, interpretAnswer, suggestionText, groupSuggestions, categoryText, interpretCategory,
+  nextQuestion, applyAnswer, interpretAnswer, suggestionText, groupSuggestions, categoryText, interpretCategory, interpretDining,
 } from '../core/dialog.mjs';
 import { createOrderService, quote, STATUS, PAY_AT_COUNTER } from '../backend/orderService.mjs';
 import { createMemoryStore } from '../backend/store.mjs';
@@ -412,4 +412,51 @@ test('BUG-01: 수량 뒤에 말한 온도도 알아듣는다 (TEST A~H)', () => 
   assert.deepEqual(brief(parseOrder('아이스 아메리카노 한 잔 하고 라떼 한 잔', menu)), [['AMERICANO', 'ICE', 1], ['CAFE_LATTE', null, 1]]);
   // 모순된 말은 묻는다
   assert.deepEqual(brief(parseOrder('아메리카노 한 잔 따뜻하게 차갑게', menu)), [['AMERICANO', null, 1]]);
+});
+
+test('포장 할인 (대표 지시 2026-10-07): 아메리카노 -1,500원, 그 밖의 음료 -1,000원 (잔당)', () => {
+  const items = [
+    { menu_id: 'AMERICANO', temperature: 'ICE', quantity: 2 }, // 3,500 → 2,000
+    { menu_id: 'CAFE_LATTE', temperature: 'HOT', quantity: 1 }, // 4,400 → 3,400
+    { menu_id: 'HAND_DRIP', temperature: 'ICE', quantity: 1 }, // 온도별 가격 6,000 → 5,000
+    { menu_id: 'YUZU_TEA', temperature: 'HOT', quantity: 1 }, // 차 6,000 → 5,000
+  ];
+  const take = quote(items, menu, 'TAKEOUT');
+  assert.deepEqual(take.items.map((l) => [l.menu_id, l.list_price, l.discount, l.unit_price, l.line_total]), [
+    ['AMERICANO', 3500, 1500, 2000, 4000],
+    ['CAFE_LATTE', 4400, 1000, 3400, 3400],
+    ['HAND_DRIP', 6000, 1000, 5000, 5000],
+    ['YUZU_TEA', 6000, 1000, 5000, 5000],
+  ]);
+  assert.equal(take.list_amount, 3500 * 2 + 4400 + 6000 + 6000);
+  assert.equal(take.discount_amount, 1500 * 2 + 1000 * 3);
+  assert.equal(take.total_amount, take.list_amount - take.discount_amount);
+  assert.equal(take.dining, 'TAKEOUT');
+  // 매장 / 선택 전에는 정상가
+  for (const dining of ['DINE_IN', undefined]) {
+    const r = quote(items, menu, dining);
+    assert.equal(r.discount_amount, 0);
+    assert.equal(r.total_amount, r.list_amount);
+  }
+  assert.throws(() => quote(items, menu, 'DELIVERY'), /매장\/포장/);
+});
+
+test('매장/포장 말하기: "포장이요"·"가져갈게요" → TAKEOUT, "먹고 갈게요"·"매장에서" → DINE_IN, 말 안 하면 null', () => {
+  const cases = [
+    ['아이스 아메리카노 하나 포장이요', 'TAKEOUT'],
+    ['아메리카노 한 잔 가져갈게요', 'TAKEOUT'],
+    ['라떼 두 잔 테이크아웃', 'TAKEOUT'],
+    ['따뜻한 라떼 한 잔 먹고 갈게요', 'DINE_IN'],
+    ['매장에서 마실게요 아메리카노 차갑게 한 잔', 'DINE_IN'],
+    ['아이스 아메리카노 하나', null],
+  ];
+  for (const [text, want] of cases) {
+    const r = parseOrder(text, menu);
+    assert.equal(r.dining, want, text);
+    assert.deepEqual(r.unrecognized, [], `${text}: 매장/포장 말이 '못 알아들은 말'로 남지 않는다`);
+  }
+  assert.equal(parseOrder('매장 말고 포장이요', menu).dining, null); // 둘 다 말하면 추측하지 않고 묻는다
+  assert.equal(interpretDining('포장해 주세요'), 'TAKEOUT');
+  assert.equal(interpretDining('여기서 먹을게요'), 'DINE_IN');
+  assert.equal(interpretDining('네'), null);
 });

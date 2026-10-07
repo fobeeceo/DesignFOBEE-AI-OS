@@ -16,6 +16,15 @@ export function formatKst(iso) {
   return `${p.year}-${p.month}-${p.day} ${p.hour}:${p.minute}`;
 }
 
+const DINING_LABEL = { DINE_IN: '매장', TAKEOUT: '포장' };
+
+/** 포장 할인이 있으면 정상가·할인을 함께 적는다 (합계만 보면 왜 싼지 모르니까) */
+function discountRows(order) {
+  if (!order.discount_amount) return '';
+  return `<div>정상가 ${won(order.list_amount)}</div>
+  <div>포장 할인 -${won(order.discount_amount)}</div>`;
+}
+
 export function renderReceipt(order) {
   const lines = order.items
     .map((l) => `<tr><td>${esc(l.display_name)}</td><td class="qty">${l.quantity}</td><td class="amt">${won(l.line_total)}</td></tr>`)
@@ -26,9 +35,11 @@ export function renderReceipt(order) {
   <div class="r-rule double"></div>
   <div class="r-big">주문번호: ${esc(order.order_id)}</div>
   <div>시간: ${formatKst(order.confirmed_at || order.created_at)}</div>
+  ${order.dining ? `<div class="r-big">${DINING_LABEL[order.dining]}</div>` : ''}
   <div class="r-rule"></div>
   <table>${lines}</table>
   <div class="r-rule"></div>
+  ${discountRows(order)}
   <div class="r-big">합계: ${won(order.total_amount)}</div>
   <div class="r-big">결제: 카운터</div>
   <div class="r-rule double"></div>
@@ -55,9 +66,11 @@ export function renderStoreReceipt(order, store) {
   ${test}
   <div class="r-rule double"></div>
   <div class="r-center r-no">주문번호 ${esc(order.order_number)}</div>
+  ${order.dining ? `<div class="r-center r-big r-dining">[ ${DINING_LABEL[order.dining]} ]</div>` : ''}
   <div class="r-rule double"></div>
   <table>${lines}</table>
   <div class="r-rule"></div>
+  ${discountRows(order)}
   <div class="r-big">합계 ${won(order.total_amount)}</div>
   <div>결제: 카운터 (기존 POS)</div>
   <div class="r-rule"></div>

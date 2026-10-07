@@ -33,11 +33,23 @@ export function kstDate(date) {
     .replaceAll('-', '');
 }
 
+export const DINING = { DINE_IN: 'DINE_IN', TAKEOUT: 'TAKEOUT' };
+
+/** 포장 할인(잔당) — MENU_MASTER의 takeout_discount 규칙만 쓴다 */
+function takeoutDiscount(def, menu) {
+  const rule = menu.takeout_discount;
+  if (!rule) return 0;
+  if (Number.isInteger(rule.by_menu?.[def.menu_id])) return rule.by_menu[def.menu_id];
+  return (rule.categories || []).includes(def.category) ? rule.default || 0 : 0;
+}
+
 /**
  * 가격 계산 — 가격은 오직 MENU_MASTER에서 온다. 클라이언트가 보낸 금액은 받지 않는다.
  * 같은 메뉴·같은 온도는 한 줄로 합친다.
+ * dining: 'TAKEOUT'이면 포장 할인을 적용한다. 없으면 정상가 (매장/포장은 추측하지 않는다).
  */
-export function quote(rawItems, menu) {
+export function quote(rawItems, menu, dining = null) {
+  if (dining != null && !Object.values(DINING).includes(dining)) throw new OrderError('매장/포장 선택이 올바르지 않습니다.');
   if (!Array.isArray(rawItems) || rawItems.length === 0) throw new OrderError('주문할 메뉴가 없습니다.');
   const merged = new Map();
   for (const r of rawItems) {
@@ -54,8 +66,10 @@ export function quote(rawItems, menu) {
     else merged.set(key, { def, temperature, quantity: qty });
   }
   const items = [...merged.values()].map(({ def, temperature, quantity }) => {
-    const unitPrice = priceFor(def, temperature);
-    if (!Number.isInteger(unitPrice)) throw new OrderError(`${def.name}의 가격이 메뉴에 없습니다.`);
+    const listPrice = priceFor(def, temperature);
+    if (!Number.isInteger(listPrice)) throw new OrderError(`${def.name}의 가격이 메뉴에 없습니다.`);
+    const discount = dining === DINING.TAKEOUT ? Math.min(takeoutDiscount(def, menu), listPrice) : 0;
+    const unitPrice = listPrice - discount;
     return {
       menu_id: def.menu_id,
       name: def.name,
@@ -63,12 +77,21 @@ export function quote(rawItems, menu) {
       temperature,
       unit: def.unit,
       quantity,
+      list_price: listPrice,
+      discount,
       unit_price: unitPrice,
       line_total: unitPrice * quantity,
     };
   });
   if (items.some((l) => l.quantity > MAX_QTY)) throw new OrderError(`수량은 ${MAX_QTY}개까지 주문할 수 있습니다.`);
-  return { items, total_amount: items.reduce((s, l) => s + l.line_total, 0) };
+  const sum = (f) => items.reduce((s, l) => s + f(l), 0);
+  return {
+    items,
+    dining,
+    list_amount: sum((l) => l.list_price * l.quantity),
+    discount_amount: sum((l) => l.discount * l.quantity),
+    total_amount: sum((l) => l.line_total),
+  };
 }
 
 // getKnowledge: 매번 최신 knowledge.json을 돌려주는 함수 (파일을 고치면 재시작 없이 반영)
@@ -142,12 +165,12 @@ export function createOrderService({ store, menu, printProvider, getKnowledge = 
       return { fail_count: store.get(r.id).fail_count };
     },
 
-    quote: (items) => quote(items, menu),
+    quote: (items, dining) => quote(items, menu, dining),
 
-    confirm(sessionId, items) {
+    confirm(sessionId, items, dining = null) {
       const r = mustGet(sessionId);
       mustBeOpen(r);
-      const priced = quote(items, menu);
+      const priced = quote(items, menu, dining);
       return store.update(r.id, {
         ...priced,
         order_id: nextOrderId(),

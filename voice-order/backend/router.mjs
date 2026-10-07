@@ -14,13 +14,13 @@ export async function route(service, method, pathname, body = {}) {
     }
     if (method !== 'POST') return { status: 404, body: { error: 'not found' } };
     if (pathname === '/api/sessions') return { status: 201, body: service.startSession(body.input_type) };
-    if (pathname === '/api/quote') return { status: 200, body: service.quote(body.items) };
+    if (pathname === '/api/quote') return { status: 200, body: service.quote(body.items, body.dining) };
     if (pathname === '/api/help') return { status: 200, body: service.requestHelp(body.session_id || null) };
     if ((match = m(/^\/api\/sessions\/([\w-]+)\/(parse|fail|confirm|cancel)$/))) {
       const [, id, action] = match;
       if (action === 'parse') return { status: 200, body: service.parse(id, body.text) };
       if (action === 'fail') return { status: 200, body: service.recordFailure(id, body.reason) };
-      if (action === 'confirm') return { status: 200, body: service.confirm(id, body.items) };
+      if (action === 'confirm') return { status: 200, body: service.confirm(id, body.items, body.dining) };
       if (action === 'cancel') return { status: 200, body: service.cancel(id) };
     }
     if ((match = m(/^\/api\/orders\/(GB-\d{8}-\d{3,})\/print$/))) return { status: 200, body: await service.print(match[1]) };

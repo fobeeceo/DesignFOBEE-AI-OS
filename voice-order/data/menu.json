@@ -2,6 +2,19 @@
   "_comment": "MENU_MASTER — 가격·메뉴는 이 파일 한 곳에서만 관리한다. 전 품목 대표 승인 메뉴판 public/gbrick-menu.html(은평 본점, 2026-10-01) 기준(대표 지시 2026-10-03). price는 숫자(온도 무관) 또는 {HOT, ICE}(온도별). 계절 한정은 available=false로 두고 판매 시작 시 true로 바꾼다.",
   "version": "2026-10-03",
   "currency": "KRW",
+  "takeout_discount": {
+    "_comment": "포장 할인(대표 지시 2026-10-07): 아메리카노 1,500원, 그 밖의 음료(커피·드링크·차) 1,000원. 잔당 할인. 매장/포장은 손님에게 확인하고 추측하지 않는다.",
+    "source": "대표 지시 2026-10-07",
+    "default": 1000,
+    "categories": [
+      "COFFEE",
+      "DRINK",
+      "TEA"
+    ],
+    "by_menu": {
+      "AMERICANO": 1500
+    }
+  },
   "items": [
     {
       "menu_id": "ESPRESSO",

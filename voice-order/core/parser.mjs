@@ -102,6 +102,21 @@ export function detectTemperature(region) {
   return null; // 없음 또는 둘 다(모순) → 묻는다
 }
 
+const TAKEOUT_RE = /포장|테이크\s*아웃|(?:가져|가지고|들고)\s*[가갈]|싸\s*[주가갈]/;
+const DINE_IN_RE = /매장|여기서|(?:먹|마시|드시)고\s*[가갈]|앉아서/;
+// 남은 단어에서 뺄 매장/포장 표현 ("가져갈게요"가 '못 알아들은 말'로 보이지 않게)
+const DINING_PHRASE_RE = /(?:포장|테이크\s*아웃|매장|여기서|앉아서)\S*|(?:가져|가지고|들고|먹고|마시고|드시고)\s*[가갈]\S*|싸\s*[주가갈]\S*/g;
+
+/** 매장/포장: 'TAKEOUT' | 'DINE_IN' | null (둘 다 말하거나 말하지 않으면 null → 묻는다) */
+export function detectDining(text) {
+  const t = String(text || '');
+  const takeout = TAKEOUT_RE.test(t);
+  const dineIn = DINE_IN_RE.test(t);
+  if (takeout && !dineIn) return 'TAKEOUT';
+  if (dineIn && !takeout) return 'DINE_IN';
+  return null;
+}
+
 function parseQty(region) {
   const m = QTY_RE.exec(region);
   if (!m) return null;
@@ -140,10 +155,11 @@ function leftoverWords(text, mentions) {
   let rest = text;
   for (const m of [...mentions].reverse()) rest = rest.slice(0, m.start) + ' ' + rest.slice(m.end);
   return rest
+    .replace(DINING_PHRASE_RE, ' ')
     .split(/[\s,]+/)
     .map((w) => w.replace(/(이에요|예요|이요|해\s*주세요|주세요|주시고|주실래요|줘요|줘|할게요|할께요|하고|이랑|랑|으로|로|요)$/, ''))
     .filter((w) => /[가-힣a-zA-Z]{2,}/.test(w))
-    .filter((w) => !FILLER_WORDS.has(w))
+    .filter((w) => !FILLER_WORDS.has(w) && !FILLER_WORDS.has(`${w}요`)) // "마실게요"는 위에서 '요'가 떨어져 "마실게"가 된다
     .filter((w) => !detectTemperature(w))
     .filter((w) => !parseQty(w))
     .filter((w) => !/^(\d+|하나|둘|셋|넷|다섯|여섯|일곱|여덟|아홉|열)(잔|개|컵|그릇)?$/.test(w))
@@ -162,8 +178,9 @@ function leftoverWords(text, mentions) {
  */
 export function parseOrder(rawText, menu) {
   let text = normalize(rawText);
-  const result = { kind: 'unclear', items: [], unknown: [], unavailable: [], unrecognized: [] };
+  const result = { kind: 'unclear', items: [], unknown: [], unavailable: [], unrecognized: [], dining: null };
   if (!text) return result;
+  result.dining = detectDining(text);
   const notCoffee = NOT_COFFEE_RE.exec(text);
   if (notCoffee) text = (text.slice(0, notCoffee.index) + ' ' + text.slice(notCoffee.index + notCoffee[0].length)).trim();
 
