@@ -12,7 +12,10 @@ next-env.d.ts
 *.tsbuildinfo
 
 # 내부 문서(정보공개서 재무·창업비용·설계 등 민감) — 공개 저장소 노출 방지
-docs/
+# docs/* 로 하위 항목 무시, AI OS 설계 문서(docs/ai-os/)는 예외 허용
+docs/*
+!docs/ai-os/
+!docs/ai-os/**
 
 # 임시/테스트 파일
 __delete_test.txt
