@@ -254,7 +254,8 @@ class TestPublishingBlock:
 
 class TestMarketingLeadEndToEnd:
     @pytest.fixture(scope="class")
-    def lead_result(self):
+    @classmethod
+    def lead_result(cls):
         from marketing_lead import run
         return run(brand="gbrick", topic="은평본점 공간 이야기")
 
