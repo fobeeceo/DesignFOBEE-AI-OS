@@ -39,3 +39,6 @@ __pycache__/
 
 # 「대화로 주문」 체험판 — 빌드 때 voice-order/에서 자동 생성(scripts/sync-voice-order.mjs). 원본은 voice-order/
 public/gbrick-order/
+
+# Claude Code 로컬 환경 설정 (API 키 포함 — 절대 커밋 금지)
+.claude/settings.local.json
