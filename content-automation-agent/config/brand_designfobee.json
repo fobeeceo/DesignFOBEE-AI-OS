@@ -1,0 +1,41 @@
+{
+  "brand_id": "designfobee",
+  "brand_name_ko": "디자인포비",
+  "brand_name_en": "DesignFOBEE",
+  "slogan": "공간을 넘어, 경험을 디자인합니다.",
+  "essence": "26년 공간디자인 경험 × AI — 사람의 경험을 디자인하는 공간 브랜딩 회사",
+  "marketing_goals": ["인테리어 프로젝트 문의", "상담", "수주"],
+  "primary_targets": [
+    {"segment": "상업공간 오픈 예정 사업자", "goal": "문의·수주"},
+    {"segment": "교회·교육시설·오피스 담당자", "goal": "문의·수주"},
+    {"segment": "인테리어 관심 소비자", "goal": "브랜드 인지"}
+  ],
+  "tone": "전문적·미니멀·신뢰. 에디토리얼 감성.",
+  "ssot_facts": [
+    "창업 2000년 10월 27일 (26년+ 경력)",
+    "상업공간·교회·교육시설·오피스·주거 설계 및 시공",
+    "AI 공간 리디자인 서비스 (/design)",
+    "GBRICK Coffee 공간 브랜딩 직접 설계·시공"
+  ],
+  "prohibited_claims": [
+    "가짜 고객 후기",
+    "가짜 프로젝트 사례",
+    "확정 시공 비용",
+    "예상 매출 보장",
+    "폐점 매장을 운영 중으로 표현"
+  ],
+  "prohibited_patterns_regex": [
+    "실제.*후기.*[\"'].*[\"']",
+    "\\d+만원\\s*(확정|고정|보장)",
+    "(매출|수익)\\s*보장",
+    "\\d+년\\s*간\\s*운영\\s*중.*폐점",
+    "(최저가|최저\\s*비용).*보장",
+    "가격\\s*보장",
+    "업계\\s*최저"
+  ],
+  "legal_notice": null,
+  "legal_notice_required_when": [],
+  "channel_priority": ["instagram", "youtube", "naver_blog", "google_blog"],
+  "kpi_primary": ["상담 문의 건수", "포트폴리오 페이지 체류 시간", "견적 요청 수"],
+  "output_dir": "output/designfobee"
+}
