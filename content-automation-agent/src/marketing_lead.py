@@ -198,6 +198,15 @@ def run(brand: str, topic: str) -> dict:
     combined_text = video.get("full_script", "") + " " + rec_card.get("title", "")
     brand_qa = brand_qa_run(brand, combined_text, check_type="script")
 
+    # 법정고지 자동 추가 — requires_legal_notice=True이면 full_script 끝에 삽입 후 QA 재실행
+    if brand_qa.get("requires_legal_notice") and not brand_qa.get("passed"):
+        brand_cfg_tmp = load_brand(brand)
+        legal_notice = brand_cfg_tmp.get("legal_notice", "")
+        if legal_notice and "정보공개서 기준" not in video.get("full_script", ""):
+            video["full_script"] = video.get("full_script", "") + f"\n\n{legal_notice}"
+            combined_text = video["full_script"] + " " + rec_card.get("title", "")
+            brand_qa = brand_qa_run(brand, combined_text, check_type="script")
+
     # 7. Publishing Prep
     publishing = publisher_run(brand, video, channel_strategy, rec_card, brand_qa)
 
