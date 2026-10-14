@@ -1,5 +1,6 @@
 import { SectionHeading } from "@/components/ui/section-heading";
 import { FRANCHISE_FAQ } from "@/lib/franchise/content";
+import { LEGAL_NOTICE } from "@/lib/franchise/publicFacts";
 
 /**
  * 자주 묻는 질문 — 상담 전 이탈 요인(로열티·창업 비용·계약기간 등)을 미리 해소한다.
@@ -55,6 +56,10 @@ export function FAQ() {
             </details>
           ))}
         </div>
+
+        {/* 창업비용·차액가맹금·계약기간은 정보공개서 수치라 법정고지를 붙인다(publicFacts needsLegalNotice).
+            <details> 밖에 둬서 질문을 펼치지 않아도 보이게 한다. */}
+        <p className="mt-6 text-sm leading-relaxed text-muted-foreground">{LEGAL_NOTICE}</p>
       </div>
     </section>
   );

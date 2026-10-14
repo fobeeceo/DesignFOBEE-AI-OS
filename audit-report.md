@@ -2,11 +2,11 @@
 
 # Audit Report
 
-생성: 2026-08-21T03:02:14.997Z
+생성: 2026-10-14T14:20:43.582Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
-- 스캔: 58개 컴포넌트
+- 스캔: 62개 컴포넌트
 - 미사용(어디서도 import 안 됨): 1건
   - components/franchise/SuccessCases.tsx
 - ⚠️ §6 규정: 삭제는 CEO 승인 후에만 수행.
@@ -21,7 +21,7 @@
     - components/hr/DiagnosisClient.tsx
 
 ## 3. Unused Import
-- 스캔: 113개 파일
+- 스캔: 118개 파일
 - 이슈: 0건
 
 ## 4. Broken Route (nav 컴포넌트)
@@ -34,7 +34,7 @@
 
 ## 6. Security
 - 하드코딩 시크릿 패턴: 0건
-- npm audit(production): critical 0, high 3, moderate 0, low 0
+- npm audit(production): critical 1, high 4, moderate 0, low 0
 
 ## 7. Environment Variable
 - 코드에서 참조: 17개
@@ -44,16 +44,27 @@
   - N8N_API_KEY
 
 ## 8. Git Status
-- 브랜치: claude/autobiography-platform-design-juhxj9
-- 최근 커밋: dccac794269e37039c5bd5141c112110b45c9464 merge: origin/main (헤르메스 전령 에이전트) <- HR 진단·공간 상담
-- 미커밋 변경: 7건
+- 브랜치: fix/franchise-deposit-facts
+- 최근 커밋: 24b7136be8b58e8e8dc18500064c0a4f3f3ae495 merge: 자서전 원고 Word(.docx)·PDF 내보내기 (대표 승인 2026-08-22)
+- 미커밋 변경: 18건
 
 ```
-M CHANGELOG.md
- M app/sitemap.ts
- M components/layout/Header.tsx
-?? app/api/memoir/
-?? app/memoir/
-?? components/memoir/
-?? lib/memoir/
+M app/franchise/diagnosis/page.tsx
+ M app/franchise/page.tsx
+ M components/franchise/ConsultForm.tsx
+M  components/franchise/FAQ.tsx
+MM lib/franchise/content.ts
+M  lib/franchise/diagnosisData.ts
+M  lib/franchise/publicFacts.ts
+ M lib/notifications/leadEmail.ts
+ M lib/validations/lead.schema.ts
+ M middleware.ts
+ M services/leadService.ts
+ M types/lead.ts
+?? components/franchise/AttributionCapture.tsx
+?? components/franchise/CostSection.tsx
+?? lib/franchise/attribution.test.ts
+?? lib/franchise/attribution.ts
+?? lib/franchise/brandDomain.test.ts
+?? lib/franchise/brandDomain.ts
 ```

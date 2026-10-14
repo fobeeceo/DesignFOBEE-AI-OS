@@ -70,7 +70,7 @@ export function publicFacts(): PublicFact[] {
     {
       key: "royalty",
       label: "로열티·가맹금",
-      value: "월 로열티 0원, 차액가맹금 1.65%",
+      value: "월 로열티 0원, 차액가맹금 1.65%(2025년 정보공개서, 2024년 가맹점당 평균매출액 대비 평균)",
       caveat: null,
       keywords: ["로열티", "가맹금", "수수료", "월회비", "본사에 내는"],
       needsLegalNotice: true,
