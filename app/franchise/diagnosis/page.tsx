@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { DiagnosisClient } from "@/components/franchise/DiagnosisClient";
+import { AttributionCapture } from "@/components/franchise/AttributionCapture";
 
 export const metadata: Metadata = {
   title: "창업 가능성 자가진단 — GBRICK Coffee 가맹",
@@ -17,6 +18,7 @@ export const metadata: Metadata = {
 export default function DiagnosisPage() {
   return (
     <>
+      <AttributionCapture />
       <Header />
       <main className="bg-[#F6F4F0] px-5 pb-16 pt-9 text-[#1B1815]">
         <DiagnosisClient />

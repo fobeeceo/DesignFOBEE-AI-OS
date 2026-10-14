@@ -32,6 +32,16 @@ export const franchiseLeadSchema = leadSchema.extend({
   currentOccupation: z.string().max(50).optional(),
   hasStorefront: z.boolean().optional(),
   consultationPurpose: z.string().max(50).optional(),
+  /** 유입 경로(utm·referrer) — lib/franchise/attribution.ts. 서버에서 다시 정리해 tags에 붙인다. */
+  attribution: z
+    .object({
+      source: z.string().max(100).optional(),
+      medium: z.string().max(100).optional(),
+      campaign: z.string().max(100).optional(),
+      content: z.string().max(100).optional(),
+      referrer: z.string().max(100).optional(),
+    })
+    .optional(),
   privacyConsent: z.literal(true, {
     errorMap: () => ({ message: "개인정보 수집·이용에 동의해주세요." }),
   }),

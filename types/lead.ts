@@ -1,3 +1,5 @@
+import type { LeadAttribution } from "@/lib/franchise/attribution";
+
 export type LeadStatus = "NEW" | "CONTACTED" | "CONVERTED" | "CLOSED";
 
 /** STEP 11: AI가 자동 계산하는 상담 응대 우선순위. */
@@ -54,6 +56,8 @@ export interface CreateLeadInput {
   privacyConsent?: boolean;
   /** /consult 공간 상담: 비공개 버킷에 올린 도면의 Storage 경로. 공개 URL이 아니다. */
   attachments?: string[];
+  /** 가맹상담 유입 경로(utm·referrer). DB 컬럼이 아니라 tags로 저장된다. */
+  attribution?: LeadAttribution;
 }
 
 /** 신청 완료 화면에 보여줄 AI 진단 결과 + 추천 성공사례. */

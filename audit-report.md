@@ -2,7 +2,7 @@
 
 # Audit Report
 
-생성: 2026-10-14T14:20:43.582Z
+생성: 2026-10-14T14:22:09.980Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
@@ -45,26 +45,23 @@
 
 ## 8. Git Status
 - 브랜치: fix/franchise-deposit-facts
-- 최근 커밋: 24b7136be8b58e8e8dc18500064c0a4f3f3ae495 merge: 자서전 원고 Word(.docx)·PDF 내보내기 (대표 승인 2026-08-22)
-- 미커밋 변경: 18건
+- 최근 커밋: 51a1dbddcdff6b09e84c6fb8a5b27aef5bda1bcd fix(franchise): 정보공개서 기준으로 로열티·보증금·계약 절차 문구 정정
+- 미커밋 변경: 15건
 
 ```
-M app/franchise/diagnosis/page.tsx
- M app/franchise/page.tsx
- M components/franchise/ConsultForm.tsx
-M  components/franchise/FAQ.tsx
-MM lib/franchise/content.ts
-M  lib/franchise/diagnosisData.ts
-M  lib/franchise/publicFacts.ts
- M lib/notifications/leadEmail.ts
- M lib/validations/lead.schema.ts
- M middleware.ts
- M services/leadService.ts
- M types/lead.ts
-?? components/franchise/AttributionCapture.tsx
-?? components/franchise/CostSection.tsx
-?? lib/franchise/attribution.test.ts
-?? lib/franchise/attribution.ts
-?? lib/franchise/brandDomain.test.ts
-?? lib/franchise/brandDomain.ts
+M  app/franchise/diagnosis/page.tsx
+M  app/franchise/page.tsx
+A  components/franchise/AttributionCapture.tsx
+M  components/franchise/ConsultForm.tsx
+A  components/franchise/CostSection.tsx
+A  lib/franchise/attribution.test.ts
+A  lib/franchise/attribution.ts
+A  lib/franchise/brandDomain.test.ts
+A  lib/franchise/brandDomain.ts
+M  lib/franchise/content.ts
+M  lib/notifications/leadEmail.ts
+M  lib/validations/lead.schema.ts
+M  middleware.ts
+M  services/leadService.ts
+M  types/lead.ts
 ```

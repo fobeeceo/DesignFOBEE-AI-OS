@@ -10,6 +10,7 @@ import {
 } from "@/lib/franchise/leadIntelligence";
 import { recommendCaseCodes } from "@/lib/franchise/successCases";
 import { FRANCHISE_SOURCE } from "@/lib/franchise/constants";
+import { attributionTags } from "@/lib/franchise/attribution";
 import type { CreateLeadInput, Lead } from "@/types/lead";
 
 /** 접수번호 접두사 — 관리자가 전화 상담 중 검색하는 키(GBR-YYYYMMDD-NNNN). */
@@ -79,7 +80,8 @@ export async function createLead(input: CreateLeadInput): Promise<Lead> {
     intelligence = {
       fitScore: fit.score,
       priority,
-      tags,
+      // 유입 태그는 성공사례 추천에 쓰지 않는다 — 추천은 창업 조건 태그로만 고른다.
+      tags: [...tags, ...attributionTags(input.attribution)],
       recommendedCases: recommendCaseCodes(tags),
       aiSummary: buildAiSummary(signals, fit, priority),
       nextAction: suggestNextAction(priority),

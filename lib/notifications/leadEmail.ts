@@ -13,6 +13,7 @@
  */
 
 import type { CreateLeadInput } from "@/types/lead";
+import { describeAttribution } from "@/lib/franchise/attribution";
 
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
 const DEFAULT_FROM = "DesignFOBEE <onboarding@resend.dev>";
@@ -77,6 +78,7 @@ function fieldRows(input: CreateLeadInput, context: LeadNotificationContext) {
     { label: "연락처", value: input.phone },
     { label: "이메일", value: input.email },
     { label: "유입 경로", value: input.source },
+    { label: "유입 채널", value: describeAttribution(input.attribution) },
     { label: "상담 목적", value: input.consultationPurpose },
     { label: "창업 희망지역", value: input.preferredRegion },
     { label: "창업 예정시기", value: input.plannedTiming },

@@ -9,6 +9,7 @@ import { Advantages } from "@/components/franchise/Advantages";
 import { OperatingStores } from "@/components/franchise/OperatingStores";
 import { SpaceExpertise } from "@/components/franchise/SpaceExpertise";
 import { Process } from "@/components/franchise/Process";
+import { CostSection } from "@/components/franchise/CostSection";
 import { FAQ } from "@/components/franchise/FAQ";
 import { ConsultForm } from "@/components/franchise/ConsultForm";
 import { FloatingCTA } from "@/components/franchise/FloatingCTA";
@@ -25,7 +26,7 @@ export const metadata: Metadata = {
  * GBRICK Coffee 가맹상담 전용 랜딩 페이지.
  * 홈페이지 GBrickSection(브랜드 요약)과 역할을 분리해, 이 페이지는 가맹 상담 전환만 담당한다.
  * 섹션 순서: Hero → 신뢰지표 → 차별성 → 운영 중인 매장 → 카페 밖의 공간 →
- *            창업절차 → FAQ → 상담폼(+FloatingCTA)
+ *            창업절차 → 창업비용 → FAQ → 상담폼(+FloatingCTA)
  */
 export default function FranchisePage() {
   return (
@@ -43,6 +44,8 @@ export default function FranchisePage() {
         <Reveal>
           <Process />
         </Reveal>
+        {/* 창업 비용은 이 페이지에서 가장 중요한 정보라 Reveal로 감싸지 않는다. */}
+        <CostSection />
         {/* FAQ도 Reveal에서 뺀다(대표 지시) — 창업 비용은 이 페이지에서 가장 중요한 정보라
             애니메이션에 노출을 맡기지 않는다. */}
         <FAQ />

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -16,6 +16,7 @@ import { PrivacyAgreement } from "@/components/franchise/PrivacyAgreement";
 import { ThankYouModal } from "@/components/franchise/ThankYouModal";
 import { COMPANY } from "@/lib/company/profile";
 import { FRANCHISE_SOURCE } from "@/lib/franchise/constants";
+import { captureAttribution } from "@/lib/franchise/attribution";
 import type { CreateLeadResponse, LeadDiagnosisResult } from "@/types/lead";
 
 type SubmitState = "idle" | "submitting" | "success" | "error";
@@ -63,6 +64,12 @@ export function ConsultForm() {
     defaultValues: { source: FRANCHISE_SOURCE, consultationPurpose: "신규창업" },
   });
 
+  // 어느 채널(틱톡·쇼츠·릴스·블로그)에서 왔는지 — 화면에는 보이지 않고 제출 때 함께 보낸다.
+  const [attribution, setAttribution] = useState<FranchiseLeadFormValues["attribution"]>();
+  useEffect(() => {
+    setAttribution(captureAttribution());
+  }, []);
+
   async function onSubmit(values: FranchiseLeadFormValues) {
     setState("submitting");
 
@@ -70,7 +77,7 @@ export function ConsultForm() {
       const res = await fetch("/api/leads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
+        body: JSON.stringify({ ...values, attribution }),
       });
       const data: CreateLeadResponse = await res.json();
 

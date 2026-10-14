@@ -1,11 +1,20 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { brandRedirectUrl, isBrandHost } from "@/lib/franchise/brandDomain";
 
 /**
  * 모든 요청에서 Supabase 세션 쿠키를 갱신한다 (Supabase SSR 표준 패턴).
  * STEP 3 이후 보호 라우트(사진업로드 등)가 추가되면 여기서 리다이렉트 로직을 확장한다.
  */
 export async function middleware(request: NextRequest) {
+  // GBRICK Coffee 도메인으로 온 방문자는 가맹 페이지로 보낸다(lib/franchise/brandDomain.ts).
+  if (isBrandHost(request.headers.get("host"))) {
+    return NextResponse.redirect(
+      brandRedirectUrl(request.nextUrl.pathname, request.nextUrl.search),
+      307
+    );
+  }
+
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
