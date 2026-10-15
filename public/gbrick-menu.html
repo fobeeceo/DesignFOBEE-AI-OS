@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GBRICK Coffee Menu</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&family=Noto+Sans+JP:wght@400;700&family=Noto+Sans+SC:wght@400;700&family=Noto+Sans+Thai:wght@400;700&display=swap">
+<style>
+/* Layout: one narrow column for phones. Sticky language bar, category chips, then plain ruled lists with prices on the right. */
+:root {
+  --bg: #F6F2EE;
+  --fg: #1F1B18;
+  --muted: #5E554F;
+  --rule: #D9D0C8;
+  --brick: #A94B25;
+  --on-brick: #FFFFFF;
+  --font-ko: 'Noto Sans KR', 'Noto Sans JP', 'Noto Sans SC', 'Noto Sans Thai', system-ui, sans-serif;
+  --font-ja: 'Noto Sans JP', 'Noto Sans KR', 'Noto Sans SC', 'Noto Sans Thai', system-ui, sans-serif;
+  --font-zh: 'Noto Sans SC', 'Noto Sans JP', 'Noto Sans KR', 'Noto Sans Thai', system-ui, sans-serif;
+  --font-th: 'Noto Sans Thai', 'Noto Sans KR', 'Noto Sans JP', 'Noto Sans SC', system-ui, sans-serif;
+  --font: var(--font-ko);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1C1815; --fg: #F2ECE6; --muted: #B7ABA1; --rule: #3B332D; --brick: #E58A63; --on-brick: #1C1815;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1C1815; --fg: #F2ECE6; --muted: #B7ABA1; --rule: #3B332D; --brick: #E58A63; --on-brick: #1C1815;
+  color-scheme: dark;
+}
+:root[lang="ja"] { --font: var(--font-ja); }
+:root[lang="zh"] { --font: var(--font-zh); }
+:root[lang="th"] { --font: var(--font-th); }
+:root[lang="en"], :root[lang="ko"] { --font: var(--font-ko); }
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font);
+  font-size: 17px;
+  line-height: 1.5;
+  padding-inline: 16px;
+  padding-block: 0 48px;
+}
+.wrap { max-width: 560px; margin-inline: auto; }
+.masthead { padding-block: 28px 16px; border-bottom: 3px solid var(--fg); }
+.brand { margin: 0; font-size: 34px; font-weight: 900; letter-spacing: -0.02em; line-height: 1.1; }
+.store { margin: 6px 0 0; font-size: 16px; font-weight: 700; color: var(--brick); }
+.langbar {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 2;
+  background: var(--bg); border-bottom: 1px solid var(--rule);
+  padding-block: 10px;
+}
+.langs { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.langs button {
+  font: inherit; font-size: 15px; font-weight: 700; color: var(--fg);
+  background: transparent; border: 1.5px solid var(--rule); border-radius: 999px;
+  padding: 7px 14px; min-height: 44px; cursor: pointer;
+}
+.langs button[aria-pressed="true"] { background: var(--brick); border-color: var(--brick); color: var(--on-brick); }
+.jump { display: flex; gap: 8px; overflow-x: auto; margin: 0; padding: 14px 0 4px; list-style: none; scrollbar-width: thin; }
+.jump button {
+  font: inherit; font-size: 15px; font-weight: 700; color: var(--brick); white-space: nowrap;
+  background: transparent; border: 0; border-bottom: 2px solid var(--brick); padding: 6px 2px; min-height: 40px; cursor: pointer;
+}
+button:focus-visible { outline: 3px solid var(--brick); outline-offset: 2px; }
+.cat { margin: 36px 0 4px; font-size: 14px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); scroll-margin-top: 84px; }
+.items { margin: 0; padding: 0; list-style: none; }
+.item { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 16px; row-gap: 2px; align-items: start; padding-block: 14px; border-bottom: 1px solid var(--rule); }
+.item > * { grid-column: 1; min-width: 0; }
+.name { font-size: 19px; font-weight: 700; line-height: 1.35; overflow-wrap: anywhere; }
+.ko { font-size: 15px; color: var(--muted); font-family: var(--font-ko); }
+.desc { font-size: 15px; color: var(--muted); overflow-wrap: anywhere; }
+.season { font-size: 14px; font-weight: 700; color: var(--brick); }
+.prices { grid-column: 2; grid-row: 1 / span 4; text-align: right; display: flex; flex-direction: column; gap: 2px; align-items: flex-end; font-variant-numeric: tabular-nums; }
+.pv { font-size: 19px; font-weight: 700; white-space: nowrap; }
+.pl { font-size: 14px; font-weight: 400; color: var(--muted); margin-inline-end: 6px; }
+.tag { font-size: 14px; color: var(--muted); white-space: nowrap; }
+.notes { margin: 36px 0 0; padding: 0; list-style: none; display: grid; gap: 6px; font-size: 15px; color: var(--muted); }
+html{color-scheme:light}
+@media (prefers-color-scheme: dark){html{color-scheme:dark}}
+body{margin:0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="masthead">
+    <h1 class="brand">GBRICK COFFEE</h1>
+    <p class="store" id="store"></p>
+  </header>
+  <nav class="langbar" aria-label="Language">
+    <ul class="langs" id="langs"></ul>
+  </nav>
+  <ul class="jump" id="jump"></ul>
+  <main id="menu"></main>
+  <ul class="notes" id="notes"></ul>
+</div>
+
+<script>
+var LANGS = [
+  { code: 'ko', label: '한국어' },
+  { code: 'en', label: 'English' },
+  { code: 'ja', label: '日本語' },
+  { code: 'zh', label: '中文' },
+  { code: 'th', label: 'ไทย' }
+];
+
+function t(ko, en, ja, zh, th) { return { ko: ko, en: en, ja: ja, zh: zh, th: th }; }
+
+var UI = {
+  store: t('은평 본점', 'Eunpyeong Main Store', '恩平（ウンピョン）本店', '恩平总店', 'สาขาหลักอึนพยอง'),
+  hot: t('핫', 'Hot', 'ホット', '热', 'ร้อน'),
+  iced: t('아이스', 'Iced', 'アイス', '冰', 'เย็น'),
+  both: t('핫 · 아이스', 'Hot · Iced', 'ホット・アイス', '热 · 冰', 'ร้อน · เย็น'),
+  hotOnly: t('핫만 가능', 'Hot only', 'ホットのみ', '仅热饮', 'ร้อนเท่านั้น'),
+  icedOnly: t('아이스만 가능', 'Iced only', 'アイスのみ', '仅冰饮', 'เย็นเท่านั้น'),
+  winter: t('동절기 한정', 'Winter only', '冬季限定', '冬季限定', 'เฉพาะฤดูหนาว'),
+  summer: t('하절기 한정', 'Summer only', '夏季限定', '夏季限定', 'เฉพาะฤดูร้อน'),
+  notes: [
+    t('가격은 원화(KRW)입니다.', 'Prices are in Korean won (KRW).', '価格は韓国ウォン（KRW）です。', '价格以韩元（KRW）计。', 'ราคาเป็นเงินวอนเกาหลี (KRW)'),
+    t('계절 한정 메뉴가 있습니다.', 'Some items are seasonal.', '季節限定メニューがあります。', '部分饮品为季节限定。', 'บางเมนูมีเฉพาะบางฤดูกาล'),
+    t('알레르기 정보는 직원에게 문의해 주세요.', 'Please ask our staff about allergens.', 'アレルギーについてはスタッフにお尋ねください。', '过敏原信息请咨询店员。', 'กรุณาสอบถามพนักงานเรื่องสารก่อภูมิแพ้')
+  ]
+};
+
+var CATS = [
+  { id: 'coffee', n: t('커피', 'Coffee', 'コーヒー', '咖啡', 'กาแฟ') },
+  { id: 'brew', n: t('더치 · 핸드드립', 'Cold Brew & Hand Drip', 'ダッチ・ハンドドリップ', '冷萃与手冲', 'โคลด์บรูว์และแฮนด์ดริป') },
+  { id: 'ade', n: t('에이드 · 라씨 · 프라페', 'Ade, Lassi & Frappe', 'エード・ラッシー・フラッペ', '气泡饮 · 拉西 · 冰沙', 'เอด ลัสซี่ และฟราปเป้') },
+  { id: 'drink', n: t('논커피 음료', 'Non-Coffee Drinks', 'ノンコーヒードリンク', '非咖啡饮品', 'เครื่องดื่มไม่ใช่กาแฟ') },
+  { id: 'tea', n: t('티', 'Tea', 'ティー', '茶', 'ชา') },
+  { id: 'bingsu', n: t('빙수', 'Shaved Ice (Bingsu)', 'かき氷（ピンス）', '刨冰', 'บิงซู') },
+  { id: 'extra', n: t('추가 옵션', 'Add-ons', '追加オプション', '加料选项', 'ตัวเลือกเพิ่มเติม') },
+  { id: 'bakery', n: t('베이커리', 'Bakery', 'ベーカリー', '烘焙', 'เบเกอรี่') }
+];
+
+/* p = one price; h = hot price; i = iced price; s = season. No price field = no price shown. */
+var ITEMS = [
+  { c: 'coffee', p: 2500, n: t('에스프레소', 'Espresso', 'エスプレッソ', '意式浓缩咖啡', 'เอสเปรสโซ'), d: t('싱글샷', 'Single shot', 'シングルショット', '单份', 'ช็อตเดียว') },
+  { c: 'coffee', p: 2800, n: t('더블 에스프레소', 'Double Espresso', 'ダブルエスプレッソ', '双份意式浓缩', 'ดับเบิลเอสเปรสโซ'), d: t('더블샷', 'Double shot', 'ダブルショット', '双份', 'ดับเบิลช็อต') },
+  { c: 'coffee', p: 2800, n: t('스윗 에스프레소', 'Sweet Espresso', 'スイートエスプレッソ', '甜味意式浓缩', 'สวีทเอสเปรสโซ'),
+    d: t('에스프레소 + 비정제원당(화학적 정제를 하지 않은 원당)', 'Espresso + unrefined cane sugar (not chemically refined)', 'エスプレッソ＋非精製原糖（化学的な精製をしていない原糖）', '浓缩咖啡 + 非精制原糖（未经化学精制）', 'เอสเปรสโซ + น้ำตาลอ้อยไม่ผ่านการฟอก (ไม่ผ่านการแปรรูปด้วยสารเคมี)') },
+  { c: 'coffee', p: 2800, n: t('코코아 에스프레소', 'Chocolate Espresso', 'チョコレートエスプレッソ', '巧克力浓缩', 'ช็อกโกแลตเอสเปรสโซ'),
+    d: t('에스프레소 + 비정제원당 + 카카오 + 크림우유', 'Espresso + unrefined cane sugar + cacao + creamy milk', 'エスプレッソ＋非精製原糖＋カカオ＋クリームミルク', '浓缩咖啡 + 非精制原糖 + 可可 + 奶油牛奶', 'เอสเปรสโซ + น้ำตาลอ้อยไม่ฟอก + โกโก้ + นมครีม') },
+  { c: 'coffee', p: 2800, n: t('솔티 카라멜 에스프레소', 'Salted Caramel Espresso', 'ソルトキャラメルエスプレッソ', '海盐焦糖浓缩', 'ซอลต์คาราเมลเอสเปรสโซ'),
+    d: t('에스프레소 + 비정제원당 + 솔티카라멜 + 크림우유', 'Espresso + unrefined cane sugar + salted caramel + creamy milk', 'エスプレッソ＋非精製原糖＋ソルトキャラメル＋クリームミルク', '浓缩咖啡 + 非精制原糖 + 海盐焦糖 + 奶油牛奶', 'เอสเปรสโซ + น้ำตาลอ้อยไม่ฟอก + ซอลต์คาราเมล + นมครีม') },
+  { c: 'coffee', h: 3500, i: 3500, n: t('아메리카노 (스페셜티)', 'Americano (Specialty)', 'アメリカーノ（スペシャルティ）', '美式咖啡（精品豆）', 'อเมริกาโน่ (สเปเชียลตี้)'),
+    d: t('스페셜티 원두 (고소한 맛)', 'Specialty beans (rich, nutty flavor)', 'スペシャルティ豆（香ばしい味わい）', '精品咖啡豆（醇香口味）', 'เมล็ดสเปเชียลตี้ (รสหอมมัน)') },
+  { c: 'coffee', h: 3500, i: 3500, n: t('아메리카노 (예가체프)', 'Americano (Yirgacheffe)', 'アメリカーノ（イルガチェフェ）', '美式咖啡（耶加雪菲）', 'อเมริกาโน่ (เยอร์กาเชฟเฟ)'),
+    d: t('이디오피아 예가체프 원두 (과일 산미)', 'Ethiopian Yirgacheffe beans (fruity acidity)', 'エチオピア イルガチェフェ豆（フルーティーな酸味）', '埃塞俄比亚耶加雪菲咖啡豆（果香酸味）', 'เมล็ดเอธิโอเปีย เยอร์กาเชฟเฟ (เปรี้ยวผลไม้)') },
+  { c: 'coffee', h: 4400, i: 4400, n: t('카페라떼 / 카푸치노', 'Caffe Latte / Cappuccino', 'カフェラテ / カプチーノ', '拿铁 / 卡布奇诺', 'คาเฟ่ลาเต้ / คาปูชิโน่') },
+  { c: 'coffee', h: 4900, i: 4900, n: t('바닐라빈 / 헤이즐넛 / 돌체', 'Vanilla Bean / Hazelnut / Dolce', 'バニラビーン / ヘーゼルナッツ / ドルチェ', '香草豆 / 榛果 / 多尔切', 'วานิลลาบีน / เฮเซลนัท / ดอลเช่') },
+  { c: 'coffee', h: 5400, i: 5400, n: t('카페모카', 'Caffe Mocha', 'カフェモカ', '摩卡', 'คาเฟ่มอคค่า') },
+  { c: 'coffee', h: 5400, i: 5400, n: t('카라멜 마끼아또', 'Caramel Macchiato', 'キャラメルマキアート', '焦糖玛奇朵', 'คาราเมลมัคคิอาโต') },
+  { c: 'coffee', i: 5400, n: t('아포카토', 'Affogato', 'アフォガート', '阿芙佳朵', 'อัฟโฟกาโต') },
+  { c: 'coffee', i: 6000, n: t('아포카토 라떼', 'Affogato Latte', 'アフォガートラテ', '阿芙佳朵拿铁', 'อัฟโฟกาโตลาเต้') },
+
+  { c: 'brew', h: 4500, i: 4500, n: t('더치 커피', 'Cold Brew Coffee', 'ダッチコーヒー', '冷萃咖啡', 'โคลด์บรูว์คอฟฟี่') },
+  { c: 'brew', h: 5000, i: 5000, n: t('더치 라떼', 'Cold Brew Latte', 'ダッチラテ', '冷萃拿铁', 'โคลด์บรูว์ลาเต้') },
+  { c: 'brew', i: 5000, n: t('더치 소다', 'Cold Brew Soda', 'ダッチソーダ', '冷萃气泡咖啡', 'โคลด์บรูว์โซดา') },
+  { c: 'brew', p: 20000, n: t('콜드브루 원액 750ml', 'Cold Brew Concentrate 750 ml', 'コールドブリュー原液 750ml', '冷萃咖啡原液 750ml', 'โคลด์บรูว์เข้มข้น 750 มล.') },
+  { c: 'brew', h: 5000, i: 6000, n: t('핸드드립 · 스페셜티 블랜딩', 'Hand Drip · Specialty Blend', 'ハンドドリップ · スペシャルティブレンド', '手冲咖啡 · 精品拼配', 'แฮนด์ดริป · สเปเชียลตี้เบลนด์') },
+  { c: 'brew', h: 5000, i: 6000, n: t('핸드드립 · 케냐 AA / 이디오피아 예가체프', 'Hand Drip · Kenya AA / Ethiopia Yirgacheffe', 'ハンドドリップ · ケニアAA / エチオピア イルガチェフェ', '手冲咖啡 · 肯尼亚AA / 埃塞俄比亚耶加雪菲', 'แฮนด์ดริป · เคนยา AA / เอธิโอเปีย เยอร์กาเชฟเฟ') },
+
+  { c: 'ade', i: 5500, n: t('수제 에이드: 레몬 / 자몽 / 오미자 / 패션후르츠', 'Homemade Ade: Lemon / Grapefruit / Omija / Passion Fruit', '自家製エード：レモン / グレープフルーツ / オミジャ / パッションフルーツ', '手工气泡饮：柠檬 / 西柚 / 五味子 / 百香果', 'เอดโฮมเมด: เลมอน / เกรปฟรุต / โอมิจา / เสาวรส'),
+    d: t('직접 만든 수제청 + 후지산 탄산수 + 얼음', 'Homemade fruit syrup + Mt. Fuji sparkling water + ice', '自家製フルーツシロップ＋富士山の炭酸水＋氷', '手工水果酱 + 富士山气泡水 + 冰', 'น้ำเชื่อมผลไม้โฮมเมด + โซดาภูเขาไฟฟูจิ + น้ำแข็ง') },
+  { c: 'ade', i: 6500, n: t('요거트 플레인 라씨 (스무디)', 'Plain Yogurt Lassi (Smoothie)', 'プレーンヨーグルトラッシー（スムージー）', '原味酸奶拉西（冰沙）', 'ลัสซี่โยเกิร์ตรสธรรมดา (สมูทตี้)'),
+    d: t('요거트 + 우유 + 얼음', 'Yogurt + milk + ice', 'ヨーグルト＋牛乳＋氷', '酸奶 + 牛奶 + 冰', 'โยเกิร์ต + นม + น้ำแข็ง') },
+  { c: 'ade', i: 7500, n: t('리얼과일 라씨: 딸기 / 망고 / 블루베리', 'Real-Fruit Lassi: Strawberry / Mango / Blueberry', 'リアルフルーツラッシー：いちご / マンゴー / ブルーベリー', '鲜果拉西：草莓 / 芒果 / 蓝莓', 'ลัสซี่ผลไม้จริง: สตรอว์เบอร์รี / มะม่วง / บลูเบอร์รี'),
+    d: t('리얼과일 + 요거트 + 우유 + 얼음', 'Real fruit + yogurt + milk + ice', 'フルーツ＋ヨーグルト＋牛乳＋氷', '鲜果 + 酸奶 + 牛奶 + 冰', 'ผลไม้จริง + โยเกิร์ต + นม + น้ำแข็ง') },
+  { c: 'ade', i: 6500, n: t('프라페: 자바칩 / 쿠키앤크림', 'Frappe: Java Chip / Cookies & Cream', 'フラッペ：ジャバチップ / クッキー＆クリーム', '冰沙：爪哇脆片 / 曲奇奶油', 'ฟราปเป้: จาวาชิป / คุกกี้แอนด์ครีม'),
+    d: t('파우더 + 소스 + 우유 + 얼음', 'Powder + sauce + milk + ice', 'パウダー＋ソース＋牛乳＋氷', '粉 + 酱 + 牛奶 + 冰', 'ผง + ซอส + นม + น้ำแข็ง') },
+
+  { c: 'drink', h: 6000, i: 6000, s: 'winter', n: t('밀크티', 'Milk Tea', 'ミルクティー', '奶茶', 'ชานม') },
+  { c: 'drink', h: 4900, i: 5500, n: t('말차 라떼', 'Matcha Latte', '抹茶ラテ', '抹茶拿铁', 'มัทฉะลาเต้') },
+  { c: 'drink', i: 4900, n: t('딸기 라떼', 'Strawberry Latte', 'いちごラテ', '草莓拿铁', 'สตรอว์เบอร์รีลาเต้') },
+  { c: 'drink', h: 4900, i: 4900, n: t('초코 / 고구마 / 생강 / 12곡 라떼', 'Chocolate / Sweet Potato / Ginger / 12-Grain Latte', 'チョコ / さつまいも / 生姜 / 12穀ラテ', '巧克力 / 红薯 / 生姜 / 12谷物拿铁', 'ช็อกโกแลต / มันเทศ / ขิง / ธัญพืช 12 ชนิด ลาเต้') },
+  { c: 'drink', i: 6000, n: t('리얼과일 주스: 망고 / 블루베리', 'Real-Fruit Juice: Mango / Blueberry', 'リアルフルーツジュース：マンゴー / ブルーベリー', '鲜果汁：芒果 / 蓝莓', 'น้ำผลไม้จริง: มะม่วง / บลูเบอร์รี') },
+  { c: 'drink', i: 6500, n: t('토마토 주스', 'Tomato Juice', 'トマトジュース', '番茄汁', 'น้ำมะเขือเทศ') },
+  { c: 'drink', i: 3800, n: t('아이스티', 'Iced Tea', 'アイスティー', '冰红茶', 'ชาเย็น') },
+  { c: 'drink', i: 5500, n: t('브라운 버블티', 'Brown Bubble Tea', 'ブラウンバブルティー', '布朗珍珠奶茶', 'บราวน์บับเบิลที') },
+  { c: 'drink', h: 7800, s: 'winter', n: t('뱅쇼', 'Vin Chaud (Mulled Wine)', 'ヴァンショー（ホットワイン）', '热红酒（Vin Chaud）', 'แว็งโชด์ (ไวน์ร้อน)'),
+    d: t('레드와인 + 과일 (무알콜)', 'Red wine + fruit (non-alcoholic)', '赤ワイン＋フルーツ（ノンアルコール）', '红酒 + 水果（无酒精）', 'ไวน์แดง + ผลไม้ (ไม่มีแอลกอฮอล์)') },
+  { c: 'drink', h: 6000, i: 6000, n: t('유자 + 민트', 'Yuzu + Mint', 'ゆず＋ミント', '柚子 + 薄荷', 'ยูซุ + มิ้นต์') },
+
+  { c: 'tea', h: 6000, i: 6000, n: t('허브티: 캐모마일 / 페퍼민트 / 녹차', 'Herbal Tea: Chamomile / Peppermint / Green Tea', 'ハーブティー：カモミール / ペパーミント / 緑茶', '花草茶：洋甘菊 / 薄荷 / 绿茶', 'ชาสมุนไพร: คาโมมายล์ / เปปเปอร์มินต์ / ชาเขียว') },
+  { c: 'tea', h: 8000, n: t('운남성 보이차', 'Yunnan Pu-erh Tea', '雲南プーアル茶', '云南普洱茶', 'ชาผู่เอ๋อร์ยูนนาน') },
+  { c: 'tea', h: 6000, i: 6000, n: t('수제티: 생자몽 / 오미자 / 레몬 / 유자 / 진저', 'Homemade Tea: Fresh Grapefruit / Omija / Lemon / Yuzu / Ginger', '自家製ティー：生グレープフルーツ / オミジャ / レモン / ゆず / ジンジャー', '手工茶：鲜西柚 / 五味子 / 柠檬 / 柚子 / 生姜', 'ชาโฮมเมด: เกรปฟรุตสด / โอมิจา / เลมอน / ยูซุ / ขิง') },
+
+  { c: 'bingsu', p: 12000, s: 'summer', n: t('수제 팥빙수', 'Homemade Patbingsu (Red Bean Shaved Ice)', '自家製パッピンス（小豆かき氷）', '手工红豆刨冰', 'ปัตบิงซูโฮมเมด (น้ำแข็งไสถั่วแดง)'),
+    d: t('직접 만든 팥 + 인절미 + 우유얼음', 'Homemade red beans + injeolmi (rice cake) + milk ice', '自家製の小豆＋インジョルミ（餅）＋ミルク氷', '自制红豆 + 黄豆粉年糕 + 牛奶冰', 'ถั่วแดงทำเอง + อินจอลมี (ต็อก) + น้ำแข็งนม') },
+  { c: 'bingsu', p: 15000, s: 'summer', n: t('망고빙수', 'Mango Bingsu', 'マンゴーかき氷', '芒果刨冰', 'บิงซูมะม่วง'),
+    d: t('애플망고 + 바닐라아이스크림 + 우유얼음', 'Apple mango + vanilla ice cream + milk ice', 'アップルマンゴー＋バニラアイス＋ミルク氷', '苹果芒果 + 香草冰淇淋 + 牛奶冰', 'แอปเปิลมะม่วง + ไอศกรีมวนิลลา + น้ำแข็งนม') },
+
+  { c: 'extra', p: 500, n: t('디카페인 변경', 'Decaf', 'デカフェ変更', '换低因咖啡豆', 'เปลี่ยนเป็นดีแคฟ') },
+  { c: 'extra', p: 500, n: t('샷 추가', 'Extra shot', 'ショット追加', '加浓缩', 'เพิ่มช็อต') },
+  { c: 'extra', p: 1500, n: t('아메리카노 리필', 'Americano refill', 'アメリカーノおかわり', '美式咖啡续杯', 'รีฟิลอเมริกาโน่') },
+  { c: 'extra', p: 1000, n: t('핸드드립 원두 추가', 'Hand drip: extra beans', 'ハンドドリップ豆の追加', '手冲加咖啡豆', 'แฮนด์ดริป: เพิ่มเมล็ดกาแฟ') },
+  { c: 'extra', p: 2000, n: t('콜드브루 원액 선물 포장', 'Gift wrap (cold brew concentrate)', 'コールドブリュー原液ギフト包装', '冷萃原液礼品包装', 'ห่อของขวัญ (โคลด์บรูว์เข้มข้น)') },
+  { c: 'extra', p: 3000, n: t('팥 추가', 'Extra red beans', '小豆追加', '加红豆', 'เพิ่มถั่วแดง') },
+  { c: 'extra', p: 1500, n: t('떡 추가', 'Extra rice cake', '餅追加', '加年糕', 'เพิ่มต็อก') },
+
+  { c: 'bakery', n: t('에그타르트', 'Egg Tart', 'エッグタルト', '蛋挞', 'ทาร์ตไข่') },
+  { c: 'bakery', n: t('마카롱', 'Macaron', 'マカロン', '马卡龙', 'มาการอง') },
+  { c: 'bakery', n: t('미니 베이커리', 'Mini Bakery', 'ミニベーカリー', '迷你烘焙点心', 'เบเกอรี่ขนาดเล็ก') },
+  { c: 'bakery', n: t('쿠키', 'Cookie', 'クッキー', '曲奇饼干', 'คุกกี้') }
+];
+
+var current = 'en';
+
+function pickInitial() {
+  var h = (location.hash || '').replace('#', '');
+  for (var i = 0; i < LANGS.length; i++) { if (LANGS[i].code === h) return h; }
+  try {
+    var saved = localStorage.getItem('gbrick-menu-lang');
+    for (var j = 0; j < LANGS.length; j++) { if (LANGS[j].code === saved) return saved; }
+  } catch (e) {}
+  var nav = ((navigator.languages && navigator.languages[0]) || navigator.language || 'en').slice(0, 2).toLowerCase();
+  for (var k = 0; k < LANGS.length; k++) { if (LANGS[k].code === nav) return nav; }
+  return 'en';
+}
+
+function esc(s) {
+  return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; });
+}
+function won(n) { return '₩' + n.toLocaleString('en-US'); }
+
+function priceHtml(it) {
+  var L = current;
+  if (it.p) return '<span class="pv">' + won(it.p) + '</span>';
+  if (it.h && it.i && it.h === it.i) return '<span class="pv">' + won(it.h) + '</span><span class="tag">' + esc(UI.both[L]) + '</span>';
+  if (it.h && it.i) {
+    return '<span class="pv"><span class="pl">' + esc(UI.hot[L]) + '</span>' + won(it.h) + '</span>' +
+           '<span class="pv"><span class="pl">' + esc(UI.iced[L]) + '</span>' + won(it.i) + '</span>';
+  }
+  if (it.i) return '<span class="pv">' + won(it.i) + '</span><span class="tag">' + esc(UI.icedOnly[L]) + '</span>';
+  if (it.h) return '<span class="pv">' + won(it.h) + '</span><span class="tag">' + esc(UI.hotOnly[L]) + '</span>';
+  return '';
+}
+
+function render() {
+  var L = current;
+  document.documentElement.lang = L;
+  document.getElementById('store').textContent = UI.store[L];
+
+  document.getElementById('langs').innerHTML = LANGS.map(function (l) {
+    return '<li><button type="button" data-lang="' + l.code + '" lang="' + l.code + '" aria-pressed="' + (l.code === L) + '">' + esc(l.label) + '</button></li>';
+  }).join('');
+
+  document.getElementById('jump').innerHTML = CATS.map(function (c) {
+    return '<li><button type="button" data-cat="' + c.id + '">' + esc(c.n[L]) + '</button></li>';
+  }).join('');
+
+  var html = '';
+  CATS.forEach(function (c) {
+    var rows = ITEMS.filter(function (it) { return it.c === c.id; });
+    if (!rows.length) return;
+    html += '<h2 class="cat" id="cat-' + c.id + '">' + esc(c.n[L]) + '</h2><ul class="items">';
+    rows.forEach(function (it) {
+      html += '<li class="item"><span class="name">' + esc(it.n[L]) + '</span>';
+      if (L !== 'ko') html += '<span class="ko" lang="ko">' + esc(it.n.ko) + '</span>';
+      if (it.d) html += '<span class="desc">' + esc(it.d[L]) + '</span>';
+      if (it.s) html += '<span class="season">' + esc(UI[it.s][L]) + '</span>';
+      var p = priceHtml(it);
+      if (p) html += '<span class="prices">' + p + '</span>';
+      html += '</li>';
+    });
+    html += '</ul>';
+  });
+  document.getElementById('menu').innerHTML = html;
+  document.getElementById('notes').innerHTML = UI.notes.map(function (n) { return '<li>' + esc(n[L]) + '</li>'; }).join('');
+}
+
+function setLang(code) {
+  current = code;
+  try { localStorage.setItem('gbrick-menu-lang', code); } catch (e) {}
+  render();
+}
+
+document.getElementById('langs').addEventListener('click', function (e) {
+  var b = e.target.closest ? e.target.closest('button[data-lang]') : null;
+  if (b) setLang(b.getAttribute('data-lang'));
+});
+document.getElementById('jump').addEventListener('click', function (e) {
+  var b = e.target.closest ? e.target.closest('button[data-cat]') : null;
+  if (!b) return;
+  var el = document.getElementById('cat-' + b.getAttribute('data-cat'));
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
+window.addEventListener('hashchange', function () {
+  var h = (location.hash || '').replace('#', '');
+  for (var i = 0; i < LANGS.length; i++) { if (LANGS[i].code === h) { setLang(h); return; } }
+});
+
+current = pickInitial();
+render();
+</script>
+</body>
+</html>

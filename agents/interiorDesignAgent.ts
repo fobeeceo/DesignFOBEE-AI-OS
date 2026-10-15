@@ -21,24 +21,13 @@ export class InteriorDesignError extends Error {
   }
 }
 
-export async function generateInteriorDesign({
-  imageBase64,
-  mimeType,
-  roomTypeId,
-  styleId,
-}: GenerateInteriorDesignParams): Promise<string> {
+/** 공통 Gemini 이미지 편집 호출. generate(스타일 프롬프트)와 refine(자연어 지시)이 함께 쓴다. */
+async function callGeminiImageEdit(imageBase64: string, mimeType: string, instruction: string): Promise<string> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     throw new InteriorDesignError("서버의 GEMINI_API_KEY가 설정되지 않았습니다.", "NO_API_KEY");
   }
 
-  const roomType = ROOM_TYPES.find((r) => r.id === roomTypeId);
-  const style = STYLES.find((s) => s.id === styleId);
-  if (!roomType || !style) {
-    throw new InteriorDesignError("공간 유형과 인테리어 스타일을 선택해 주세요.", "INVALID_OPTION");
-  }
-
-  const instruction = buildRedesignInstruction(roomType, style);
   const ai = new GoogleGenAI({ apiKey });
 
   let res;
@@ -77,4 +66,46 @@ export async function generateInteriorDesign({
   }
 
   return resultBase64;
+}
+
+export async function generateInteriorDesign({
+  imageBase64,
+  mimeType,
+  roomTypeId,
+  styleId,
+}: GenerateInteriorDesignParams): Promise<string> {
+  const roomType = ROOM_TYPES.find((r) => r.id === roomTypeId);
+  const style = STYLES.find((s) => s.id === styleId);
+  if (!roomType || !style) {
+    throw new InteriorDesignError("공간 유형과 인테리어 스타일을 선택해 주세요.", "INVALID_OPTION");
+  }
+
+  const instruction = buildRedesignInstruction(roomType, style);
+  return callGeminiImageEdit(imageBase64, mimeType, instruction);
+}
+
+interface RefineInteriorDesignParams {
+  imageBase64: string;
+  mimeType: string;
+  /** 사용자가 자연어로 입력한 수정 요청 (예: "소파를 더 밝은 색으로 바꿔줘") */
+  userInstruction: string;
+}
+
+/**
+ * 대화형 리파인: 이미 생성된 렌더링 결과에 사용자의 자연어 지시를 한 번 더 반영한다.
+ * 방 구조·카메라 시점은 그대로 두고 지시한 부분만 바꾸도록 프롬프트로 제약한다.
+ */
+export async function refineInteriorDesign({
+  imageBase64,
+  mimeType,
+  userInstruction,
+}: RefineInteriorDesignParams): Promise<string> {
+  const trimmed = userInstruction.trim();
+  if (!trimmed) {
+    throw new InteriorDesignError("어떻게 수정할지 입력해 주세요.", "INVALID_OPTION");
+  }
+
+  const instruction = `Apply this change to the interior photo: "${trimmed}". Keep the room architecture — walls, windows, doors, ceiling and camera perspective — exactly the same, and keep everything else about the current design unchanged unless the instruction says otherwise. Photorealistic interior photography, high detail.`;
+
+  return callGeminiImageEdit(imageBase64, mimeType, instruction);
 }

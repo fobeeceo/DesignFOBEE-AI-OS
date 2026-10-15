@@ -185,6 +185,19 @@ model DesignGeneration {
   @@map("design_generations")
 }
 
+/// 공개 AI 스튜디오(/design, 로그인 없음) 실사용 로그. DesignGeneration과 별개다 —
+/// /design은 Profile 없이 익명으로 쓰이는 실제 고객 화면이라 여기에만 기록이 남는다.
+/// byok=true(고객 본인 API 키)는 우리 Gemini 비용에 잡히지 않으므로 집계 시 제외한다.
+model PublicGeneration {
+  id        String   @id @default(cuid())
+  /// "generate"(최초 생성) | "refine"(대화형 리파인)
+  source    String
+  byok      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@map("public_generations")
+}
+
 /// STEP 7: AI 예상 견적. 임시 단가(prompts/pricing.ts) 기준으로 계산된
 /// 참고용 범위이며, 실제 견적은 현장 실측 후 확정된다.
 model Estimate {

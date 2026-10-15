@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Loader2, Sparkles } from "lucide-react";
+import { Loader2, Sparkles, Wand2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CompareSlider } from "@/components/design/CompareSlider";
 import { EstimateForm } from "@/components/design/EstimateForm";
+import { Input } from "@/components/ui/input";
 import { ROOM_TYPES, STYLES } from "@/prompts/interiorStyles";
 import type { SpacePhoto } from "@/types/project";
 import type { DesignImage } from "@/types/design";
@@ -38,6 +39,11 @@ export function DesignStudio({ projectId, photos }: DesignStudioProps) {
 
   const [description, setDescription] = useState<string | null>(null);
   const [descriptionLoading, setDescriptionLoading] = useState(false);
+
+  const [refineHistory, setRefineHistory] = useState<{ instruction: string; thumbUrl: string }[]>([]);
+  const [refineInput, setRefineInput] = useState("");
+  const [refining, setRefining] = useState(false);
+  const [refineError, setRefineError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch(`/api/projects/${projectId}/design`)
@@ -111,6 +117,35 @@ export function DesignStudio({ projectId, photos }: DesignStudioProps) {
     }
   }
 
+  async function handleRefine() {
+    if (!result || !refineInput.trim()) return;
+
+    setRefining(true);
+    setRefineError(null);
+
+    try {
+      const res = await fetch(`/api/projects/${projectId}/design/${result.id}/refine`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ instruction: refineInput.trim() }),
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.error ?? "리파인에 실패했습니다.");
+      }
+
+      setRefineHistory((prev) => [...prev, { instruction: refineInput.trim(), thumbUrl: data.designImage.url }]);
+      setResult(data.designImage);
+      setRemaining(data.remainingFree);
+      setRefineInput("");
+    } catch (err) {
+      setRefineError(err instanceof Error ? err.message : "리파인 중 오류가 발생했습니다.");
+    } finally {
+      setRefining(false);
+    }
+  }
+
   function handleDownload() {
     if (!result) return;
     const link = document.createElement("a");
@@ -173,12 +208,70 @@ export function DesignStudio({ projectId, photos }: DesignStudioProps) {
             )}
           </div>
 
+          {/* 대화형 리파인: 결과에 자연어로 계속 요청해 다듬는다 (Vizzy/Visoid류 서비스의 핵심 패턴) */}
+          <div className="w-full rounded-2xl border border-border bg-muted/40 p-5">
+            <div className="mb-3 flex items-center gap-2 text-xs font-semibold text-accent">
+              <Wand2 className="h-3.5 w-3.5" />
+              AI와 대화하며 다듬기
+            </div>
+
+            {refineHistory.length > 0 && (
+              <ul className="mb-3 flex flex-col gap-2">
+                {refineHistory.map((item, i) => (
+                  <li key={i} className="flex items-center gap-2 text-xs text-muted-foreground">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={item.thumbUrl} alt="" className="h-8 w-8 rounded-md object-cover" />
+                    <span>&quot;{item.instruction}&quot; 반영 완료</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {remaining !== null && remaining <= 0 ? (
+              <p className="text-sm text-muted-foreground">
+                무료 체험 횟수를 모두 사용하셨습니다.{" "}
+                <a href="/#contact" className="font-semibold text-accent underline underline-offset-4">
+                  상담 신청하기
+                </a>
+              </p>
+            ) : (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleRefine();
+                }}
+                className="flex flex-col gap-2 sm:flex-row"
+              >
+                <Input
+                  value={refineInput}
+                  onChange={(e) => setRefineInput(e.target.value)}
+                  placeholder="예: 소파를 더 밝은 색으로, 조명을 따뜻하게 바꿔줘"
+                  disabled={refining}
+                  maxLength={200}
+                />
+                <Button type="submit" disabled={refining || !refineInput.trim()}>
+                  {refining ? <Loader2 className="h-4 w-4 animate-spin" /> : "반영하기"}
+                </Button>
+              </form>
+            )}
+
+            {refineError && <p className="mt-2 text-sm text-red-500">{refineError}</p>}
+          </div>
+
           {/* STEP 7: AI 예상 견적 */}
           <EstimateForm projectId={projectId} designImageId={result.id} />
 
           <div className="flex flex-wrap justify-center gap-3">
             <Button onClick={handleDownload}>고화질 PNG 다운로드</Button>
-            <Button variant="outline" onClick={() => setResult(null)}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setResult(null);
+                setRefineHistory([]);
+                setRefineInput("");
+                setRefineError(null);
+              }}
+            >
               다른 스타일로 다시 디자인
             </Button>
           </div>
