@@ -1,24 +1,11 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { brandRoute, isBrandHost } from "@/lib/franchise/brandDomain";
 
 /**
  * 모든 요청에서 Supabase 세션 쿠키를 갱신한다 (Supabase SSR 표준 패턴).
  * STEP 3 이후 보호 라우트(사진업로드 등)가 추가되면 여기서 리다이렉트 로직을 확장한다.
  */
 export async function middleware(request: NextRequest) {
-  // GBRICK Coffee 도메인: 주소는 그대로 두고 가맹 페이지를 보여준다(lib/franchise/brandDomain.ts).
-  if (isBrandHost(request.headers.get("host"))) {
-    const route = brandRoute(request.nextUrl.pathname, request.nextUrl.search);
-    if (route.kind === "redirect") return NextResponse.redirect(route.url, 307);
-    if (route.kind === "rewrite") {
-      const url = request.nextUrl.clone();
-      url.pathname = route.pathname;
-      return NextResponse.rewrite(url);
-    }
-    // 가맹 페이지가 쓰는 경로는 아래 일반 처리로 넘긴다.
-  }
-
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -54,9 +41,12 @@ export async function middleware(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser();
 
-  // 인증 게이트: /hq(AI Headquarters)는 로그인 후에만 접근 (헌장 §13 보안).
+  // 인증 게이트: /hq(AI Headquarters)·/owner(점주 포탈)는 로그인 후에만 접근.
   // env 미설정 시에는 위에서 이미 스킵되므로 빌드/데모 렌더는 안전.
-  if (!user && request.nextUrl.pathname.startsWith("/hq")) {
+  const isProtected =
+    request.nextUrl.pathname.startsWith("/hq") ||
+    request.nextUrl.pathname.startsWith("/owner");
+  if (!user && isProtected) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("redirect", request.nextUrl.pathname);

@@ -48,6 +48,14 @@ export function MobileNav({ open, onClose, items }: MobileNavProps) {
         </a>
 
         <a
+          href="/owner"
+          onClick={onClose}
+          className="rounded-full border border-[#8C4A32]/30 bg-[#8C4A32]/5 py-2 text-center text-sm font-semibold text-[#8C4A32]"
+        >
+          점주 포탈
+        </a>
+
+        <a
           href="/login"
           onClick={onClose}
           className="text-center text-sm font-medium text-muted-foreground"
