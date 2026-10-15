@@ -1,4 +1,4 @@
-import { Snowflake, Citrus, Quote } from "lucide-react";
+import { Snowflake, Citrus, Quote, Coffee, Milk, Flame } from "lucide-react";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { FRANCHISE_MENU, type MenuItem } from "@/lib/franchise/content";
 
@@ -30,7 +30,7 @@ function MenuCard({ item, index }: { item: MenuItem; index: number }) {
 }
 
 export function MenuSection() {
-  const { cold, handmade, voices } = FRANCHISE_MENU;
+  const { cold, handmade, voices, options, winter } = FRANCHISE_MENU;
 
   return (
     <section id="menu" className="bg-gradient-to-b from-sky-50 to-background py-20 sm:py-28">
@@ -47,6 +47,53 @@ export function MenuSection() {
               <MenuCard key={item.name} item={item} index={i} />
             ))}
           </div>
+        </div>
+
+        {/* 원두·우유 선택 — 대표 진술 그대로(content.ts 주석 참고). */}
+        <div className="mt-12 rounded-3xl border border-border bg-background p-6 sm:p-10">
+          <h3 className="text-xl font-bold text-foreground">{options.title}</h3>
+          <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">{options.desc}</p>
+
+          <div className="mt-8 grid gap-8 lg:grid-cols-2">
+            <div>
+              <p className="flex items-center gap-2 text-base font-semibold text-foreground">
+                <Coffee className="h-5 w-5 text-amber-700" aria-hidden />
+                원두 {options.beans.length}가지
+              </p>
+              <ul className="mt-4 grid gap-3 sm:grid-cols-3">
+                {options.beans.map((bean) => (
+                  <li key={bean.name} className="rounded-2xl bg-amber-50 p-4 text-center">
+                    <p className="text-base font-bold text-foreground">{bean.name}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">{bean.desc}</p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div>
+              <p className="flex items-center gap-2 text-base font-semibold text-foreground">
+                <Milk className="h-5 w-5 text-sky-600" aria-hidden />
+                {options.milkDesc}
+              </p>
+              <ul className="mt-4 flex flex-wrap gap-2">
+                {options.milks.map((milk) => (
+                  <li
+                    key={milk.name}
+                    className={
+                      milk.note
+                        ? "rounded-full bg-foreground px-4 py-2 text-[15px] font-semibold text-background"
+                        : "rounded-full border border-border px-4 py-2 text-[15px] text-foreground"
+                    }
+                  >
+                    {milk.name}
+                    {milk.note && <span className="ml-1 text-sm opacity-70">({milk.note})</span>}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          <p className="mt-8 rounded-2xl bg-muted/60 px-5 py-4 text-[15px] text-foreground">{options.extra}</p>
         </div>
 
         {/* 손님 이야기 — 대표가 매장에서 들은 말. 이름·얼굴을 붙이지 않는다(content.ts 주석 참고). */}
@@ -72,6 +119,20 @@ export function MenuSection() {
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
             {handmade.items.map((item, i) => (
               <MenuCard key={item.name} item={item} index={cold.items.length + i} />
+            ))}
+          </div>
+        </div>
+
+        {/* 겨울 시그니처 — 대표 진술(content.ts 주석 참고). */}
+        <div className="mt-12 rounded-3xl bg-gradient-to-br from-rose-50 to-red-50 p-6 sm:p-10">
+          <h3 className="flex items-center gap-2 text-xl font-bold text-foreground">
+            <Flame className="h-5 w-5 text-rose-600" aria-hidden />
+            {winter.title}
+          </h3>
+          <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">{winter.desc}</p>
+          <div className="mt-6 grid gap-4 sm:grid-cols-3">
+            {winter.items.map((item, i) => (
+              <MenuCard key={item.name} item={item} index={cold.items.length + handmade.items.length + i} />
             ))}
           </div>
         </div>

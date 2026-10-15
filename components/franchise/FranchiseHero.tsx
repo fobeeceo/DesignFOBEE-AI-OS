@@ -36,7 +36,7 @@ export function FranchiseHero() {
         </p>
         {/* 대표 메뉴를 첫 화면에서 한눈에 보인다(2026-10-15 대표 지시). 이름은 FRANCHISE_MENU에서만 가져온다. */}
         <ul aria-label="대표 메뉴" className="mt-6 flex max-w-2xl flex-wrap gap-2">
-          {[...FRANCHISE_MENU.cold.items, ...FRANCHISE_MENU.handmade.items].map((item) => (
+          {[...FRANCHISE_MENU.cold.items, ...FRANCHISE_MENU.handmade.items, ...FRANCHISE_MENU.winter.items].map((item) => (
             <li
               key={item.name}
               className="rounded-full border border-white/40 bg-white/10 px-3 py-1 text-sm text-white backdrop-blur"
