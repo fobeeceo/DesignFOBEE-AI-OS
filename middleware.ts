@@ -41,11 +41,9 @@ export async function middleware(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser();
 
-  // 인증 게이트: /hq(AI Headquarters)·/owner(점주 포탈)는 로그인 후에만 접근.
-  // env 미설정 시에는 위에서 이미 스킵되므로 빌드/데모 렌더는 안전.
-  const isProtected =
-    request.nextUrl.pathname.startsWith("/hq") ||
-    request.nextUrl.pathname.startsWith("/owner");
+  // 인증 게이트: /hq(AI Headquarters)만 로그인 필요.
+  // /owner(점주 포탈)는 빈 인쇄 양식만 제공하므로 공개 접근 허용.
+  const isProtected = request.nextUrl.pathname.startsWith("/hq");
   if (!user && isProtected) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
