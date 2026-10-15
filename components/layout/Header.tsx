@@ -45,6 +45,12 @@ export function Header() {
           <a href="/login" className="text-sm font-medium text-muted-foreground hover:text-foreground">
             로그인
           </a>
+          <a
+            href="/owner"
+            className="rounded-full border border-[#8C4A32]/30 bg-[#8C4A32]/5 px-3 py-1 text-xs font-semibold text-[#8C4A32] transition-colors hover:bg-[#8C4A32]/10"
+          >
+            점주 포탈
+          </a>
           <a href="/design" className={buttonVariants({ variant: "outline", size: "sm" })}>
             AI 디자인
           </a>
