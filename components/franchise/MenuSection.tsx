@@ -1,4 +1,4 @@
-import { Snowflake, Citrus } from "lucide-react";
+import { Snowflake, Citrus, Quote } from "lucide-react";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { FRANCHISE_MENU, type MenuItem } from "@/lib/franchise/content";
 
@@ -30,7 +30,7 @@ function MenuCard({ item, index }: { item: MenuItem; index: number }) {
 }
 
 export function MenuSection() {
-  const { cold, handmade } = FRANCHISE_MENU;
+  const { cold, handmade, voices } = FRANCHISE_MENU;
 
   return (
     <section id="menu" className="bg-gradient-to-b from-sky-50 to-background py-20 sm:py-28">
@@ -45,6 +45,20 @@ export function MenuSection() {
           <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {cold.items.map((item, i) => (
               <MenuCard key={item.name} item={item} index={i} />
+            ))}
+          </div>
+        </div>
+
+        {/* 손님 이야기 — 대표가 매장에서 들은 말. 이름·얼굴을 붙이지 않는다(content.ts 주석 참고). */}
+        <div className="mt-12">
+          <h3 className="text-xl font-bold text-foreground">{voices.title}</h3>
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            {voices.items.map((voice) => (
+              <figure key={voice.menu} className="flex flex-col gap-3 rounded-2xl bg-foreground p-6 text-background sm:p-8">
+                <Quote className="h-6 w-6 text-accent" aria-hidden />
+                <blockquote className="text-[17px] font-medium leading-relaxed">{voice.quote}</blockquote>
+                <figcaption className="text-sm opacity-70">{voice.menu}를 찾는 손님</figcaption>
+              </figure>
             ))}
           </div>
         </div>

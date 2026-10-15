@@ -2,7 +2,7 @@
 
 # Audit Report
 
-생성: 2026-10-15T00:13:29.091Z
+생성: 2026-10-15T00:24:58.767Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
@@ -45,14 +45,10 @@
 
 ## 8. Git Status
 - 브랜치: feat/franchise-menu-landing
-- 최근 커밋: 5e362dd3146e0d40b2dadf440c7d8e1337bf4c45 feat(franchise): 유입 경로 추적, 창업 비용 섹션, GBRICK 도메인 연결
-- 미커밋 변경: 6건
+- 최근 커밋: e2bbcb250652c402201eee38c5282e65b0617d2c feat(franchise): 대표 메뉴 섹션과 섹션 바로가기 추가
+- 미커밋 변경: 2건
 
 ```
-M  app/franchise/page.tsx
-M  components/franchise/Advantages.tsx
-M  components/franchise/FranchiseHero.tsx
-A  components/franchise/MenuSection.tsx
-A  components/franchise/SectionNav.tsx
+M  components/franchise/MenuSection.tsx
 M  lib/franchise/content.ts
 ```
