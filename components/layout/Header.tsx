@@ -16,9 +16,6 @@ const NAV_ITEMS = [
   { label: "자서전", href: "/memoir" },
 ];
 
-/**
- * 홈페이지 상단 헤더. 모바일 우선 — 데스크톱은 가로 메뉴, 모바일은 햄버거.
- */
 export function Header() {
   const [open, setOpen] = useState(false);
 
@@ -29,7 +26,7 @@ export function Header() {
           DesignFOBEE
         </a>
 
-        <nav className="hidden items-center gap-6 lg:flex">
+        <nav className="hidden items-center gap-4 xl:flex">
           {NAV_ITEMS.map((item) => (
             <a
               key={item.href}
@@ -41,7 +38,7 @@ export function Header() {
           ))}
         </nav>
 
-        <div className="hidden items-center gap-3 lg:flex">
+        <div className="hidden items-center gap-2 xl:flex">
           <a href="/login" className="text-sm font-medium text-muted-foreground hover:text-foreground">
             로그인
           </a>
@@ -51,9 +48,6 @@ export function Header() {
           >
             점주 포탈
           </a>
-          <a href="/design" className={buttonVariants({ variant: "outline", size: "sm" })}>
-            AI 디자인
-          </a>
           <a href="/franchise#consult" className={buttonVariants({ size: "sm" })}>
             가맹상담 신청
           </a>
@@ -61,9 +55,7 @@ export function Header() {
 
         <button
           aria-label="메뉴 열기"
-          // -m-2 p-2로 아이콘 크기는 그대로 두고 터치 영역만 24px → 40px로 넓힌다
-          // (모바일에서 햄버거 버튼이 눌리지 않는 문제 방지).
-          className="-m-2 p-2 lg:hidden"
+          className="-m-2 p-2 xl:hidden"
           onClick={() => setOpen(true)}
         >
           <Menu className="h-6 w-6" />
