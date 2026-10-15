@@ -29,7 +29,7 @@ export function Header() {
           DesignFOBEE
         </a>
 
-        <nav className="hidden items-center gap-6 lg:flex">
+        <nav className="hidden items-center gap-4 xl:flex">
           {NAV_ITEMS.map((item) => (
             <a
               key={item.href}
@@ -41,7 +41,7 @@ export function Header() {
           ))}
         </nav>
 
-        <div className="hidden items-center gap-3 lg:flex">
+        <div className="hidden items-center gap-2 xl:flex">
           <a href="/login" className="text-sm font-medium text-muted-foreground hover:text-foreground">
             로그인
           </a>
@@ -50,9 +50,6 @@ export function Header() {
             className="rounded-full border border-[#8C4A32]/30 bg-[#8C4A32]/5 px-3 py-1 text-xs font-semibold text-[#8C4A32] transition-colors hover:bg-[#8C4A32]/10"
           >
             점주 포탈
-          </a>
-          <a href="/design" className={buttonVariants({ variant: "outline", size: "sm" })}>
-            AI 디자인
           </a>
           <a href="/franchise#consult" className={buttonVariants({ size: "sm" })}>
             가맹상담 신청
@@ -63,7 +60,7 @@ export function Header() {
           aria-label="메뉴 열기"
           // -m-2 p-2로 아이콘 크기는 그대로 두고 터치 영역만 24px → 40px로 넓힌다
           // (모바일에서 햄버거 버튼이 눌리지 않는 문제 방지).
-          className="-m-2 p-2 lg:hidden"
+          className="-m-2 p-2 xl:hidden"
           onClick={() => setOpen(true)}
         >
           <Menu className="h-6 w-6" />

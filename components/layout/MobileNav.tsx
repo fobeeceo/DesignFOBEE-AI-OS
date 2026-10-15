@@ -19,7 +19,7 @@ export function MobileNav({ open, onClose, items }: MobileNavProps) {
   if (!open) return null;
 
   return (
-    <div className="animate-fade-in fixed inset-0 z-50 flex flex-col bg-background lg:hidden">
+    <div className="animate-fade-in fixed inset-0 z-50 flex flex-col bg-background xl:hidden">
       <div className="container-px flex h-16 items-center justify-between border-b border-border">
         <span className="text-lg font-bold">DesignFOBEE</span>
         <button aria-label="메뉴 닫기" onClick={onClose}>
