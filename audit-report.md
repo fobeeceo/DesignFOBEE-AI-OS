@@ -2,7 +2,7 @@
 
 # Audit Report
 
-생성: 2026-10-15T00:40:42.966Z
+생성: 2026-10-15T00:45:04.233Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
@@ -45,11 +45,9 @@
 
 ## 8. Git Status
 - 브랜치: feat/franchise-menu-landing
-- 최근 커밋: 3e65e0badd7f4a7d67325d3543001a471ab9ce2d feat(franchise): 메뉴 섹션에 매장에서 들은 손님 이야기 추가
-- 미커밋 변경: 3건
+- 최근 커밋: 78f2503cada0c7d4e81da908a78e769e6745bf28 feat(franchise): 원두·우유 선택과 겨울 시그니처 메뉴 추가
+- 미커밋 변경: 1건
 
 ```
-M  components/franchise/FranchiseHero.tsx
-M  components/franchise/MenuSection.tsx
-M  lib/franchise/content.ts
+M  app/franchise/page.tsx
 ```

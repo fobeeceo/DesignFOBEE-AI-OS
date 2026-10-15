@@ -22,6 +22,24 @@ export const metadata: Metadata = {
   description:
     `GBRICK Coffee 가맹 상담. ${yearsSince(FOUNDED_YEAR)}년 공간디자인 노하우로 설계부터 시공·브랜딩·운영·교육까지 본사가 직접 함께합니다. 무료 가맹상담을 신청하세요.`,
   alternates: { canonical: "/franchise" },
+  // 영상·블로그에서 이 주소를 공유하면 카카오톡·인스타 미리보기에 가맹 안내가 떠야 한다(2026-10-15 대표 지시).
+  // 지정하지 않으면 app/layout.tsx의 DesignFOBEE 홈 미리보기가 그대로 나온다.
+  openGraph: {
+    type: "website",
+    locale: "ko_KR",
+    url: "/franchise",
+    siteName: "GBRICK Coffee",
+    title: "GBRICK Coffee 가맹상담 — 차가운 음료가 강한 카페",
+    description:
+      "아이스 아메리카노·라떼, 과일 요거트 라씨, 국산 수제 팥빙수, 수제청 음료. 메뉴와 창업 비용을 확인하고 무료 가맹상담을 신청하세요.",
+    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "GBRICK Coffee 은평본점 야간 매장 외관" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "GBRICK Coffee 가맹상담 — 차가운 음료가 강한 카페",
+    description: "아이스 음료·라씨·수제 팥빙수·수제청 음료. 메뉴와 창업 비용을 확인하세요.",
+    images: ["/og-image.jpg"],
+  },
 };
 
 /**
