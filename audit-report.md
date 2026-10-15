@@ -1,8 +1,8 @@
-> **요약**: 총 3건 발견 (Git 미커밋 변경 제외). §6에 따라 이 스크립트는 아무것도 삭제/수정하지 않았다.
+> **요약**: 총 4건 발견 (Git 미커밋 변경 제외). §6에 따라 이 스크립트는 아무것도 삭제/수정하지 않았다.
 
 # Audit Report
 
-생성: 2026-10-15T00:45:04.233Z
+생성: 2026-10-15T01:04:58.353Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
@@ -21,7 +21,7 @@
     - components/hr/DiagnosisClient.tsx
 
 ## 3. Unused Import
-- 스캔: 120개 파일
+- 스캔: 124개 파일
 - 이슈: 0건
 
 ## 4. Broken Route (nav 컴포넌트)
@@ -37,17 +37,24 @@
 - npm audit(production): critical 1, high 4, moderate 0, low 0
 
 ## 7. Environment Variable
-- 코드에서 참조: 17개
+- 코드에서 참조: 18개
 - .env.example 선언: 17개
-- .env.example 누락(코드는 참조하나 예제엔 없음): 0건
+- .env.example 누락(코드는 참조하나 예제엔 없음): 1건
+  - GEMINI_IMAGE_COST_USD_PER_IMAGE
 - .env.example 미사용(예제엔 있으나 코드가 참조 안 함): 1건
   - N8N_API_KEY
 
 ## 8. Git Status
 - 브랜치: feat/franchise-menu-landing
-- 최근 커밋: 78f2503cada0c7d4e81da908a78e769e6745bf28 feat(franchise): 원두·우유 선택과 겨울 시그니처 메뉴 추가
-- 미커밋 변경: 1건
+- 최근 커밋: b37971ac87cf75463d8aabf9cb7cdf24e98ca055 Merge remote-tracking branch 'origin/main' into feat/franchise-menu-landing
+- 미커밋 변경: 7건
 
 ```
-M  app/franchise/page.tsx
+M audit-report.md
+ M docs-sync-report.json
+M  lib/franchise/attribution.test.ts
+M  lib/franchise/attribution.ts
+M  lib/franchise/brandDomain.test.ts
+M  lib/franchise/brandDomain.ts
+M  middleware.ts
 ```

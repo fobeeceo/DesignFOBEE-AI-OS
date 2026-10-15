@@ -1,3 +1,5 @@
+import { isBrandHost } from "@/lib/franchise/brandDomain";
+
 /**
  * 가맹상담 유입 경로 추적 — "어느 채널 영상을 보고 상담을 남겼는가"를 남긴다.
  *
@@ -75,7 +77,12 @@ export function parseAttribution(
   const host = referrerHost(referrer, selfHost);
 
   const result: LeadAttribution = {
-    source: sanitizeToken(params.get("utm_source")) ?? channelFromReferrer(host),
+    // 꼬리표·이전 사이트가 없고 브랜드 주소(gbrickcoffee.com)로 들어왔으면 도메인 유입으로 센다.
+    // 예전에는 리다이렉트가 utm_source=gbrickcoffee_domain을 붙였는데, 주소를 그대로 두게 바꾸며 여기로 옮겼다.
+    source:
+      sanitizeToken(params.get("utm_source")) ??
+      channelFromReferrer(host) ??
+      (isBrandHost(selfHost) ? "gbrickcoffee_domain" : undefined),
     medium: sanitizeToken(params.get("utm_medium")),
     campaign: sanitizeToken(params.get("utm_campaign")),
     content: sanitizeToken(params.get("utm_content")),

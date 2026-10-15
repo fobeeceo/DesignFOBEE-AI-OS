@@ -66,3 +66,17 @@ describe("describeAttribution / buildChannelLink", () => {
     );
   });
 });
+
+describe("브랜드 주소 직접 유입", () => {
+  it("꼬리표·이전 사이트가 없으면 gbrickcoffee_domain으로 센다", () => {
+    expect(parseAttribution("", "", "www.gbrickcoffee.com")?.source).toBe("gbrickcoffee_domain");
+  });
+
+  it("꼬리표가 있으면 꼬리표가 먼저다", () => {
+    expect(parseAttribution("?utm_source=tiktok", "", "www.gbrickcoffee.com")?.source).toBe("tiktok");
+  });
+
+  it("fobee.co.kr 직접 방문은 그대로 미확인이다", () => {
+    expect(parseAttribution("", "", "www.fobee.co.kr")).toBeUndefined();
+  });
+});
