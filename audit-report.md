@@ -2,11 +2,11 @@
 
 # Audit Report
 
-생성: 2026-10-14T14:22:09.980Z
+생성: 2026-10-15T00:13:29.091Z
 기준: CLAUDE.md §10 (직접 실행·검사·확인, 삭제/수정 없음)
 
 ## 1. Dead Code
-- 스캔: 62개 컴포넌트
+- 스캔: 64개 컴포넌트
 - 미사용(어디서도 import 안 됨): 1건
   - components/franchise/SuccessCases.tsx
 - ⚠️ §6 규정: 삭제는 CEO 승인 후에만 수행.
@@ -21,11 +21,11 @@
     - components/hr/DiagnosisClient.tsx
 
 ## 3. Unused Import
-- 스캔: 118개 파일
+- 스캔: 120개 파일
 - 이슈: 0건
 
 ## 4. Broken Route (nav 컴포넌트)
-- nav 파일 스캔: 5
+- nav 파일 스캔: 6
 - 깨진 링크: 0건
 
 ## 5. Build Error (독립 실행)
@@ -44,24 +44,15 @@
   - N8N_API_KEY
 
 ## 8. Git Status
-- 브랜치: fix/franchise-deposit-facts
-- 최근 커밋: 51a1dbddcdff6b09e84c6fb8a5b27aef5bda1bcd fix(franchise): 정보공개서 기준으로 로열티·보증금·계약 절차 문구 정정
-- 미커밋 변경: 15건
+- 브랜치: feat/franchise-menu-landing
+- 최근 커밋: 5e362dd3146e0d40b2dadf440c7d8e1337bf4c45 feat(franchise): 유입 경로 추적, 창업 비용 섹션, GBRICK 도메인 연결
+- 미커밋 변경: 6건
 
 ```
-M  app/franchise/diagnosis/page.tsx
 M  app/franchise/page.tsx
-A  components/franchise/AttributionCapture.tsx
-M  components/franchise/ConsultForm.tsx
-A  components/franchise/CostSection.tsx
-A  lib/franchise/attribution.test.ts
-A  lib/franchise/attribution.ts
-A  lib/franchise/brandDomain.test.ts
-A  lib/franchise/brandDomain.ts
+M  components/franchise/Advantages.tsx
+M  components/franchise/FranchiseHero.tsx
+A  components/franchise/MenuSection.tsx
+A  components/franchise/SectionNav.tsx
 M  lib/franchise/content.ts
-M  lib/notifications/leadEmail.ts
-M  lib/validations/lead.schema.ts
-M  middleware.ts
-M  services/leadService.ts
-M  types/lead.ts
 ```

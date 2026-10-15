@@ -6,6 +6,8 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import { FranchiseHero } from "@/components/franchise/FranchiseHero";
 import { TrustSection } from "@/components/franchise/TrustSection";
 import { Advantages } from "@/components/franchise/Advantages";
+import { MenuSection } from "@/components/franchise/MenuSection";
+import { SectionNav } from "@/components/franchise/SectionNav";
 import { OperatingStores } from "@/components/franchise/OperatingStores";
 import { SpaceExpertise } from "@/components/franchise/SpaceExpertise";
 import { Process } from "@/components/franchise/Process";
@@ -25,15 +27,19 @@ export const metadata: Metadata = {
 /**
  * GBRICK Coffee 가맹상담 전용 랜딩 페이지.
  * 홈페이지 GBrickSection(브랜드 요약)과 역할을 분리해, 이 페이지는 가맹 상담 전환만 담당한다.
- * 섹션 순서: Hero → 신뢰지표 → 차별성 → 운영 중인 매장 → 카페 밖의 공간 →
- *            창업절차 → 창업비용 → FAQ → 상담폼(+FloatingCTA)
+ * 섹션 순서: Hero → 바로가기 → 대표 메뉴 → 신뢰지표 → 차별성 → 운영 중인 매장 →
+ *            카페 밖의 공간 → 창업절차 → 창업비용 → FAQ → 상담폼(+FloatingCTA)
  */
 export default function FranchisePage() {
   return (
     <>
       <Header />
-      <main>
+      {/* 바로가기 바(SectionNav)와 헤더에 섹션 제목이 가리지 않게 scroll-margin을 준다. */}
+      <main className="[&_section[id]]:scroll-mt-32">
         <FranchiseHero />
+        <SectionNav />
+        {/* 메뉴는 Hero 바로 아래(2026-10-15 대표 지시). */}
+        <MenuSection />
         <TrustSection />
         <Reveal>
           <Advantages />

@@ -13,13 +13,16 @@ export function Advantages() {
         />
 
         <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {FRANCHISE_ADVANTAGES.map((item) => (
+          {FRANCHISE_ADVANTAGES.map((item, i) => (
             <div
               key={item.title}
               className="rounded-2xl border border-border bg-background p-6 transition-colors hover:border-accent"
             >
-              <h3 className="text-base font-semibold text-foreground">{item.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{item.desc}</p>
+              <span className="text-2xl font-bold tabular-nums text-accent">
+                {String(i + 1).padStart(2, "0")}
+              </span>
+              <h3 className="mt-2 text-lg font-semibold text-foreground">{item.title}</h3>
+              <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">{item.desc}</p>
             </div>
           ))}
         </div>

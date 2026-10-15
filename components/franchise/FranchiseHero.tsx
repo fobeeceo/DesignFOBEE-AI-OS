@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { buttonVariants } from "@/components/ui/button";
 import { FOUNDED_YEAR, yearsSince } from "@/lib/company/profile";
+import { FRANCHISE_MENU } from "@/lib/franchise/content";
 
 /**
  * 가맹상담 랜딩 Hero — 저가 커피가 아닌 "공간 중심 브랜드" 포지셔닝을 첫 화면에서 명확히 한다.
@@ -33,15 +34,26 @@ export function FranchiseHero() {
           {yearsSince(FOUNDED_YEAR)}년간 상업공간을 직접 설계·시공해온 디자인포비가 매장을 직접
           만듭니다.
         </p>
+        {/* 대표 메뉴를 첫 화면에서 한눈에 보인다(2026-10-15 대표 지시). 이름은 FRANCHISE_MENU에서만 가져온다. */}
+        <ul aria-label="대표 메뉴" className="mt-6 flex max-w-2xl flex-wrap gap-2">
+          {[...FRANCHISE_MENU.cold.items, ...FRANCHISE_MENU.handmade.items].map((item) => (
+            <li
+              key={item.name}
+              className="rounded-full border border-white/40 bg-white/10 px-3 py-1 text-sm text-white backdrop-blur"
+            >
+              {item.name}
+            </li>
+          ))}
+        </ul>
         <div className="mt-10 flex flex-col gap-3 sm:flex-row">
           <a href="#consult" className={buttonVariants({ size: "lg" })}>
             무료 가맹상담 신청
           </a>
           <a
-            href="#advantages"
+            href="#menu"
             className={buttonVariants({ variant: "outline", size: "lg", className: "border-white text-white hover:bg-white hover:text-foreground" })}
           >
-            왜 GBRICK인가?
+            대표 메뉴 보기
           </a>
         </div>
       </div>
