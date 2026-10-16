@@ -114,15 +114,28 @@ const inputCls =
 const sectionHdr =
   "mt-6 border-b border-border pb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground";
 
+type DayTime = { start: string; end: string; brk: string };
+const initDaySchedule = (start: string, end: string, brk: string) =>
+  Object.fromEntries(WORK_DAYS_KO.map((d) => [d, { start, end, brk }])) as Record<WorkDayKo, DayTime>;
+
 export function ContractForm() {
   const { register, watch, reset } = useForm<ContractValues>({ defaultValues: DEFAULTS });
   const [workDays, setWorkDays] = useState<WorkDayKo[]>(["월", "화", "수", "목", "금"]);
   const [showPreview, setShowPreview] = useState(false);
+  const [useDaySchedule, setUseDaySchedule] = useState(false);
+  const [daySchedule, setDaySchedule] = useState<Record<WorkDayKo, DayTime>>(
+    () => initDaySchedule(DEFAULTS.startTime, DEFAULTS.endTime, DEFAULTS.breakMin)
+  );
   const v = watch();
 
   // 실시간 계산
   const dayHrs = netHours(v.startTime || "00:00", v.endTime || "00:00", Number(v.breakMin) || 0);
-  const wkHrs = Math.round(dayHrs * workDays.length * 10) / 10;
+  const wkHrs = useDaySchedule
+    ? Math.round(workDays.reduce((sum, d) => {
+        const { start, end, brk } = daySchedule[d];
+        return sum + netHours(start, end, Number(brk) || 0);
+      }, 0) * 10) / 10
+    : Math.round(dayHrs * workDays.length * 10) / 10;
   const hourly = Number(v.wageAmount) || 0;
   const isHourly = v.wageType === "hourly";
   const wkAllow = isHourly ? calcWeeklyAllowance(wkHrs, hourly) : null;
@@ -133,6 +146,18 @@ export function ContractForm() {
     setWorkDays((prev) =>
       prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
     );
+  }
+
+  function updateDayTime(day: WorkDayKo, field: keyof DayTime, val: string) {
+    setDaySchedule((prev) => ({ ...prev, [day]: { ...prev[day], [field]: val } }));
+  }
+
+  function handleDayScheduleToggle() {
+    if (!useDaySchedule) {
+      // 현재 전체 시간 설정값으로 각 요일 초기화
+      setDaySchedule(initDaySchedule(v.startTime || "09:00", v.endTime || "18:00", v.breakMin || "60"));
+    }
+    setUseDaySchedule((p) => !p);
   }
 
   const workLocation = v.sameLocation ? v.businessAddress || "(사업장 주소와 동일)" : v.workLocation;
@@ -173,7 +198,12 @@ export function ContractForm() {
             </button>
             <button
               type="button"
-              onClick={() => { reset(DEFAULTS); setWorkDays(["월", "화", "수", "목", "금"]); }}
+              onClick={() => {
+                reset(DEFAULTS);
+                setWorkDays(["월", "화", "수", "목", "금"]);
+                setUseDaySchedule(false);
+                setDaySchedule(initDaySchedule(DEFAULTS.startTime, DEFAULTS.endTime, DEFAULTS.breakMin));
+              }}
               className="rounded-md border border-border px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted"
             >
               초기화
@@ -269,10 +299,10 @@ export function ContractForm() {
 
             <p className={sectionHdr}>근로시간</p>
             <div className="grid grid-cols-3 gap-3">
-              <Field label="출근 시간">
+              <Field label={useDaySchedule ? "기본 출근 (기준값)" : "출근 시간"}>
                 <input {...register("startTime")} type="time" className={inputCls} />
               </Field>
-              <Field label="퇴근 시간">
+              <Field label={useDaySchedule ? "기본 퇴근 (기준값)" : "퇴근 시간"}>
                 <input {...register("endTime")} type="time" className={inputCls} />
               </Field>
               <Field label="휴게 (분)">
@@ -299,10 +329,75 @@ export function ContractForm() {
               </div>
               {wkHrs > 0 && (
                 <p className="mt-1 text-xs text-muted-foreground">
-                  1일 {dayHrs.toFixed(1)}h × {workDays.length}일 = <strong>주 {wkHrs}시간</strong>
+                  {useDaySchedule
+                    ? <>요일별 합산 = <strong>주 {wkHrs}시간</strong></>
+                    : <>1일 {dayHrs.toFixed(1)}h × {workDays.length}일 = <strong>주 {wkHrs}시간</strong></>
+                  }
                 </p>
               )}
             </div>
+            {/* 요일별 근무시간 토글 */}
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={useDaySchedule}
+                onChange={handleDayScheduleToggle}
+                className="rounded"
+              />
+              요일마다 근무시간이 다름
+            </label>
+            {useDaySchedule && workDays.length > 0 && (
+              <div className="overflow-x-auto rounded-md border border-border">
+                <table className="w-full text-xs">
+                  <thead className="bg-muted/50">
+                    <tr>
+                      <th className="border-r border-border px-2 py-1.5 text-left font-medium">요일</th>
+                      <th className="border-r border-border px-2 py-1.5 font-medium">출근</th>
+                      <th className="border-r border-border px-2 py-1.5 font-medium">퇴근</th>
+                      <th className="border-r border-border px-2 py-1.5 font-medium">휴게(분)</th>
+                      <th className="px-2 py-1.5 font-medium text-right">실근무</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {workDays.map((day) => {
+                      const ds = daySchedule[day];
+                      const h = netHours(ds.start, ds.end, Number(ds.brk) || 0);
+                      return (
+                        <tr key={day} className="border-t border-border">
+                          <td className="border-r border-border px-2 py-1 font-semibold">{day}요일</td>
+                          <td className="border-r border-border px-1 py-1">
+                            <input
+                              type="time"
+                              value={ds.start}
+                              onChange={(e) => updateDayTime(day, "start", e.target.value)}
+                              className="w-full rounded border border-border px-1 py-0.5 text-xs"
+                            />
+                          </td>
+                          <td className="border-r border-border px-1 py-1">
+                            <input
+                              type="time"
+                              value={ds.end}
+                              onChange={(e) => updateDayTime(day, "end", e.target.value)}
+                              className="w-full rounded border border-border px-1 py-0.5 text-xs"
+                            />
+                          </td>
+                          <td className="border-r border-border px-1 py-1">
+                            <input
+                              type="number"
+                              min={0}
+                              value={ds.brk}
+                              onChange={(e) => updateDayTime(day, "brk", e.target.value)}
+                              className="w-full rounded border border-border px-1 py-0.5 text-xs"
+                            />
+                          </td>
+                          <td className="px-2 py-1 text-right text-muted-foreground">{h.toFixed(1)}h</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
 
             <p className={sectionHdr}>임금</p>
             <Field label="임금 형태">
@@ -343,7 +438,7 @@ export function ContractForm() {
               주휴수당을 임금에 포함하여 지급 (포괄 시급)
             </label>
             <div className="grid grid-cols-2 gap-3">
-              <Field label="급여일 (매월 ___일)">
+              <Field label="지급일 (1일~말일 정산 후 ___일)">
                 <input {...register("payday")} type="number" min={1} max={31} className={inputCls} placeholder="25" />
               </Field>
               <Field label="지급 방법">
@@ -407,6 +502,8 @@ export function ContractForm() {
                 signY={signY}
                 signM={signM}
                 signD={signD}
+                useDaySchedule={useDaySchedule}
+                daySchedule={daySchedule}
               />
             </div>
           </div>
@@ -427,6 +524,8 @@ export function ContractForm() {
           signY={signY}
           signM={signM}
           signD={signD}
+          useDaySchedule={useDaySchedule}
+          daySchedule={daySchedule}
         />
       </div>
     </>
@@ -446,6 +545,8 @@ function ContractDocument({
   signY,
   signM,
   signD,
+  useDaySchedule,
+  daySchedule,
 }: {
   v: ContractValues;
   workDays: WorkDayKo[];
@@ -458,6 +559,8 @@ function ContractDocument({
   signY: string;
   signM: string;
   signD: string;
+  useDaySchedule: boolean;
+  daySchedule: Record<WorkDayKo, DayTime>;
 }) {
   const isHourly = v.wageType === "hourly";
   const hourly = Number(v.wageAmount) || 0;
@@ -549,15 +652,47 @@ function ContractDocument({
               ④ 소정근로시간
             </td>
             <td className="px-2 py-1.5">
-              <p>
-                {v.startTime} ~ {v.endTime}
-                &nbsp;(휴게 {v.breakMin || 0}분)
-              </p>
-              <p>
-                근무일: 매주 {workDays.join("·")}요일 (주 {workDays.length}일)
-              </p>
-              {wkHrs > 0 && (
-                <p>주 소정근로시간: {wkHrs}시간 (1일 {dayHrs.toFixed(1)}h × {workDays.length}일)</p>
+              {useDaySchedule ? (
+                <>
+                  <table className="mb-1 w-full border-collapse text-[10px]">
+                    <thead>
+                      <tr className="bg-gray-50">
+                        <th className="border border-gray-300 px-1.5 py-0.5 text-left">요일</th>
+                        <th className="border border-gray-300 px-1.5 py-0.5">출근</th>
+                        <th className="border border-gray-300 px-1.5 py-0.5">퇴근</th>
+                        <th className="border border-gray-300 px-1.5 py-0.5">휴게</th>
+                        <th className="border border-gray-300 px-1.5 py-0.5">실근무</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {workDays.map((day) => {
+                        const ds = daySchedule[day];
+                        const h = netHours(ds.start, ds.end, Number(ds.brk) || 0);
+                        return (
+                          <tr key={day}>
+                            <td className="border border-gray-300 px-1.5 py-0.5">{day}요일</td>
+                            <td className="border border-gray-300 px-1.5 py-0.5 text-center">{ds.start}</td>
+                            <td className="border border-gray-300 px-1.5 py-0.5 text-center">{ds.end}</td>
+                            <td className="border border-gray-300 px-1.5 py-0.5 text-center">{ds.brk}분</td>
+                            <td className="border border-gray-300 px-1.5 py-0.5 text-center">{h.toFixed(1)}h</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                  {wkHrs > 0 && <p>주 소정근로시간 합계: {wkHrs}시간</p>}
+                </>
+              ) : (
+                <>
+                  <p>
+                    {v.startTime} ~ {v.endTime}
+                    &nbsp;(휴게 {v.breakMin || 0}분)
+                  </p>
+                  <p>근무일: 매주 {workDays.join("·")}요일 (주 {workDays.length}일)</p>
+                  {wkHrs > 0 && (
+                    <p>주 소정근로시간: {wkHrs}시간 (1일 {dayHrs.toFixed(1)}h × {workDays.length}일)</p>
+                  )}
+                </>
               )}
             </td>
           </tr>
@@ -571,13 +706,9 @@ function ContractDocument({
               ) : (
                 <p>월급: {monthly ? monthly.toLocaleString("ko-KR") + "원" : "　　　　원"}</p>
               )}
-              {wkAllow && (
-                <p>
-                  주휴수당: {wkAllow.amount.toLocaleString("ko-KR")}원&nbsp;
-                  ({v.weeklyAllowIncluded ? "임금에 포함" : "별도 지급"})
-                </p>
-              )}
-              <p>임금 지급일: 매월 {v.payday || "__"}일</p>
+              <p>주휴수당: 임금에 포함</p>
+              <p>임금 정산기간: 매월 1일부터 말일까지</p>
+              <p>임금 지급일: 정산 후 매월 {v.payday || "__"}일 지급</p>
               <p>지급 방법: {v.payMethod || "계좌이체"}</p>
             </td>
           </tr>
