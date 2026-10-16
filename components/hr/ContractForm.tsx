@@ -5,7 +5,6 @@ import { useForm } from "react-hook-form";
 import {
   netHours,
   calcWeeklyAllowance,
-  calcSeveranceEligibility,
   WORK_DAYS_KO,
   MIN_HOURLY_WAGE,
   type WorkDayKo,
@@ -40,6 +39,7 @@ interface ContractValues {
   insAccident: boolean;
   insPension: boolean;
   insHealth: boolean;
+  insBizTax: boolean;
   signDate: string;
 }
 
@@ -74,6 +74,7 @@ const DEFAULTS: ContractValues = {
   insAccident: true,
   insPension: false,
   insHealth: false,
+  insBizTax: false,
   signDate: today,
 };
 
@@ -139,7 +140,6 @@ export function ContractForm() {
   const hourly = Number(v.wageAmount) || 0;
   const isHourly = v.wageType === "hourly";
   const wkAllow = isHourly ? calcWeeklyAllowance(wkHrs, hourly) : null;
-  const severance = calcSeveranceEligibility(wkHrs, v.startDate, v.noEndDate ? undefined : v.endDate);
   const belowMinWage = isHourly && hourly > 0 && hourly < MIN_HOURLY_WAGE;
 
   function toggleDay(day: WorkDayKo) {
@@ -446,21 +446,7 @@ export function ContractForm() {
               </Field>
             </div>
 
-            <p className={sectionHdr}>퇴직급여</p>
-            <div className="rounded-md bg-muted/50 p-3 text-xs space-y-1">
-              <p className="font-semibold">퇴직급여 지급 판단</p>
-              <p>
-                {severance.eligible
-                  ? <span className="text-green-700">✓ {severance.note}</span>
-                  : <span className="text-amber-600">△ {severance.note}</span>
-                }
-              </p>
-              <p className="text-muted-foreground">
-                * 실제 지급 여부는 전체 근로기간 및 실 근로시간 기준으로 확정됩니다.
-              </p>
-            </div>
-
-            <p className={sectionHdr}>사회보험</p>
+            <p className={sectionHdr}>사회보험 / 세금</p>
             <div className="flex flex-wrap gap-3 text-sm">
               {(
                 [
@@ -468,6 +454,7 @@ export function ContractForm() {
                   { key: "insAccident", label: "산재보험" },
                   { key: "insPension", label: "국민연금" },
                   { key: "insHealth", label: "건강보험" },
+                  { key: "insBizTax", label: "사업소득세" },
                 ] as const
               ).map(({ key, label }) => (
                 <label key={key} className="flex items-center gap-1.5">
@@ -496,7 +483,6 @@ export function ContractForm() {
                 wkHrs={wkHrs}
                 dayHrs={dayHrs}
                 wkAllow={wkAllow}
-                severance={severance}
                 workLocation={workLocation}
                 contractPeriod={contractPeriod}
                 signY={signY}
@@ -518,7 +504,6 @@ export function ContractForm() {
           wkHrs={wkHrs}
           dayHrs={dayHrs}
           wkAllow={wkAllow}
-          severance={severance}
           workLocation={workLocation}
           contractPeriod={contractPeriod}
           signY={signY}
@@ -539,7 +524,6 @@ function ContractDocument({
   wkHrs,
   dayHrs,
   wkAllow,
-  severance,
   workLocation,
   contractPeriod,
   signY,
@@ -553,7 +537,6 @@ function ContractDocument({
   wkHrs: number;
   dayHrs: number;
   wkAllow: ReturnType<typeof calcWeeklyAllowance> | null;
-  severance: ReturnType<typeof calcSeveranceEligibility>;
   workLocation: string;
   contractPeriod: string;
   signY: string;
@@ -720,25 +703,14 @@ function ContractDocument({
           </tr>
           <tr className="border border-gray-400">
             <td className="border-r border-gray-400 bg-gray-100 px-2 py-1.5 font-semibold">
-              ⑦ 사회보험
+              ⑦ 사회보험 / 세금
             </td>
             <td className="px-2 py-1.5">
               {check(v.insEmployment)} 고용보험&emsp;
               {check(v.insAccident)} 산재보험&emsp;
               {check(v.insPension)} 국민연금&emsp;
-              {check(v.insHealth)} 건강보험
-            </td>
-          </tr>
-          <tr className="border border-gray-400">
-            <td className="border-r border-gray-400 bg-gray-100 px-2 py-1.5 font-semibold align-top">
-              ⑧ 퇴직급여
-            </td>
-            <td className="px-2 py-1.5">
-              <p>{severance.eligible ? "지급 대상" : "현재 기준 지급 의무 미해당"}</p>
-              <p className="text-gray-500 text-[10px]">({severance.note})</p>
-              <p className="text-gray-500 text-[10px]">
-                * 실제 지급 여부는 전체 근로기간 및 평균 근로시간 기준으로 확정됩니다.
-              </p>
+              {check(v.insHealth)} 건강보험&emsp;
+              {check(v.insBizTax)} 사업소득세
             </td>
           </tr>
         </tbody>
