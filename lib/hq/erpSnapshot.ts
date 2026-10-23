@@ -190,5 +190,6 @@ export const HQ_MENU = [
   { key: "academy", label: "교육센터", icon: "🎓" },
   { key: "content", label: "콘텐츠센터", icon: "🎬" },
   { key: "staff", label: "AI 직원", icon: "🤖" },
+  { key: "ai-search", label: "AI 검색 진단", icon: "🔍" },
   { key: "settings", label: "설정", icon: "⚙️" },
 ] as const;
