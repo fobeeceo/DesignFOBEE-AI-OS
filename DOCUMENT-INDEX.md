@@ -86,6 +86,12 @@
 ## Content 산출물 (Git 무시 대상)
 - `content-automation-agent/output/{blog,blogger,naver}.md` — OSMU 생성 산출물(실행마다 갱신)
 
+## AI Search Diagnostic (2026-10-23 신설)
+- [AI-SEARCH-DIAGNOSTIC-ASSESSMENT.md](AI-SEARCH-DIAGNOSTIC-ASSESSMENT.md) — 기존 시스템 조사 보고서: 저장소·브랜치 상태, 재사용 가능 기능, 저장소 위치 권고, 제약사항
+- [AI-SEARCH-DIAGNOSTIC-DATA-MODEL.md](AI-SEARCH-DIAGNOSTIC-DATA-MODEL.md) — 데이터 구조 설계: 5개 테이블 필드 정의, 집계 계산 규칙, 결측값 처리, Prisma 스키마 설계안
+- [AI-SEARCH-DIAGNOSTIC-IMPLEMENTATION-PLAN.md](AI-SEARCH-DIAGNOSTIC-IMPLEMENTATION-PLAN.md) — 단계별 구현 계획: Phase 1~4 작업 목록, 예상 변경 파일, 테스트 계획, 비용 및 자동화 범위
+- [AI-SEARCH-DIAGNOSTIC-ACCEPTANCE-CRITERIA.md](AI-SEARCH-DIAGNOSTIC-ACCEPTANCE-CRITERIA.md) — 기능별 완료 조건: Phase별 합격 기준, 측정·미측정 상태 구분, 보고서 정확성 검증 체크리스트
+
 ## Index (본 문서군)
 - [PROJECT-INDEX.md](PROJECT-INDEX.md) — 10개 영역별 프로젝트 색인
 - DOCUMENT-INDEX.md — 본 문서

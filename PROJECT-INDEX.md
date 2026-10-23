@@ -63,6 +63,14 @@
 - **관련 폴더**: `docs/master/`·`docs/organization/`·`docs/development/`·`docs/architecture/`·`docs/database/`·`docs/api/`·`docs/ai-agents/`·`docs/deployment/`·`docs/development-rules/`·`docs/portfolio/`·`docs/franchise/`·`docs/knowledge-base/`·`docs/roadmap/`.
 - **⚠️ 중복 발견**(DOCUMENT-INDEX.md 상세): `docs/organization/AI_ORGANIZATION_MASTER.md`·`BACKLOG.md`는 `docs/master/`의 동명 파일에 의해 **대체됨**(같은 날 40분 뒤 작성, master가 최신·정본). **삭제하지 않음** — `docs/`가 Git 미추적이라 삭제 시 복구 불가(CEO 원칙 위배 소지). 대신 이 색인으로 "master가 정본"임을 명시.
 
+## 11. AI Search Diagnostic (2026-10-23 신설 — 설계 단계)
+- **목적**: ChatGPT·Gemini 등 AI 검색 환경에서 사업체(GBRICK Coffee·디자인포비) 노출 현황 진단·개선 추적 — 향후 유료 서비스 표준화 목표.
+- **담당**: AI CTO (기획·설계), 대표님 (측정 입력·승인·게시).
+- **관련 폴더**: (미생성) `app/hq/ai-search/` · `app/api/ai-search/` · `lib/ai-search/` · `components/ai-search/`.
+- **관련 문서**: [AI-SEARCH-DIAGNOSTIC-ASSESSMENT.md](AI-SEARCH-DIAGNOSTIC-ASSESSMENT.md) · [AI-SEARCH-DIAGNOSTIC-DATA-MODEL.md](AI-SEARCH-DIAGNOSTIC-DATA-MODEL.md) · [AI-SEARCH-DIAGNOSTIC-IMPLEMENTATION-PLAN.md](AI-SEARCH-DIAGNOSTIC-IMPLEMENTATION-PLAN.md) · [AI-SEARCH-DIAGNOSTIC-ACCEPTANCE-CRITERIA.md](AI-SEARCH-DIAGNOSTIC-ACCEPTANCE-CRITERIA.md).
+- **상태**: 설계 문서 완료, 코드 구현 대기 (대표님 승인 후 착수).
+- **전제 조건**: Supabase 재개 + `GBRICK_AI_Search_Baseline_Diagnostic_v1.0.xlsx` 파일 제공.
+
 ---
 ## 활성 vs 동결 구분 (혼동 방지)
 | 구분 | 위치 | Git | 상태 |
