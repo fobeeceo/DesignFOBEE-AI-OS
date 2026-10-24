@@ -6,6 +6,8 @@ import { runAnalysis, dryRun } from '@/lib/ai-search/analyst/runner';
 import type { RunRequest } from '@/lib/ai-search/analyst/types';
 
 export const dynamic = 'force-dynamic';
+// Q03 단독 33초 실측 — 20문항 최대 15분 → Vercel Hobby(10초) 부족, Pro(300초) 이상 필요
+export const maxDuration = 300;
 
 /**
  * POST /api/hq/ai-search/run
