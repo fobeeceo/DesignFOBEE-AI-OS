@@ -3,8 +3,8 @@ import { detectMention } from './mentionDetector';
 import type { AnalystQuestionResult } from './types';
 import type { AiSearchQuestion } from '../types';
 
-// gemini-2.0-flash: Google Search grounding 지원 모델
-const MODEL = 'gemini-2.0-flash';
+// gemini-2.0-flash는 2026-10 단종(404) — models.list로 확인한 정식 모델
+const MODEL = 'gemini-3.8-flash';
 const TIMEOUT_MS = 30_000;
 
 interface RawGeminiResult {
