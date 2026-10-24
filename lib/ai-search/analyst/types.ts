@@ -51,4 +51,6 @@ export interface RunRequest {
   dryRun?: boolean;
   /** 실제 실행 시 최대 질문 수 제한. 기본값 20 */
   maxQuestions?: number;
+  /** 특정 질문 코드만 실행. 미지정 시 전체(maxQuestions 범위). 예: ["Q03"] */
+  questionCodes?: string[];
 }

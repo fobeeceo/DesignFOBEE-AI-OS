@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     await requireServiceOrAdmin(req);
 
     const body: Partial<RunRequest> = await req.json().catch(() => ({}));
-    const { businessId, aiService = 'GEMINI', dryRun: isDryRun = false, maxQuestions = 1 } = body;
+    const { businessId, aiService = 'GEMINI', dryRun: isDryRun = false, maxQuestions = 1, questionCodes } = body;
 
     if (!businessId) {
       return NextResponse.json({ ok: false, error: 'businessId가 필요합니다.' }, { status: 400 });
@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
     }
 
     const capped = Math.min(Math.max(1, maxQuestions ?? 1), 20);
-    const result = await runAnalysis(businessId, apiKey, capped);
+    const result = await runAnalysis(businessId, apiKey, capped, undefined, questionCodes);
     return NextResponse.json({ ok: true, dryRun: false, data: result });
   } catch (error) {
     if (error instanceof AdminAuthError) {

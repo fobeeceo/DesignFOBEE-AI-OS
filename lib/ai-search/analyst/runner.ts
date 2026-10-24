@@ -26,14 +26,20 @@ function calcMentionRate(mentioned: number, total: number, failed: number): numb
  * @param apiKey GEMINI_API_KEY — 절대 로그에 남기지 않는다
  * @param maxQuestions 실행 질문 수 상한 (기본값 20)
  * @param onProgress 질문 하나 완료마다 호출되는 콜백 (optional)
+ * @param questionCodes 지정 시 해당 코드만 실행 (예: ["Q03"])
  */
 export async function runAnalysis(
   businessId: string,
   apiKey: string,
   maxQuestions = 20,
   onProgress?: (done: number, total: number) => void,
+  questionCodes?: string[],
 ): Promise<AnalystRunResult> {
-  const activeQuestions = QUESTIONS.filter((q) => q.isActive).slice(0, maxQuestions);
+  let activeQuestions = QUESTIONS.filter((q) => q.isActive);
+  if (questionCodes && questionCodes.length > 0) {
+    activeQuestions = activeQuestions.filter((q) => questionCodes.includes(q.questionCode));
+  }
+  activeQuestions = activeQuestions.slice(0, maxQuestions);
   const startedAt = new Date().toISOString();
   const runId = buildRunId();
 
