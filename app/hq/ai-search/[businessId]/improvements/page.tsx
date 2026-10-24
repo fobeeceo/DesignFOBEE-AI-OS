@@ -3,12 +3,15 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { DEMO_BUSINESSES } from '@/lib/ai-search/constants';
 import { QUESTIONS } from '@/lib/ai-search/questions';
+import { GBRICK_STATIC_RESULTS } from '@/lib/ai-search/static-results';
 import {
   GBRICK_IMPROVEMENT_TASKS,
   IMPROVEMENT_STATUS_LABEL,
   IMPROVEMENT_STATUS_COLOR,
 } from '@/lib/ai-search/improvement-tasks';
 import type { ImprovementTask } from '@/lib/ai-search/improvement-tasks';
+import type { AnalystQuestionResult } from '@/lib/ai-search/analyst/types';
+import { AnalystMentionBadge } from '@/components/ai-search/AnalystMentionBadge';
 
 export const metadata: Metadata = {
   title: 'AI 검색 개선 과제 — AI Headquarters',
@@ -24,23 +27,37 @@ function getImprovementTasks(businessId: string): ImprovementTask[] {
   return [];
 }
 
+function getResultsMap(businessId: string): Record<string, AnalystQuestionResult> {
+  const results = businessId === 'gbrick-coffee' ? GBRICK_STATIC_RESULTS : [];
+  return Object.fromEntries(results.map((r) => [r.questionCode, r]));
+}
+
 export default function ImprovementsPage({ params }: Props) {
   const biz = DEMO_BUSINESSES.find((b) => b.id === params.businessId);
   if (!biz) notFound();
 
   const tasks = getImprovementTasks(params.businessId);
   const questionMap = Object.fromEntries(QUESTIONS.map((q) => [q.questionCode, q.questionText]));
+  const resultsMap = getResultsMap(params.businessId);
 
   return (
     <div className="flex flex-col gap-6">
       {/* 헤더 */}
       <div>
-        <Link
-          href={`/hq/ai-search/${biz.id}`}
-          className="text-xs text-muted-foreground hover:text-foreground"
-        >
-          ← {biz.name} 진단 결과
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link
+            href={`/hq/ai-search/${biz.id}`}
+            className="text-xs text-muted-foreground hover:text-foreground"
+          >
+            ← {biz.name} 진단 결과
+          </Link>
+          <Link
+            href={`/hq/ai-search/${biz.id}/content-drafts`}
+            className="ml-auto text-xs text-primary hover:text-primary/80"
+          >
+            콘텐츠 초안 →
+          </Link>
+        </div>
         <h1 className="mt-1 text-xl font-bold">개선 과제</h1>
         <p className="mt-0.5 text-sm text-muted-foreground">
           미언급 질문별 문제·가설·실행 계획 — 결과 확인 전 성과를 주장하지 않습니다.
@@ -74,6 +91,9 @@ export default function ImprovementsPage({ params }: Props) {
                       <span className="text-xs text-muted-foreground">
                         + {task.relatedQuestionCodes.join(' ')}
                       </span>
+                    )}
+                    {resultsMap[task.questionCode] && (
+                      <AnalystMentionBadge status={resultsMap[task.questionCode].mentionStatus} />
                     )}
                     <span className={`text-xs font-semibold ${IMPROVEMENT_STATUS_COLOR[task.status]}`}>
                       {IMPROVEMENT_STATUS_LABEL[task.status]}
