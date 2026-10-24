@@ -5,6 +5,7 @@ import { DEMO_BUSINESSES } from '@/lib/ai-search/constants';
 import { QUESTIONS, calcMentionStats } from '@/lib/ai-search/questions';
 import { StatsCard } from '@/components/ai-search/StatsCard';
 import { ResultsTable } from '@/components/ai-search/ResultsTable';
+import { RunButton } from '@/components/ai-search/RunButton';
 import type { AiSearchMeasurement } from '@/lib/ai-search/types';
 
 export const metadata: Metadata = {
@@ -48,6 +49,12 @@ export default function AiSearchBusinessPage({ params }: Props) {
         >
           + 측정 입력
         </Link>
+      </div>
+
+      {/* AI 자동 측정 (Phase 3) */}
+      <div className="rounded-2xl border p-4">
+        <p className="mb-3 text-sm font-bold">AI 자동 측정 — Gemini Google Search</p>
+        <RunButton businessId={biz.id} />
       </div>
 
       {/* DB 연결 전 안내 */}
