@@ -3,6 +3,8 @@ import { AdminAuthError } from '@/lib/auth/requireAdmin';
 import { requireServiceOrAdmin } from '@/lib/auth/requireServiceOrAdmin';
 import { DEMO_BUSINESSES } from '@/lib/ai-search/constants';
 import { runAnalysis, dryRun } from '@/lib/ai-search/analyst/runner';
+import { saveRunResult, canStartNewRun } from '@/lib/ai-search/persistence';
+import { notifyRunComplete, notifyRunFailed } from '@/lib/ai-search/notify';
 import type { RunRequest } from '@/lib/ai-search/analyst/types';
 
 export const dynamic = 'force-dynamic';
@@ -26,7 +28,14 @@ export async function POST(req: NextRequest) {
     await requireServiceOrAdmin(req);
 
     const body: Partial<RunRequest> = await req.json().catch(() => ({}));
-    const { businessId, aiService = 'GEMINI', dryRun: isDryRun = false, maxQuestions = 1, questionCodes } = body;
+    const {
+      businessId,
+      aiService = 'GEMINI',
+      dryRun: isDryRun = false,
+      maxQuestions = 1,
+      questionCodes,
+      triggeredBy = 'MANUAL',
+    } = body;
 
     if (!businessId) {
       return NextResponse.json({ ok: false, error: 'businessId가 필요합니다.' }, { status: 400 });
@@ -57,8 +66,22 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const dedup = await canStartNewRun(businessId);
+    if (!dedup.allowed) {
+      return NextResponse.json({ ok: false, error: dedup.reason }, { status: 409 });
+    }
+
     const capped = Math.min(Math.max(1, maxQuestions ?? 1), 20);
     const result = await runAnalysis(businessId, apiKey, capped, undefined, questionCodes);
+
+    // fire-and-forget: DB 저장 실패가 API 응답을 막지 않는다
+    saveRunResult(businessId, biz.name, result, triggeredBy as 'MANUAL' | 'SCHEDULE')
+      .then((saveResult) => notifyRunComplete(businessId, result, saveResult))
+      .catch((err) => {
+        console.error('[run/route] persistence/notify 오류:', err instanceof Error ? err.message : String(err));
+        void notifyRunFailed(businessId, result.runId, err instanceof Error ? err.message : String(err));
+      });
+
     return NextResponse.json({ ok: true, dryRun: false, data: result });
   } catch (error) {
     if (error instanceof AdminAuthError) {
