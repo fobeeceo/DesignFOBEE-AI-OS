@@ -21,8 +21,9 @@ const GBRICK_RAW: {
   { questionCode: 'Q02', status: 'NOT_MENTIONED', measuredAt: '2026-10-24' },
   {
     questionCode: 'Q03',
-    status: 'FAILED',
-    failureReason: 'API 호출 실패: Gemini API 응답 시간 초과 (30000ms) — 1차·재측정 2회 모두',
+    status: 'NOT_MENTIONED',
+    // Phase 6 실측(2026-10-24): 타임아웃 45초로 연장 후 정상 측정 완료
+    // 33.1초, 8 sources, GBRICK Coffee 미언급 확인 (§0-2 원칙 1 — 사실이 먼저다)
     measuredAt: '2026-10-24',
   },
   { questionCode: 'Q04', status: 'NOT_MENTIONED', measuredAt: '2026-10-24' },
@@ -113,6 +114,6 @@ export const GBRICK_STATIC_META = {
   aiService: 'GEMINI' as const,
   model: 'gemini-3.8-flash',
   measuredAt: '2026-10-24',
-  timeoutMs: 30_000,
-  note: 'Phase 3 (2026-10-24) + Phase 3.4 재측정 통합 결과',
+  timeoutMs: 45_000,
+  note: 'Phase 3 (2026-10-24) + Phase 3.4 재측정 + Phase 6 Q03 재측정(타임아웃 45s) 통합 결과',
 } as const;
