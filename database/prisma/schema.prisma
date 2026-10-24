@@ -226,3 +226,198 @@ model LeadNote {
 
   @@map("lead_notes")
 }
+
+// ── AI Search 노출 진단 시스템 (Phase 5) ─────────────────────────────────
+// 마이그레이션 실행 전 대표 승인 필요 (§0-2 원칙 6)
+
+/// AI 검색 진단 대상 사업체.
+/// 초기값은 lib/ai-search/constants.ts의 DEMO_BUSINESSES에서 seed.
+model AiSearchBusiness {
+  id             String   @id @default(cuid())
+  name           String
+  businessType   String
+  brand          String
+  address        String?
+  phone          String?
+  businessHours  String?
+  websiteUrl     String?
+  naverPlaceUrl  String?
+  googlePlaceUrl String?
+  instagramUrl   String?
+  menuOrServices String?
+  priceRange     String?
+  /// PENDING | CONFIRMED | NEEDS_UPDATE
+  factCheckStatus String  @default("PENDING")
+  factCheckedAt  String?
+  factCheckedBy  String?
+  isActive       Boolean  @default(true)
+  notes          String?
+  runs           AiSearchRun[]
+  questions      AiSearchQuestionSnapshot[]
+  improvementTasks AiImprovementTask[]
+  contentDrafts  AiContentDraft[]
+  monthlyReports AiMonthlyReport[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("ai_search_businesses")
+}
+
+/// AI 검색 진단 질문 스냅샷 — 질문 변경 이력 추적.
+model AiSearchQuestionSnapshot {
+  id           String   @id @default(cuid())
+  businessId   String
+  business     AiSearchBusiness @relation(fields: [businessId], references: [id])
+  questionCode String
+  questionText String
+  /// BRAND | LOCATION | MENU | PRICE | ATMOSPHERE | FRANCHISE | REVIEW | COMPARISON | RECOMMEND | OTHER
+  category     String
+  region       String?
+  searchIntent String
+  isActive     Boolean  @default(true)
+  version      Int      @default(1)
+  versionNote  String?
+  results      AiSearchResult[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([businessId, questionCode, version])
+  @@index([businessId])
+  @@map("ai_search_question_snapshots")
+}
+
+/// 측정 실행(1 run = 최대 20문항) 기록.
+/// runId UNIQUE 제약으로 중복 실행 방지.
+model AiSearchRun {
+  id             String   @id @default(cuid())
+  runId          String   @unique
+  businessId     String
+  business       AiSearchBusiness @relation(fields: [businessId], references: [id])
+  /// GEMINI | CHATGPT
+  aiService      String
+  aiModel        String
+  /// RUNNING | COMPLETED | FAILED | PARTIAL
+  status         String   @default("RUNNING")
+  totalQuestions Int
+  mentioned      Int      @default(0)
+  notMentioned   Int      @default(0)
+  failed         Int      @default(0)
+  /// 성공 분모 기준 언급률 — FAILED/UNMEASURED 제외 (핵심 규칙)
+  mentionRate    Float?
+  /// SCHEDULE | MANUAL
+  triggeredBy    String   @default("MANUAL")
+  timeoutMs      Int      @default(30000)
+  startedAt      DateTime
+  finishedAt     DateTime?
+  results        AiSearchResult[]
+  createdAt      DateTime @default(now())
+
+  @@index([businessId, startedAt])
+  @@map("ai_search_runs")
+}
+
+/// 질문 1개의 측정 결과.
+/// FAILED ≠ NOT_MENTIONED — failureReason 있으면 반드시 FAILED로 저장.
+model AiSearchResult {
+  id            String   @id @default(cuid())
+  runId_fk      String
+  run           AiSearchRun @relation(fields: [runId_fk], references: [id])
+  questionId    String
+  question      AiSearchQuestionSnapshot @relation(fields: [questionId], references: [id])
+  questionCode  String
+  /// MENTIONED | NOT_MENTIONED | FAILED | UNMEASURED
+  mentionStatus String
+  answerSummary String?  @db.Text
+  sourceUrls    String[] @default([])
+  evidence      String?  @db.Text
+  failureReason String?
+  measuredAt    DateTime
+  createdAt     DateTime @default(now())
+
+  @@index([runId_fk])
+  @@index([questionCode])
+  @@map("ai_search_results")
+}
+
+/// 개선 과제.
+model AiImprovementTask {
+  id                   String   @id @default(cuid())
+  businessId           String
+  business             AiSearchBusiness @relation(fields: [businessId], references: [id])
+  questionCode         String
+  relatedQuestionCodes String[] @default([])
+  problem              String   @db.Text
+  hypothesis           String   @db.Text
+  contentPlan          String   @db.Text
+  targetPlatform       String
+  /// PENDING | PLANNING | AWAITING_CEO | AWAITING_CUSTOMER | IN_PROGRESS | DONE | VERIFIED
+  status               String   @default("PENDING")
+  /// AI | CEO | CUSTOMER
+  assignee             String   @default("AI")
+  customerApproved     Boolean?
+  executedAt           DateTime?
+  /// IMPROVED | NO_CHANGE | REGRESSION | INSUFFICIENT_DATA
+  verificationResult   String?
+  verifiedAt           DateTime?
+  contentDrafts        AiContentDraft[]
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@index([businessId])
+  @@map("ai_improvement_tasks")
+}
+
+/// 콘텐츠 초안.
+/// canPublish() = status='APPROVED' AND factChecked=true (§0-2 원칙 2·3).
+model AiContentDraft {
+  id                 String   @id @default(cuid())
+  businessId         String
+  business           AiSearchBusiness @relation(fields: [businessId], references: [id])
+  improvementTaskId  String
+  improvementTask    AiImprovementTask @relation(fields: [improvementTaskId], references: [id])
+  targetQuestionCode String
+  /// NAVER_BLOG | GOOGLE_BUSINESS | INSTAGRAM | THREADS | FACEBOOK | TIKTOK | YOUTUBE_SHORTS
+  platform           String
+  title              String
+  body               String   @db.Text
+  keywords           String[] @default([])
+  /// DRAFT | AWAITING_CEO | CEO_APPROVED | AWAITING_CUSTOMER | APPROVED | PUBLISHED | REJECTED
+  status             String   @default("DRAFT")
+  ceoFeedback        String?  @db.Text
+  customerFeedback   String?  @db.Text
+  /// 반드시 사람이 확인 후 true로 전환 — AI가 자동으로 true 설정 금지
+  factChecked        Boolean  @default(false)
+  factCheckItems     String[] @default([])
+  publishedAt        DateTime?
+  publishedUrl       String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([businessId])
+  @@map("ai_content_drafts")
+}
+
+/// 월간 AI 검색 노출 리포트.
+/// approvedByCeo=false이면 대외 공유 불가 (§0-2 원칙 3·6).
+model AiMonthlyReport {
+  id                 String   @id @default(cuid())
+  businessId         String
+  business           AiSearchBusiness @relation(fields: [businessId], references: [id])
+  /// YYYY-MM 형식
+  reportMonth        String
+  executiveSummary   String   @db.Text
+  /// DashboardStats JSON (overall/general/brand/measuredAt/model)
+  statsSnapshot      Json
+  /// ComparisonSummary JSON — null이면 전월 데이터 없음
+  comparisonSnapshot Json?
+  measurementRunIds  String[] @default([])
+  approvedByCeo      Boolean  @default(false)
+  approvedAt         DateTime?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@unique([businessId, reportMonth])
+  @@index([businessId])
+  @@map("ai_monthly_reports")
+}
+

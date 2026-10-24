@@ -5,7 +5,11 @@ import type { AiSearchQuestion } from '../types';
 
 // gemini-2.0-flash는 2026-10 단종(404) — models.list로 확인한 정식 모델
 const MODEL = 'gemini-3.8-flash';
-const TIMEOUT_MS = 30_000;
+// Q03(진관동) 2회 연속 타임아웃 — 45초로 연장 (Phase 5, 대표 승인 2026-10-24)
+// 이전값 30_000은 지역 소규모 검색 쿼리 응답 지연에 부족했음
+const TIMEOUT_MS = 45_000;
+// 타임아웃 발생 시 1회 재시도 (일시적 네트워크 지연 구분)
+const MAX_RETRIES = 1;
 
 interface RawGeminiResult {
   answerText: string;
@@ -23,7 +27,7 @@ function sanitizeErrorMessage(msg: string): string {
 /**
  * 질문 1개를 Gemini Google Search grounding으로 조회한다.
  * ⚠️ apiKey를 로그에 출력하지 않는다.
- * ⚠️ 30초 타임아웃 — AbortController로 실제 네트워크 요청 취소.
+ * ⚠️ 45초 타임아웃 — AbortController로 실제 네트워크 요청 취소.
  */
 async function queryGeminiWithSearch(
   question: string,
@@ -67,6 +71,27 @@ async function queryGeminiWithSearch(
   return { answerText, sourceUrls };
 }
 
+/**
+ * 타임아웃 실패 시 1회 재시도한다 (MAX_RETRIES = 1).
+ * 타임아웃 외 오류(4xx, 빈 응답 등)는 즉시 상위로 전달.
+ */
+async function queryWithRetry(
+  question: string,
+  apiKey: string,
+): Promise<RawGeminiResult> {
+  let lastError: Error | null = null;
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      return await queryGeminiWithSearch(question, apiKey);
+    } catch (err) {
+      lastError = err instanceof Error ? err : new Error(String(err));
+      if (!lastError.message.includes('응답 시간 초과')) throw lastError;
+      // 타임아웃이면 재시도
+    }
+  }
+  throw lastError!;
+}
+
 /** 답변을 요약 (앞 200자) */
 function summarize(text: string): string {
   return text.length > 200 ? text.slice(0, 200) + '…' : text;
@@ -83,7 +108,7 @@ export async function runGeminiQuestion(
   const measuredAt = new Date().toISOString();
 
   try {
-    const { answerText, sourceUrls } = await queryGeminiWithSearch(
+    const { answerText, sourceUrls } = await queryWithRetry(
       question.questionText,
       apiKey,
     );
