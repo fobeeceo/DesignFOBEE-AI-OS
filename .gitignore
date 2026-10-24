@@ -12,7 +12,12 @@ next-env.d.ts
 *.tsbuildinfo
 
 # 내부 문서(정보공개서 재무·창업비용·설계 등 민감) — 공개 저장소 노출 방지
-docs/
+# docs/* 는 하위 디렉토리 예외(!docs/sub/)를 허용한다. docs/ 는 허용하지 않는다.
+docs/*
+# AI 검색 비즈니스 문서 — 공개 가능 항목만 예외 처리 (2026-10-24)
+!docs/ai-search-business/
+# 가격 가설 파일은 공개하지 않는다
+docs/ai-search-business/business-model-pricing.md
 
 # 임시/테스트 파일
 __delete_test.txt
