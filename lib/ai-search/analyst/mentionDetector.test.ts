@@ -19,6 +19,23 @@ describe('detectMention', () => {
     expect(result.evidence).toContain('GBRICK Coffee');
   });
 
+  it('한국어 공백 변형 언급 감지 (지브릭 커피)', () => {
+    // 실측 Q16에서 "지브릭커피" 대신 "지브릭 커피(G.BRICK COFFEE)"가 나타나 미감지된 케이스
+    const result = detectMention('**지브릭 커피(G.BRICK COFFEE)**는 서울 은평뉴타운에 본점을 두고 있습니다.');
+    expect(result.status).toBe('MENTIONED');
+    expect(result.evidence).toContain('지브릭 커피');
+  });
+
+  it('영문 점·대문자 변형 언급 감지 (G.BRICK COFFEE)', () => {
+    const result = detectMention('G.BRICK COFFEE는 공간 디자인 전문 카페입니다.');
+    expect(result.status).toBe('MENTIONED');
+  });
+
+  it('G.BRICK COFFEE 대소문자 무시', () => {
+    const result = detectMention('g.brick coffee 브랜드 소개');
+    expect(result.status).toBe('MENTIONED');
+  });
+
   it('브랜드 언급 없음', () => {
     const result = detectMention('은평구에는 다양한 카페가 있습니다. 커피빈, 스타벅스 등이 있습니다.');
     expect(result.status).toBe('NOT_MENTIONED');
