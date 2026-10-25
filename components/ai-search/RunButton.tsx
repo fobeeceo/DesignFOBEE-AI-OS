@@ -13,6 +13,7 @@ export function RunButton({ businessId }: Props) {
   const [phase, setPhase] = useState<RunPhase>('idle');
   const [result, setResult] = useState<AnalystRunResult | null>(null);
   const [errorMsg, setErrorMsg] = useState('');
+  const [dbAvailable, setDbAvailable] = useState<boolean | null>(null);
 
   async function handleRun(isDryRun: boolean) {
     setPhase('running');
@@ -37,6 +38,7 @@ export function RunButton({ businessId }: Props) {
       }
 
       setResult(json.data as AnalystRunResult);
+      setDbAvailable(json.dbAvailable ?? null);
       setPhase('done');
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : '알 수 없는 오류');
@@ -82,6 +84,14 @@ export function RunButton({ businessId }: Props) {
               언급률: {result.mentionRate}%
             </p>
           )}
+          <p className="mt-1 text-xs text-muted-foreground">
+            DB:{' '}
+            {dbAvailable === null
+              ? '확인 중'
+              : dbAvailable
+              ? '저장 예약됨 (비동기)'
+              : '미연결 — 저장 없음'}
+          </p>
           <ul className="mt-3 space-y-1">
             {result.results.map((r) => (
               <li key={r.questionId} className="flex items-start gap-2 text-xs">

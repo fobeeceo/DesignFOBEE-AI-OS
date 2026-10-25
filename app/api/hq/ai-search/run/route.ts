@@ -3,7 +3,7 @@ import { AdminAuthError } from '@/lib/auth/requireAdmin';
 import { requireServiceOrAdmin } from '@/lib/auth/requireServiceOrAdmin';
 import { DEMO_BUSINESSES } from '@/lib/ai-search/constants';
 import { runAnalysis, dryRun } from '@/lib/ai-search/analyst/runner';
-import { saveRunResult, canStartNewRun } from '@/lib/ai-search/persistence';
+import { saveRunResult, canStartNewRun, isDbAvailable } from '@/lib/ai-search/persistence';
 import { notifyRunComplete, notifyRunFailed } from '@/lib/ai-search/notify';
 import type { RunRequest } from '@/lib/ai-search/analyst/types';
 
@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
         void notifyRunFailed(businessId, result.runId, err instanceof Error ? err.message : String(err));
       });
 
-    return NextResponse.json({ ok: true, dryRun: false, data: result });
+    return NextResponse.json({ ok: true, dryRun: false, data: result, dbAvailable: isDbAvailable() });
   } catch (error) {
     if (error instanceof AdminAuthError) {
       const status = error.code === 'NOT_LOGGED_IN' ? 401 : 403;

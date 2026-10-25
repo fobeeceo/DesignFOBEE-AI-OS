@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { ERP_SNAPSHOT } from "@/lib/hq/erpSnapshot";
 import { won } from "@/lib/hq/format";
 import type { ErpApiResponse } from "@/lib/hq/types";
 import { dashboardKpis, highCostMenus, type DashboardKpi } from "@/lib/hq/kpi";
+import { SystemStatusWidget } from "@/components/hq/SystemStatusWidget";
 
 /** 표시 전용 — 계산은 lib/hq/kpi.ts의 dashboardKpis()가 전담한다. */
 function Stat({ label, value, sub, pending }: DashboardKpi) {
@@ -79,6 +81,27 @@ export default function HqDashboard() {
               {m.name} <span className="font-semibold text-red-500">{m.ratio}%</span>
             </span>
           ))}
+        </div>
+      </div>
+
+      {/* AI 시스템 상태 */}
+      <SystemStatusWidget businessId="gbrick-coffee" />
+
+      {/* AI 검색 진단 진입점 */}
+      <div className="rounded-2xl border border-border p-5">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-sm font-bold">🔍 AI 검색 노출 진단</h2>
+            <p className="mt-1 text-xs text-muted-foreground">
+              ChatGPT · Gemini에서 GBRICK Coffee가 얼마나 노출되는지 측정합니다.
+            </p>
+          </div>
+          <Link
+            href="/hq/ai-search"
+            className="shrink-0 rounded-lg bg-primary/10 px-4 py-2 text-sm font-semibold text-primary hover:bg-primary/20 transition-colors"
+          >
+            진단 시작 →
+          </Link>
         </div>
       </div>
     </div>

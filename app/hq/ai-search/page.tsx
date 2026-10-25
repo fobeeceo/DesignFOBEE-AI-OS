@@ -2,11 +2,19 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { DEMO_BUSINESSES, FACT_CHECK_STATUS_LABEL } from '@/lib/ai-search/constants';
 import { QUESTIONS } from '@/lib/ai-search/questions';
+import { GBRICK_STATIC_RESULTS, GBRICK_STATIC_META } from '@/lib/ai-search/static-results';
+import { calcDashboardStats } from '@/lib/ai-search/dashboard-stats';
 
 export const metadata: Metadata = {
   title: 'AI 검색 진단 — AI Headquarters',
   robots: { index: false, follow: false },
 };
+
+/** businessId별 정적 측정 데이터 조회 (현재 gbrick-coffee만 보유) */
+function getStaticStats(businessId: string) {
+  if (businessId !== 'gbrick-coffee') return null;
+  return calcDashboardStats(GBRICK_STATIC_RESULTS, QUESTIONS, GBRICK_STATIC_META);
+}
 
 /** AI 검색 노출 진단 개요 페이지 — 사업체별 측정 현황 카드 */
 export default function AiSearchPage() {
@@ -60,7 +68,10 @@ export default function AiSearchPage() {
       <div>
         <h2 className="mb-3 text-sm font-bold">사업체별 진단 현황</h2>
         <div className="flex flex-col gap-3">
-          {DEMO_BUSINESSES.map((biz) => (
+          {DEMO_BUSINESSES.map((biz) => {
+            const stats = getStaticStats(biz.id);
+            const rate = stats?.overall.mentionRate;
+            return (
             <div key={biz.id} className="rounded-2xl border border-border p-5">
               <div className="flex items-start justify-between gap-4">
                 <div>
@@ -73,8 +84,17 @@ export default function AiSearchPage() {
                   </span>
                 </div>
                 <div className="text-right">
-                  <p className="text-2xl font-bold text-muted-foreground">-</p>
-                  <p className="text-xs text-muted-foreground">측정 없음</p>
+                  {rate !== undefined && rate !== null ? (
+                    <>
+                      <p className="text-2xl font-bold">{rate}%</p>
+                      <p className="text-xs text-muted-foreground">언급률 (정적 측정)</p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-2xl font-bold text-muted-foreground">-</p>
+                      <p className="text-xs text-muted-foreground">측정 없음</p>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -93,7 +113,8 @@ export default function AiSearchPage() {
                 </Link>
               </div>
             </div>
-          ))}
+          );
+          })}
         </div>
       </div>
 
