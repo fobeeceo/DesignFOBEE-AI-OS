@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "app/api/hq/ai-search/run/route.ts": {
+      "maxDuration": 300
+    }
+  }
+}

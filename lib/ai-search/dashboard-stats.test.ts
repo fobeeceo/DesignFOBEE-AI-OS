@@ -134,22 +134,23 @@ describe('calcDashboardStats — 카테고리 분리 (일반 vs 브랜드)', () 
 });
 
 describe('calcDashboardStats — GBRICK Coffee 기준선 검증 (2026-10-24)', () => {
-  it('20문항 전체: MENTIONED 6, NOT_MENTIONED 13, FAILED 1', () => {
+  // Phase 6 (2026-10-24): Q03 → NOT_MENTIONED (재측정 완료), FAILED 0건
+  it('20문항 전체: MENTIONED 6, NOT_MENTIONED 14, FAILED 0', () => {
     const stats = calcDashboardStats(GBRICK_STATIC_RESULTS, QUESTIONS, GBRICK_STATIC_META);
 
     expect(stats.overall.total).toBe(20);
     expect(stats.overall.mentioned).toBe(6);
-    expect(stats.overall.notMentioned).toBe(13);
-    expect(stats.overall.failed).toBe(1);
+    expect(stats.overall.notMentioned).toBe(14);
+    expect(stats.overall.failed).toBe(0);
   });
 
-  it('일반 검색: 14문항, MENTIONED 1 (노출률 7.1%)', () => {
+  it('일반 검색: 15문항 전체 측정 완료, MENTIONED 1 (노출률 6.7%)', () => {
     const stats = calcDashboardStats(GBRICK_STATIC_RESULTS, QUESTIONS, GBRICK_STATIC_META);
 
-    // 일반 검색 = non-BRAND. QUESTIONS 기준 BRAND 5개, 나머지 15개 (Q03 FAILED 제외 = 14 성공 분모)
-    expect(stats.general.successDenominator).toBe(14);
+    // 일반 검색 = non-BRAND. BRAND 5개(Q16-Q20), 나머지 15개 (Q03 포함 전체 측정 완료)
+    expect(stats.general.successDenominator).toBe(15);
     expect(stats.general.mentioned).toBe(1);
-    expect(stats.general.mentionRate).toBe(7.1);
+    expect(stats.general.mentionRate).toBe(6.7);
   });
 
   it('브랜드 직접: 5문항, MENTIONED 5 (노출률 100%)', () => {
@@ -160,21 +161,22 @@ describe('calcDashboardStats — GBRICK Coffee 기준선 검증 (2026-10-24)', (
     expect(stats.brand.mentionRate).toBe(100);
   });
 
-  it('전체 노출률: 31.6% (6/19 — FAILED 1 제외)', () => {
+  // Phase 6 (2026-10-24): FAILED 0 → 전체 20문항 성공 분모, 언급률 6/20 = 30%
+  it('전체 노출률: 30% (6/20 — FAILED 0, 전 문항 측정 완료)', () => {
     const stats = calcDashboardStats(GBRICK_STATIC_RESULTS, QUESTIONS, GBRICK_STATIC_META);
 
-    expect(stats.overall.successDenominator).toBe(19);
-    expect(stats.overall.mentionRate).toBe(31.6);
+    expect(stats.overall.successDenominator).toBe(20);
+    expect(stats.overall.mentionRate).toBe(30);
   });
 
-  it('Q03은 FAILED — NOT_MENTIONED가 아니다', () => {
+  it('Q03은 NOT_MENTIONED — Phase 6 재측정 결과 (FAILED 아님)', () => {
     const q03 = GBRICK_STATIC_RESULTS.find(
       (r: AnalystQuestionResult) => r.questionCode === 'Q03',
     );
     expect(q03).toBeDefined();
-    expect(q03!.mentionStatus).toBe('FAILED');
-    expect(q03!.mentionStatus).not.toBe('NOT_MENTIONED');
-    expect(q03!.failureReason).toBeTruthy();
+    expect(q03!.mentionStatus).toBe('NOT_MENTIONED');
+    expect(q03!.mentionStatus).not.toBe('FAILED');
+    expect(q03!.failureReason).toBeUndefined();
   });
 });
 

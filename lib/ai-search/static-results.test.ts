@@ -20,23 +20,22 @@ describe('GBRICK_STATIC_RESULTS — 데이터 무결성', () => {
     expect(mentioned).toHaveLength(6);
   });
 
-  it('NOT_MENTIONED 13건', () => {
+  // Phase 6 (2026-10-24): Q03 타임아웃 45s 연장 후 재측정 → NOT_MENTIONED 확인 (§0-2 원칙 1)
+  it('NOT_MENTIONED 14건', () => {
     const notMentioned = GBRICK_STATIC_RESULTS.filter((r) => r.mentionStatus === 'NOT_MENTIONED');
-    expect(notMentioned).toHaveLength(13);
+    expect(notMentioned).toHaveLength(14);
   });
 
-  it('FAILED 1건 — Q03만', () => {
+  it('FAILED 0건 — 전 문항 측정 완료', () => {
     const failed = GBRICK_STATIC_RESULTS.filter((r) => r.mentionStatus === 'FAILED');
-    expect(failed).toHaveLength(1);
-    expect(failed[0].questionCode).toBe('Q03');
+    expect(failed).toHaveLength(0);
   });
 
-  it('Q03은 FAILED이고 failureReason이 있다', () => {
+  it('Q03은 NOT_MENTIONED — Phase 6 재측정 결과 (FAILED 아님)', () => {
     const q03 = GBRICK_STATIC_RESULTS.find((r) => r.questionCode === 'Q03');
     expect(q03).toBeDefined();
-    expect(q03!.mentionStatus).toBe('FAILED');
-    expect(q03!.failureReason).toBeTruthy();
-    expect(q03!.failureReason).toContain('응답 시간 초과');
+    expect(q03!.mentionStatus).toBe('NOT_MENTIONED');
+    expect(q03!.mentionStatus).not.toBe('FAILED');
   });
 
   it('MENTIONED 결과는 evidence가 있다', () => {
@@ -65,8 +64,9 @@ describe('GBRICK_STATIC_META — 측정 메타 정보', () => {
     expect(GBRICK_STATIC_META.measuredAt).toBe('2026-10-24');
   });
 
-  it('타임아웃 30초로 설정', () => {
-    expect(GBRICK_STATIC_META.timeoutMs).toBe(30_000);
+  // Phase 6 (2026-10-24): Q03 타임아웃 30s → 45s 연장 (대표 승인)
+  it('타임아웃 45초로 설정', () => {
+    expect(GBRICK_STATIC_META.timeoutMs).toBe(45_000);
   });
 
   it('모델이 gemini-3.8-flash (gemini-2.0-flash 아님)', () => {
