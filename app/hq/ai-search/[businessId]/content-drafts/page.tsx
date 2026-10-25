@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { DEMO_BUSINESSES } from '@/lib/ai-search/constants';
 import type { ContentDraft } from '@/lib/ai-search/content-drafts';
+import { GBRICK_STATIC_DRAFTS } from '@/lib/ai-search/static-drafts';
 import { ContentDraftCard } from '@/components/ai-search/ContentDraftCard';
 
 export const metadata: Metadata = {
@@ -14,8 +15,8 @@ interface Props {
   params: { businessId: string };
 }
 
-function getContentDrafts(_businessId: string): ContentDraft[] {
-  // DB 연결 전 — 실제 초안은 대표 승인 후 추가
+function getContentDrafts(businessId: string): ContentDraft[] {
+  if (businessId === 'gbrick-coffee') return GBRICK_STATIC_DRAFTS;
   return [];
 }
 
