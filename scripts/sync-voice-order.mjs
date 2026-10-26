@@ -20,6 +20,7 @@ export const BASE_PATH = "/gbrick-order/";
 const FRONTEND = ["index.html", "dashboard.html", "app.js", "api.js", "speech.js", "styles.css", "dashboard.js", "web-demo.js"];
 const MODULES = [
   "core/dialog.mjs",
+  "core/edit.mjs",
   "core/format.mjs",
   "core/knowledge.mjs",
   "core/parser.mjs",

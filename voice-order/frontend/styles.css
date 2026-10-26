@@ -114,6 +114,16 @@ main { flex: 1; display: flex; }
 .lines li { display: flex; justify-content: space-between; gap: 12px; padding: 16px 20px; font-size: 1.35rem; font-weight: 700; text-align: left; }
 .lines li + li { border-top: 2px solid var(--line); }
 .lines .qty { white-space: nowrap; }
+.lines li.edit-line { display: block; }
+.line-head { display: flex; justify-content: space-between; gap: 12px; }
+.line-price { white-space: nowrap; }
+.line-ctl { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 10px; }
+.line-ctl .qty { min-width: 3.2em; text-align: center; font-size: 1.35rem; }
+.ctl { font: inherit; font-weight: 800; min-height: 56px; min-width: 56px; padding: 0 14px; border-radius: 14px; border: 2px solid var(--brand); background: #fff; color: var(--brand); font-size: 1.25rem; cursor: pointer; }
+.ctl.minus, .ctl.plus { font-size: 1.7rem; }
+.ctl.remove { margin-left: auto; border-color: #b3261e; color: #b3261e; }
+.lead-msg { margin: 0; font-size: 1.3rem; font-weight: 800; color: var(--brand); }
+.lead-msg:empty { display: none; }
 .total { font-size: 1.5rem; margin: 0; }
 .total strong { font-size: 1.8rem; }
 

@@ -5,6 +5,7 @@ import {
   DINING_QUESTION, interpretDining,
 } from './core/dialog.mjs';
 import { parseOrder } from './core/parser.mjs';
+import { interpretEdit, applyEdit, editMessage } from './core/edit.mjs';
 import { won, speakItems, priceLabel } from './core/format.mjs';
 import { createSpeechProvider, Speaker, SpeechFailure } from './speech.js';
 import { api } from './api.js';
@@ -14,7 +15,7 @@ const IDLE_RESET_SEC = 90;
 const MAX_FAILS = 3;
 const ANSWER_TRIES = 3; // 대답은 한 번 놓쳐도 다시 듣는다 (어르신은 대답이 늦을 수 있다)
 // 스피커에서 나온 안내 음성을 마이크가 다시 들은 것 → 대답으로 치지 않는다
-const ECHO_RE = /(말씀하시나요|맞으실까요|가시나요|드릴까요|보여드릴까요|어떤 걸로|듣고 있습니다|드실 수 있는|주문하실 수 있는|추천 메뉴는|판매 순위는)/;
+const ECHO_RE = /(말씀하시나요|맞으실까요|가시나요|취소할까요|넣었어요|뺐어요|바꿨어요|찾지 못했어요|다시 알려 드릴게요|이대로 주문하시려면|드릴까요|보여드릴까요|어떤 걸로|듣고 있습니다|드실 수 있는|주문하실 수 있는|추천 메뉴는|판매 순위는)/;
 const EXAMPLES = [
   '아이스 아메리카노 하나',
   '따뜻한 라떼 하나',
@@ -24,6 +25,7 @@ const EXAMPLES = [
   '딸기 아메리카노 하나 주세요.',
 ];
 
+const CANCEL_QUESTION = { type: 'confirm_cancel', text: '주문을 모두 취소할까요?' };
 const DINING_LABEL = { DINE_IN: '매장', TAKEOUT: '포장' };
 const DINING_TAG = { DINE_IN: '🍽 매장에서 드시고 가요', TAKEOUT: '🥡 포장' };
 
@@ -155,11 +157,13 @@ async function listenOrder() {
 async function handleText(text) {
   const my = flow;
   s.heard = text;
+  if (interpretEdit(text, s.addBase || [], menu)?.type === 'cancel_order') return askQuestion(CANCEL_QUESTION);
   const r = await call(`/api/sessions/${s.session}/parse`, { text });
   if (my !== flow) return;
   s.failCount = r.fail_count;
   if (r.kind === 'ok' || r.kind === 'clarify') {
-    s.items = r.items;
+    s.items = s.addBase ? [...s.addBase, ...r.items] : r.items; // '메뉴 더 추가하기'면 앞의 주문에 더한다
+    s.addBase = null;
     s.unrecognized = r.unrecognized;
     if (r.dining) s.dining = r.dining; // '아메리카노 하나 포장이요'
     return proceed();
@@ -260,7 +264,7 @@ async function askQuestion(q) {
   const my = ++flow;
   s.question = q;
   const dining = q.type === 'choose_dining';
-  if (!dining) s.clarifications = (s.clarifications || 0) + 1; // 매장/포장은 못 알아들어서 묻는 것이 아니다
+  if (!dining && q.type !== 'confirm_cancel') s.clarifications = (s.clarifications || 0) + 1; // 매장/포장·취소 확인은 못 알아들어서 묻는 것이 아니다
   $('q-heard').textContent = s.heard ? `들은 말: “${s.heard}”` : '';
   $('q-text').textContent = q.text;
   resetAnswerUi('q');
@@ -271,6 +275,11 @@ async function askQuestion(q) {
       ? [
           ['🍽 매장에서 먹어요', 'primary', answer('DINE_IN')],
           ['🥡 포장해 갈게요', 'primary', answer('TAKEOUT')],
+        ]
+      : q.type === 'confirm_cancel'
+      ? [
+          ['네, 주문을 취소할게요', 'primary', answer('yes')],
+          ['아니요, 계속 주문할게요', 'secondary', answer('no')],
         ]
       : q.type === 'choose_temperature'
       ? [
@@ -328,6 +337,16 @@ async function listenAnswer(my, prefix, handler, prompt, interpret = interpretAn
 }
 
 function onAnswer(a) {
+  if (s.question?.type === 'confirm_cancel') {
+    if (a !== 'yes' && a !== 'no') return false;
+    stt.cancel();
+    if (a === 'no' && s.addBase) { // 메뉴 추가 중이었으면 원래 주문으로 돌아간다
+      s.items = s.addBase;
+      s.addBase = null;
+    }
+    if (a === 'no') return s.items.length ? showConfirm() : retry();
+    return cancelWholeOrder();
+  }
   if (s.question?.type === 'choose_dining') {
     if (a !== 'DINE_IN' && a !== 'TAKEOUT') return false;
     stt.cancel();
@@ -420,6 +439,10 @@ async function showSuggestionList(r) {
 // ---------- 주문 확인 ----------
 async function showConfirm() {
   const my = ++flow;
+  const lead = s.lead || ''; // 방금 고친 내용 ("아메리카노를 아이스로 바꿨어요.")
+  const hintOnly = !!s.hintOnly; // 바뀐 것 없이 안내만 할 때
+  s.lead = '';
+  s.hintOnly = false;
   let priced;
   try {
     priced = await call('/api/quote', { items: s.items, dining: s.dining });
@@ -429,7 +452,8 @@ async function showConfirm() {
   if (my !== flow) return;
   s.priced = priced;
   s.orderKey = null; // 확인 화면이 새로 열리면 새 주문 — 이전 키를 다시 쓰지 않는다
-  linesHtml($('c-lines'), priced.items);
+  editableLines($('c-lines'), priced.items);
+  $('c-lead').textContent = lead;
   $('c-total').textContent = won(priced.total_amount);
   $('c-dining').textContent = DINING_TAG[priced.dining];
   $('c-disc').hidden = !priced.discount_amount;
@@ -443,14 +467,112 @@ async function showConfirm() {
   resetAnswerUi('c');
   show('confirm');
   const disc = priced.discount_amount ? '포장 할인 적용해서 ' : '';
-  await say(`${spoken} 맞으실까요? ${disc}총 ${won(priced.total_amount)}입니다.`);
+  await say(hintOnly ? lead : `${lead ? `${lead} ` : ''}${spoken} 맞으실까요? ${disc}총 ${won(priced.total_amount)}입니다.`);
   if (my === flow && s.mode === 'VOICE') {
-    listenAnswer(my, 'c', (a) => {
-      if (a === 'yes') return confirmOrder();
-      if (a === 'no') return retry();
-      return false;
-    }, '“네” 또는 “아니요”라고 말씀해 주세요.');
+    // 들은 말을 그대로 받아 먼저 '고치는 말'인지 본다 → 아니면 네/아니요
+    listenAnswer(my, 'c', onConfirmSpeech, '“네”, “아니요”, 또는 “한 잔 더”·“아이스로 바꿔 주세요”처럼 말씀해 주세요.', (t) => t);
   }
+}
+
+/** 확인 화면에서 들은 말: 고치기 → 네(주문) → 아니요(다시 말하기). 모르는 말이면 false (다시 듣기) */
+function onConfirmSpeech(text) {
+  const cmd = interpretEdit(text, s.items, menu);
+  if (cmd) return handleEdit(cmd);
+  const a = interpretAnswer(text);
+  if (a === 'yes') return confirmOrder();
+  if (a === 'no') return retry();
+  return false;
+}
+
+/** 수정 명령 반영 → 바뀐 주문을 다시 보여주고 읽어 준다 (가격은 서버가 다시 계산) */
+function handleEdit(cmd) {
+  stt.cancel();
+  if (cmd.type === 'cancel_order') return askQuestion(CANCEL_QUESTION);
+  if (cmd.type === 'show') {
+    s.lead = '주문하신 메뉴를 다시 알려 드릴게요.';
+    return showConfirm();
+  }
+  if (['ask_which', 'temp_unavailable', 'unknown_menu', 'unclear'].includes(cmd.type)) {
+    s.lead = editMessage(cmd, menu); // 바꾸지 않고 안내만
+    s.hintOnly = true;
+    return showConfirm();
+  }
+  s.items = applyEdit(s.items, cmd, menu);
+  if (!s.items.length) {
+    return showMessage({
+      title: '주문할 메뉴가 없어요.',
+      body: '드시고 싶은 메뉴를 다시 말씀해 주세요.',
+      buttons: [['다시 말하기', 'primary', retry], ['처음으로', 'secondary', reset]],
+    });
+  }
+  s.lead = editMessage(cmd, menu);
+  return proceed(); // 새로 넣은 메뉴의 온도 등은 다시 묻는다
+}
+
+/** 확인 화면 줄: 메뉴·수량·가격 + 큰 버튼(－ ＋ 온도 바꾸기 빼기) */
+function editableLines(ul, lines) {
+  ul.replaceChildren(
+    ...lines.map((l) => {
+      const li = document.createElement('li');
+      li.className = 'edit-line';
+      const head = document.createElement('div');
+      head.className = 'line-head';
+      const name = document.createElement('span');
+      name.textContent = l.display_name;
+      const price = document.createElement('span');
+      price.className = 'line-price';
+      price.textContent = won(l.line_total);
+      head.append(name, price);
+      const ctl = document.createElement('div');
+      ctl.className = 'line-ctl';
+      const key = { menu_id: l.menu_id, temperature: l.temperature };
+      const btn = (label, cls, aria, cmd) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = `ctl ${cls}`;
+        b.textContent = label;
+        b.setAttribute('aria-label', aria);
+        b.addEventListener('click', () => handleEdit(cmd));
+        return b;
+      };
+      const qty = document.createElement('span');
+      qty.className = 'qty';
+      qty.textContent = `${l.quantity}${l.unit}`;
+      ctl.append(
+        btn('－', 'minus', `${l.display_name} 한 개 빼기`, { type: 'change_qty', ...key, delta: -1 }),
+        qty,
+        btn('＋', 'plus', `${l.display_name} 한 개 더`, { type: 'change_qty', ...key, delta: 1 }),
+      );
+      const temps = menu.items.find((m) => m.menu_id === l.menu_id)?.options?.temperature || [];
+      if (temps.length > 1 && l.temperature) {
+        const to = l.temperature === 'ICE' ? 'HOT' : 'ICE';
+        ctl.append(btn(to === 'ICE' ? '🧊 아이스로' : '☕ 따뜻하게', 'temp', `${l.display_name} ${to === 'ICE' ? '아이스로' : '따뜻하게'} 바꾸기`, { type: 'set_temp', ...key, to }));
+      }
+      ctl.append(btn('빼기', 'remove', `${l.display_name} 빼기`, { type: 'remove', ...key }));
+      li.append(head, ctl);
+      return li;
+    }),
+  );
+}
+
+/** '메뉴 더 추가하기': 지금 주문은 두고 새 메뉴만 더 듣는다 */
+function startAdding() {
+  stt.cancel();
+  s.addBase = s.items;
+  s.items = [];
+  s.question = null;
+  if (s.mode === 'VOICE') return listenOrder();
+  ++flow;
+  show('text');
+  $('text-input').focus();
+}
+
+/** 손님이 확인한 '주문 전체 취소' — 서버에 주문을 만들지 않고 처음으로 */
+async function cancelWholeOrder() {
+  const my = ++flow;
+  showMessage({ title: '주문을 취소했어요.', body: '처음 화면으로 돌아갑니다.', buttons: [['처음으로', 'primary', reset]] });
+  await new Promise((r) => setTimeout(r, 2500));
+  if (my === flow) reset();
 }
 
 async function confirmOrder() {
@@ -603,7 +725,7 @@ function retry() {
   stt.cancel();
   s.items = [];
   s.question = null;
-  s.dining = null; // '아니요'는 매장/포장이 틀려서일 수도 있다 → 다시 묻는다
+  if (!s.addBase) s.dining = null; // '아니요'는 매장/포장이 틀려서일 수도 있다 → 다시 묻는다 (메뉴 추가 중이면 그대로)
   if (s.mode === 'VOICE') return listenOrder();
   ++flow;
   show('text');
@@ -625,6 +747,7 @@ const ACTIONS = {
   'start-voice': startVoice,
   'start-text': startText,
   'confirm-yes': confirmOrder,
+  'add-more': startAdding,
   retry,
   reset,
   help: requestHelp,

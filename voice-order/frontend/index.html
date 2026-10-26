@@ -59,6 +59,7 @@
 
       <section class="screen" data-screen="confirm" hidden>
         <h2 class="title">주문 확인</h2>
+        <p class="lead-msg" id="c-lead" aria-live="polite"></p>
         <p class="dining-tag" id="c-dining"></p>
         <ul class="lines" id="c-lines"></ul>
         <p class="note" id="c-disc" hidden></p>
@@ -66,6 +67,7 @@
         <p class="note" id="c-note" hidden></p>
         <p class="ask" id="c-ask"></p>
         <button class="btn primary" data-action="confirm-yes">네, 맞아요</button>
+        <button class="btn secondary" data-action="add-more">＋ 메뉴 더 추가하기</button>
         <button class="btn secondary" data-action="retry">다시 말할게요</button>
         <button class="btn link" data-action="reset" id="c-cancel" hidden>주문 취소</button>
         <p class="listen-status" id="c-status" aria-live="polite"></p>
