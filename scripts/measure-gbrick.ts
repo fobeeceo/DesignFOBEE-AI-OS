@@ -47,8 +47,22 @@ interface RawResult {
   retryCount: number;
 }
 
+// ── Set D 측정 준비: 게시 콘텐츠 추적 필드 ──────────────────────────────────
+// 콘텐츠 게시 후 실행할 Set D 측정 시 아래 필드를 채워서 전달한다.
+// 게시 전까지는 publishedContent: [] 로 두고 실행한다 (PRE-IMPROVEMENT 기준선).
+// 실행 방법: GBRICK_SET_LABEL=SET_D PUBLISHED_URLS='[...]' tsx scripts/measure-gbrick.ts
+interface PublishedContent {
+  draftId: string;       // 예: 'gbrick-draft-20261026-01-brand-intro'
+  publishedAt: string;   // ISO 8601, 실제 게시 시각
+  channelUrl: string;    // 게시된 URL (블로그, 네이버 플레이스 등)
+  channelType: 'NAVER_BLOG' | 'GOOGLE_BLOG' | 'NAVER_PLACE' | 'INSTAGRAM' | 'OTHER';
+  title: string;
+}
+
 interface RunMeta {
   measurementRunId: string;
+  setLabel: string;       // 예: 'SET_A' | 'SET_B' | 'SET_C' | 'SET_D' | 'PRE_IMPROVEMENT'
+  measurementPhase: 'PRE_IMPROVEMENT' | 'POST_IMPROVEMENT';
   businessId: string;
   businessName: string;
   startedAt: string;
@@ -66,6 +80,10 @@ interface RunMeta {
   dbSaved: boolean;
   dbSaveNote: string;
   outputDir: string;
+  // Set D: 게시 콘텐츠 추적 (게시 전에는 빈 배열)
+  publishedContent: PublishedContent[];
+  // Set D: 비교 기준선 (PRE_IMPROVEMENT 때의 runId)
+  baselineRunId: string | null;
 }
 
 // ── API 호출 ──────────────────────────────────────────────────────────────
@@ -217,8 +235,11 @@ function buildReport(meta: RunMeta, results: RawResult[]): string {
   lines.push(`# GBRICK Coffee AI 검색 노출 측정 보고서`);
   lines.push(``);
   lines.push(`- **측정 ID**: ${meta.measurementRunId}`);
+  lines.push(`- **세트**: ${meta.setLabel} / ${meta.measurementPhase}`);
   lines.push(`- **측정 일시**: ${meta.startedAt} ~ ${meta.finishedAt}`);
   lines.push(`- **모델**: ${meta.model}`);
+  lines.push(`- **기준선 Run ID**: ${meta.baselineRunId ?? '없음 (이 세트가 기준선)'}`);
+  lines.push(`- **게시 콘텐츠**: ${meta.publishedContent.length}건 ${meta.publishedContent.length > 0 ? '(' + meta.publishedContent.map(p => p.draftId).join(', ') + ')' : '(게시 전 기준선 측정)'}`);
   lines.push(`- **DB 저장**: ${meta.dbSaved ? '완료' : '미연결 — 파일 저장'} (${meta.dbSaveNote})`);
   lines.push(``);
   lines.push(`## 요약`);
@@ -320,6 +341,19 @@ async function main() {
   // ── STEP 2: 전체 20문항 실행 ─────────────────────────────────────────
   const runId = `run_${Date.now()}_gbrick`;
   const startedAt = new Date().toISOString();
+  // Set D: 환경변수에서 게시 메타데이터 읽기 (게시 전에는 비워 둠)
+  const setLabel = process.env.GBRICK_SET_LABEL ?? 'PRE_IMPROVEMENT';
+  const publishedContent: PublishedContent[] = (() => {
+    try {
+      return process.env.PUBLISHED_URLS ? JSON.parse(process.env.PUBLISHED_URLS) : [];
+    } catch {
+      console.warn('  ⚠️ PUBLISHED_URLS 파싱 실패 — 빈 배열로 진행');
+      return [];
+    }
+  })();
+  const baselineRunId = process.env.BASELINE_RUN_ID ?? null;
+  const measurementPhase: RunMeta['measurementPhase'] =
+    publishedContent.length > 0 ? 'POST_IMPROVEMENT' : 'PRE_IMPROVEMENT';
   const results: RawResult[] = [pilotResult]; // Q01은 이미 완료
 
   for (let i = 0; i < activeQuestions.length; i++) {
@@ -370,6 +404,8 @@ async function main() {
 
   const meta: RunMeta = {
     measurementRunId: runId,
+    setLabel,
+    measurementPhase,
     businessId: 'gbrick-coffee',
     businessName: 'GBRICK Coffee',
     startedAt,
@@ -387,6 +423,8 @@ async function main() {
     dbSaved: false,
     dbSaveNote: 'DATABASE_URL 미설정 — 파일 저장 완료',
     outputDir: OUTPUT_DIR,
+    publishedContent,
+    baselineRunId,
   };
 
   // ── STEP 4: 파일 저장 ─────────────────────────────────────────────────
