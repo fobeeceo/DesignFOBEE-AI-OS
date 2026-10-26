@@ -4,7 +4,7 @@
  * DB 연결 전 대시보드 표시용. Supabase 구축 후 API로 대체한다.
  */
 
-import type { AnalystMentionStatus, AnalystQuestionResult } from './analyst/types';
+import type { AnalystMentionStatus, AnalystQuestionResult, FactDiscrepancy } from './analyst/types';
 import type { AiSearchQuestion } from './types';
 import { QUESTIONS } from './questions';
 
@@ -16,6 +16,7 @@ const GBRICK_RAW: {
   failureReason?: string;
   sourceUrls?: string[];
   measuredAt: string;
+  factDiscrepancy?: FactDiscrepancy;
 }[] = [
   { questionCode: 'Q01', status: 'NOT_MENTIONED', measuredAt: '2026-10-24' },
   { questionCode: 'Q02', status: 'NOT_MENTIONED', measuredAt: '2026-10-24' },
@@ -33,6 +34,11 @@ const GBRICK_RAW: {
     status: 'MENTIONED',
     evidence: '지브릭커피 (G-BRICK COFFEE) · 마고정 3단지 상가 1층 (진관2로 90)',
     measuredAt: '2026-10-24',
+    // AI가 브랜드를 언급했으나 주소가 공식 주소와 다름 — 주소 오류 사례로 집계
+    factDiscrepancy: {
+      kind: 'ADDRESS',
+      note: 'AI 응답 주소(진관2로 90, 마고정 3단지 상가 1층)가 공식 주소(서울 은평구 연서로48길 12, 제각말푸르지오 5단지 상가 101호)와 다름. 대표 확인 2026-10-26.',
+    },
   },
   { questionCode: 'Q07', status: 'NOT_MENTIONED', measuredAt: '2026-10-24' },
   { questionCode: 'Q08', status: 'NOT_MENTIONED', measuredAt: '2026-10-24' },
@@ -101,6 +107,7 @@ function buildResults(questions: AiSearchQuestion[]): AnalystQuestionResult[] {
       evidence: raw.evidence,
       failureReason: raw.failureReason,
       measuredAt: raw.measuredAt,
+      factDiscrepancy: raw.factDiscrepancy,
     };
   });
 }

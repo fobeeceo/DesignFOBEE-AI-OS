@@ -13,6 +13,13 @@ export interface MentionDetectionResult {
   failureReason?: string;
 }
 
+/** AI 응답에 사실과 다른 정보가 포함된 경우 — 오류 사례 집계용 */
+export interface FactDiscrepancy {
+  kind: 'ADDRESS' | 'OTHER';
+  /** 공식 정보와 AI 응답 간 차이 설명 */
+  note: string;
+}
+
 /** 질문 1개의 자동 측정 결과 */
 export interface AnalystQuestionResult {
   questionId: string;
@@ -25,6 +32,8 @@ export interface AnalystQuestionResult {
   evidence?: string;
   failureReason?: string;
   measuredAt: string;
+  /** AI 응답이 공식 정보와 다른 경우 (예: 주소 오류). mentionStatus와 무관하게 존재 가능 */
+  factDiscrepancy?: FactDiscrepancy;
 }
 
 /** 전체 실행(20문항) 결과 */

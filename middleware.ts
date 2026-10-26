@@ -1,11 +1,31 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { isBrandHost, brandRoute } from "@/lib/franchise/brandDomain";
 
 /**
  * 모든 요청에서 Supabase 세션 쿠키를 갱신한다 (Supabase SSR 표준 패턴).
- * STEP 3 이후 보호 라우트(사진업로드 등)가 추가되면 여기서 리다이렉트 로직을 확장한다.
+ * 브랜드 도메인(gbrickcoffee.com)은 먼저 처리한 후 가맹 페이지로 연결한다.
+ * 보호 라우트(사진업로드 등)가 추가되면 Supabase 섹션에서 확장한다.
  */
 export async function middleware(request: NextRequest) {
+  // ── 브랜드 도메인 라우팅 (2026-10-15 대표 지시) ────────────────────────
+  // gbrickcoffee.com 계열 도메인: / → /franchise 리라이트, 나머지 경로는 redirect 또는 pass
+  const host = request.headers.get("host");
+  if (isBrandHost(host)) {
+    const { pathname, search } = request.nextUrl;
+    const route = brandRoute(pathname, search);
+    if (route.kind === "rewrite") {
+      const url = request.nextUrl.clone();
+      url.pathname = route.pathname;
+      return NextResponse.rewrite(url);
+    }
+    if (route.kind === "redirect") {
+      return NextResponse.redirect(route.url, { status: 307 });
+    }
+    // "pass": 가맹 관련 경로는 Supabase 세션 처리로 fall-through
+  }
+
+
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
