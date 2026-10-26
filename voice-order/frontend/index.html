@@ -16,6 +16,35 @@
       <span class="demo-tag">DEMO</span>
     </header>
 
+    <!-- 대화형 화면: 바리스타 캐릭터 + 양쪽 자막. 장식이며, 주문 내용·버튼은 아래 화면에 그대로 있다 -->
+    <section class="avatar" id="avatar" data-state="idle">
+      <div class="avatar-stage" aria-hidden="true">
+        <svg class="barista" viewBox="0 0 200 210" role="img" aria-label="GBRICK 바리스타">
+          <path class="shirt" d="M22 210c4-46 34-66 78-66s74 20 78 66z" />
+          <path class="apron" d="M64 158h72l8 52H56z" />
+          <text class="apron-logo" x="100" y="188" text-anchor="middle">GBRICK</text>
+          <rect class="neck" x="88" y="126" width="24" height="24" rx="8" />
+          <circle class="face" cx="100" cy="88" r="52" />
+          <path class="hair" d="M48 86c-4-40 22-64 52-64s58 22 52 64c-8-20-26-30-52-30S56 66 48 86z" />
+          <circle class="hair" cx="100" cy="24" r="13" />
+          <g class="eyes">
+            <ellipse class="eye" cx="80" cy="90" rx="6.5" ry="8" />
+            <ellipse class="eye" cx="120" cy="90" rx="6.5" ry="8" />
+          </g>
+          <path class="brow" d="M70 74q10-6 20 0M110 74q10-6 20 0" />
+          <circle class="cheek" cx="68" cy="108" r="8" />
+          <circle class="cheek" cx="132" cy="108" r="8" />
+          <path class="mouth-closed" d="M86 112q14 12 28 0" />
+          <ellipse class="mouth-open" cx="100" cy="115" rx="11" ry="9" />
+        </svg>
+        <span class="avatar-ear">🎤 듣고 있어요</span>
+      </div>
+      <div class="captions">
+        <p class="cap cap-ai"><b>바리스타</b> <span id="cap-ai">어서 오세요. 무엇을 드릴까요?</span></p>
+        <p class="cap cap-me" id="cap-me-row" hidden><b>손님</b> <span id="cap-me"></span></p>
+      </div>
+    </section>
+
     <main>
       <!-- 시작 화면: JS 없이도 보이는 기본 화면 -->
       <section class="screen" data-screen="start">

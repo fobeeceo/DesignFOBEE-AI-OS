@@ -65,6 +65,7 @@ function newKey() {
 }
 
 function show(name) {
+  document.body.dataset.view = name; // 확인 화면 등에서는 캐릭터를 작게
   document.querySelectorAll('[data-screen]').forEach((el) => {
     el.hidden = el.dataset.screen !== name;
   });
@@ -107,8 +108,41 @@ function linesHtml(ul, lines) {
   );
 }
 
+// ---------- 대화형 화면: 캐릭터가 말하고 듣는 모습 + 자막 ----------
+let talkId = 0;
+function setAvatar(state) {
+  $('avatar').dataset.state = state; // idle | speaking | listening
+}
+function captionMe(text) {
+  $('cap-me').textContent = text || '';
+  $('cap-me-row').hidden = !text;
+}
+
 function say(text) {
-  return speaker.speak(text);
+  const id = ++talkId;
+  if (text && text.trim()) $('cap-ai').textContent = text;
+  setAvatar('speaking');
+  return speaker.speak(text).finally(() => {
+    if (id === talkId && $('avatar').dataset.state === 'speaking') setAvatar('idle');
+  });
+}
+
+/** 마이크로 듣기 — 듣는 동안 캐릭터가 '듣고 있어요', 들리는 말은 손님 자막으로 */
+function listen(onInterim) {
+  ++talkId;
+  setAvatar('listening');
+  return stt
+    .listen((t) => {
+      captionMe(t);
+      onInterim?.(t);
+    })
+    .then((t) => {
+      captionMe(t);
+      return t;
+    })
+    .finally(() => {
+      if ($('avatar').dataset.state === 'listening') setAvatar('idle');
+    });
 }
 
 async function ensureSession(mode) {
@@ -146,7 +180,7 @@ async function listenOrder() {
   await say('듣고 있습니다.');
   if (my !== flow) return;
   try {
-    const text = await stt.listen((t) => ($('interim').textContent = t));
+    const text = await listen((t) => ($('interim').textContent = t));
     if (my !== flow) return;
     await handleText(text);
   } catch (e) {
@@ -158,6 +192,7 @@ async function listenOrder() {
 async function handleText(text) {
   const my = flow;
   s.heard = text;
+  captionMe(text); // 글자로 넣은 주문도 손님 자막으로
   if (interpretEdit(text, s.addBase || [], menu)?.type === 'cancel_order') return askQuestion(CANCEL_QUESTION);
   const r = await call(`/api/sessions/${s.session}/parse`, { text });
   if (my !== flow) return;
@@ -319,7 +354,7 @@ async function listenAnswer(my, prefix, handler, prompt, interpret = interpretAn
     await new Promise((r) => setTimeout(r, 300)); // 안내 음성 끝자락이 마이크에 들어가지 않게
     let text;
     try {
-      text = await stt.listen((t) => (status.textContent = `🎤 “${t}”`));
+      text = await listen((t) => (status.textContent = `🎤 “${t}”`));
     } catch (e) {
       if (my !== flow) return;
       if (['not-allowed', 'audio-capture', 'unsupported'].includes(e.code)) break;
@@ -754,6 +789,9 @@ async function reset() {
   clearInterval(doneTimer);
   if (s.session) await call(`/api/sessions/${s.session}/cancel`, {}).catch(() => {});
   s = freshState();
+  captionMe('');
+  $('cap-ai').textContent = '어서 오세요. 무엇을 드릴까요?';
+  setAvatar('idle');
   show('start');
 }
 

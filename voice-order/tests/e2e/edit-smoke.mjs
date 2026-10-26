@@ -31,6 +31,9 @@ const MOCK = () => {
   }
   window.SpeechRecognition = FakeRecognition;
   window.SpeechSynthesisUtterance = class { constructor(t) { this.text = t; } };
+  window.__states = [];
+  new MutationObserver(() => { const st = document.getElementById('avatar')?.dataset.state; if (st && window.__states.at(-1) !== st) window.__states.push(st); })
+    .observe(document, { attributes: true, subtree: true, attributeFilter: ['data-state'] });
   Object.defineProperty(window, 'speechSynthesis', { value: { getVoices: () => [], cancel() {}, speak(u) { window.__spoken.push(u.text); setTimeout(() => u.onend?.(), 5); } } });
 };
 
@@ -68,6 +71,14 @@ await step('말로: "아이스 아메리카노 한 잔 주세요" → 매장 →
   assert.deepEqual(await lines(), ['아이스 아메리카노']);
   assert.equal(await text('#c-lines .line-price'), '3,500원');
   assert.equal(await text('#c-total'), '3,500원');
+});
+
+await step('대화형 화면: 바리스타가 말할 때 입이 움직이고(speaking), 들을 때 "듣고 있어요"(listening), 자막에 양쪽 말', async () => {
+  const states = await page.evaluate(() => window.__states || []);
+  assert.ok(states.includes('speaking') && states.includes('listening'), JSON.stringify(states));
+  assert.equal(await text('#cap-ai'), await page.evaluate(() => window.__spoken.at(-1)), '바리스타 자막 = 방금 한 말');
+  assert.equal(await text('#cap-me'), '매장이요', '손님 자막 = 방금 들은 말');
+  assert.ok(await page.locator('#avatar').isVisible());
 });
 
 await step('말로: "한 잔 더 추가해 주세요" → 2잔 · 7,000원 · "아메리카노 한 잔 더 넣었어요"', async () => {

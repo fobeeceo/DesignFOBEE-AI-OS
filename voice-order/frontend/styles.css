@@ -189,3 +189,42 @@ textarea:focus { outline: 4px solid #e08a1e; border-color: var(--brand); }
 .top { gap: 8px; }
 .note.warn { background: #fde3e1; border-color: #e7a19b; font-weight: 800; }
 .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* ---------- 대화형 화면 (바리스타 캐릭터 + 자막) ---------- */
+.avatar { position: relative; margin: 4px 0 14px; border-radius: var(--radius); overflow: hidden; background: radial-gradient(circle at 30% 20%, #fff3e0, #f1d9bd 60%, #e3c3a0); border: 2px solid var(--line); }
+.avatar-stage { display: flex; justify-content: center; padding-top: 10px; height: 190px; }
+.barista { height: 100%; width: auto; }
+.barista .shirt { fill: #7a5236; }
+.barista .apron { fill: var(--brand); }
+.barista .apron-logo { fill: #fff; font: 800 11px sans-serif; letter-spacing: 1px; }
+.barista .neck, .barista .face { fill: #f2c7a5; }
+.barista .hair { fill: #4a2c1a; }
+.barista .eye { fill: #2a1a10; transform-box: fill-box; transform-origin: center; animation: blink 4.5s infinite; }
+.barista .brow { stroke: #4a2c1a; stroke-width: 3.5; fill: none; stroke-linecap: round; }
+.barista .cheek { fill: #e88f7a; fill-opacity: 0.35; }
+.barista .mouth-closed { stroke: #7b2d1c; stroke-width: 4; fill: none; stroke-linecap: round; }
+.barista .mouth-open { fill: #7b2d1c; transform-box: fill-box; transform-origin: center; transform: scaleY(0.15); }
+@keyframes blink { 0%, 94%, 100% { transform: scaleY(1); } 97% { transform: scaleY(0.1); } }
+/* 말할 때: 입이 움직인다 */
+.avatar[data-state="speaking"] .mouth-open { animation: talk 0.32s ease-in-out infinite alternate; }
+.avatar[data-state="speaking"] .mouth-closed { stroke: transparent; }
+@keyframes talk { from { transform: scaleY(0.2); } to { transform: scaleY(1); } }
+/* 들을 때: 테두리가 빛나고 '듣고 있어요' */
+.avatar-ear { position: absolute; top: 10px; right: 12px; background: var(--ok); color: #fff; font-weight: 800; font-size: 1rem; padding: 6px 12px; border-radius: 999px; display: none; }
+.avatar[data-state="listening"] { border-color: var(--ok); box-shadow: 0 0 0 4px #bfe3c9; }
+.avatar[data-state="listening"] .avatar-ear { display: inline-block; }
+@media (prefers-reduced-motion: reduce) { .barista .eye, .avatar[data-state="speaking"] .mouth-open { animation: none; } .avatar[data-state="speaking"] .mouth-open { transform: scaleY(0.7); } }
+.captions { background: rgba(36, 22, 13, 0.86); color: #fff; padding: 10px 14px; text-align: left; }
+.cap { margin: 0; font-size: 1.15rem; line-height: 1.45; font-weight: 700; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.cap b { display: inline-block; font-size: 0.85rem; padding: 1px 8px; border-radius: 8px; margin-right: 4px; vertical-align: 2px; }
+.cap-ai b { background: #f1d9bd; color: var(--brand); }
+.cap-me { margin-top: 6px; color: #ffe7a8; }
+.cap-me b { background: #ffe7a8; color: var(--brand); }
+/* 주문 확인·글자 입력·완료 화면에서는 작게 (버튼·합계가 한 화면에 보이게) */
+body[data-view="confirm"] .avatar, body[data-view="text"] .avatar, body[data-view="done"] .avatar { display: flex; align-items: stretch; }
+body[data-view="confirm"] .avatar-stage, body[data-view="text"] .avatar-stage, body[data-view="done"] .avatar-stage { height: 92px; width: 84px; flex: none; padding-top: 6px; }
+body[data-view="confirm"] .captions, body[data-view="text"] .captions, body[data-view="done"] .captions { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+body[data-view="confirm"] .cap, body[data-view="text"] .cap, body[data-view="done"] .cap { -webkit-line-clamp: 2; font-size: 1.05rem; }
+body[data-view="confirm"] .avatar-ear { top: auto; bottom: 6px; left: 6px; right: auto; font-size: 0.8rem; padding: 3px 8px; }
+@media (min-width: 700px) { .avatar-stage { height: 230px; } .cap { font-size: 1.3rem; } }
+@media print { .avatar { display: none; } }
