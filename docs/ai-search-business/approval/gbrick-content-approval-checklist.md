@@ -155,8 +155,10 @@ purpose: |
 | 파일 | 채널 | 게시 URL | 게시 일시 (KST) | 게시 담당자 |
 |---|---|---|---|---|
 | 01-brand-intro | 네이버 블로그 | https://blog.naver.com/surfleeds/224454500567 | 2026-10-26 | 대표 |
+| 01-brand-intro | 구글 블로그 | https://fobeelee.blogspot.com/2026/10/gbrick-coffee.html | 2026-10-26 | 대표 |
 | 01-brand-intro | 구글/네이버 사업장 | _(게시 후 입력)_ | _(게시 후 입력)_ | |
 | 02-location-visit | 네이버 블로그 | https://blog.naver.com/surfleeds/224454504232 | 2026-10-26 | 대표 |
+| 02-location-visit | 구글 블로그 | https://fobeelee.blogspot.com/2026/10/gbrick-coffee_0428312780.html | 2026-10-26 | 대표 |
 | 02-location-visit | 네이버 플레이스 | _(게시 후 입력)_ | _(게시 후 입력)_ | |
 | 02-location-visit | 인스타그램 | _(게시 후 입력)_ | _(게시 후 입력)_ | |
 | 03-menu | 네이버 블로그 | https://blog.naver.com/surfleeds/224454506923 | 2026-10-26 | 대표 |
@@ -203,6 +205,27 @@ PUBLISHED_URLS='[
     "publishedAt": "2026-10-26T00:00:00Z",
     "channelUrl": "https://blog.naver.com/surfleeds/224454506923",
     "channelType": "NAVER_BLOG",
+    "title": "지브릭커피 주요 메뉴 — 아메리카노·수제 자몽티·뱅쇼·하절기 수제 팥빙수"
+  },
+  {
+    "draftId": "gbrick-draft-20261026-01-brand-intro",
+    "publishedAt": "2026-10-26T00:00:00Z",
+    "channelUrl": "https://fobeelee.blogspot.com/2026/10/gbrick-coffee.html",
+    "channelType": "GOOGLE_BLOG",
+    "title": "지브릭커피(GBRICK Coffee) 공식 브랜드 소개"
+  },
+  {
+    "draftId": "gbrick-draft-20261026-02-location-visit",
+    "publishedAt": "2026-10-26T00:00:00Z",
+    "channelUrl": "https://fobeelee.blogspot.com/2026/10/gbrick-coffee_0428312780.html",
+    "channelType": "GOOGLE_BLOG",
+    "title": "은평뉴타운 카페 지브릭커피 — 위치·방문 정보"
+  },
+  {
+    "draftId": "gbrick-draft-20261026-03-menu",
+    "publishedAt": "2026-10-26T00:00:00Z",
+    "channelUrl": "https://fobeelee.blogspot.com/2026/10/gbrick-coffee_02095076095.html",
+    "channelType": "GOOGLE_BLOG",
     "title": "지브릭커피 주요 메뉴 — 아메리카노·수제 자몽티·뱅쇼·하절기 수제 팥빙수"
   }
 ]'
