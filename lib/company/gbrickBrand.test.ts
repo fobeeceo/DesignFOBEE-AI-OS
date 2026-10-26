@@ -16,13 +16,18 @@ describe("GBRICK_BRAND (대표 확인 2026-10-26)", () => {
     expect(GBRICK_BRAND.patbingsu.note).toContain("달라질 수 있습니다");
   });
 
+  it("전화번호가 대표 확인값이다", () => {
+    expect(GBRICK_BRAND.phone).toBe("02-517-1474");
+  });
+
   it("대표가 확인하지 않은 항목은 값을 채우지 않고 목록으로만 둔다", () => {
     const keys = Object.keys(GBRICK_BRAND);
-    for (const forbidden of ["hours", "phone", "price", "parking", "walkMinutes"]) {
+    for (const forbidden of ["hours", "price", "parking", "walkMinutes"]) {
       expect(keys).not.toContain(forbidden);
     }
     expect([...GBRICK_BRAND.unconfirmed]).toEqual(
-      expect.arrayContaining(["영업시간", "전화번호", "가격", "주차 조건", "한옥마을까지 도보 시간"]),
+      expect.arrayContaining(["영업시간", "가격", "주차 조건", "한옥마을까지 도보 시간"]),
     );
+    expect([...GBRICK_BRAND.unconfirmed]).not.toContain("전화번호");
   });
 });
