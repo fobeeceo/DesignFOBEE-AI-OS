@@ -194,7 +194,7 @@ voice-order/
 ```bash
 npm test                                   # 18개: 요구사항 §26의 13항목 + API·자연어·대답
 BASE_URL=http://localhost:3100 npm run test:e2e   # 브라우저 E2E 14단계 (playwright 필요, 음성은 모의 객체)
-BASE_URL=http://localhost:3100 node tests/e2e/edit-smoke.mjs   # 확인 화면 고치기 14단계 (말·버튼·추가·취소·접근성·마이크 거부)
+BASE_URL=http://localhost:3100 node tests/e2e/edit-smoke.mjs   # 확인 화면 고치기 16단계 (말·버튼·추가·취소·되돌리기·접근성·태블릿·마이크 거부/미지원)
 ```
 
 ## 7. 현재 제한사항

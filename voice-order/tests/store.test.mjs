@@ -377,3 +377,19 @@ test('포장 주문: 할인 가격으로 저장 · 카운터/주문서에 [포�
     await t.close();
   }
 });
+
+test('개인정보: 손님이 전화번호·긴 숫자를 말해도 음성 기록(VOICE_LOG)에는 가려서 남는다 · 주문은 그대로 해석', async () => {
+  const t = await startServer();
+  try {
+    const { parsed, res } = await order(t.call, '아이스 아메리카노 하나 주세요 제 번호는 010-1234-5678 이에요');
+    assert.deepEqual(parsed.items.map((i) => [i.menu_id, i.temperature]), [['AMERICANO', 'ICE']]);
+    const logs = t.storeCtx.orders.all().voice_logs.filter((v) => v.order_id === res.data.order_id);
+    assert.equal(logs.length, 1);
+    assert.doesNotMatch(logs[0].recognized_text, /1234|5678/);
+    assert.match(logs[0].recognized_text, /\[전화번호\]/);
+    const saved = fs.readFileSync(path.join(t.dir, 'store-sessions.test.json'), 'utf8');
+    assert.doesNotMatch(saved, /1234-5678/, '세션 파일에도 원래 번호가 남지 않는다');
+  } finally {
+    await t.close();
+  }
+});

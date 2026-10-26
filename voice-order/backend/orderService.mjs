@@ -33,6 +33,13 @@ export function kstDate(date) {
     .replaceAll('-', '');
 }
 
+/** 음성 기록에 개인정보를 남기지 않는다: 전화번호·카드번호 같은 긴 숫자는 가린다 (주문 해석은 원래 말로 한다) */
+export function maskPersonal(text) {
+  return String(text || '')
+    .replace(/(?:\+?82[-\s.]?)?0\d{1,2}[-\s.]?\d{3,4}[-\s.]?\d{4}/g, '[전화번호]')
+    .replace(/\d(?:[\d\s-]{7,}\d)/g, '[숫자]');
+}
+
 export const DINING = { DINE_IN: 'DINE_IN', TAKEOUT: 'TAKEOUT' };
 
 /** 포장 할인(잔당) — MENU_MASTER의 takeout_discount 규칙만 쓴다 */
@@ -148,8 +155,8 @@ export function createOrderService({ store, menu, printProvider, getKnowledge = 
       const result = answerFromKnowledge(text, menu, getKnowledge(), parsed) || parsed;
       const failed = ['not_found', 'unavailable', 'unclear', 'unanswered'].includes(result.kind);
       store.update(r.id, {
-        raw_transcript: String(text || ''),
-        transcripts: [...r.transcripts, { at: now().toISOString(), text: String(text || ''), kind: result.kind, ...(result.topic ? { topic: result.topic } : {}) }],
+        raw_transcript: maskPersonal(text),
+        transcripts: [...r.transcripts, { at: now().toISOString(), text: maskPersonal(text), kind: result.kind, ...(result.topic ? { topic: result.topic } : {}) }],
         fail_count: r.fail_count + (failed ? 1 : 0),
       });
       return { ...result, fail_count: store.get(r.id).fail_count };

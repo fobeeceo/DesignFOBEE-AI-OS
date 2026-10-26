@@ -119,6 +119,17 @@ await step('말로: "주문을 취소하고 싶어요" → "주문을 모두 취
   await page.evaluate(() => window.__queue.push('네'));
   await visible('message');
   assert.equal(await text('#m-title'), '주문을 취소했어요.');
+  // 잘못 눌렀으면 되돌릴 수 있다 → 원래 주문 그대로
+  await page.getByRole('button', { name: /취소 되돌리기/ }).click();
+  await visible('confirm');
+  assert.equal(await text('#c-lead'), '취소를 되돌렸어요.');
+  assert.equal(await text('#c-total'), '11,400원');
+  // 다시 취소하고 이번엔 처음으로
+  await sayAtConfirm('주문을 취소하고 싶어요');
+  await visible('question');
+  await page.getByRole('button', { name: '네, 주문을 취소할게요' }).click();
+  await visible('message');
+  await page.locator('#m-buttons').getByRole('button', { name: '처음으로' }).click();
   await visible('start');
   assert.ok(!(await page.evaluate(() => window.__spoken.some((t) => t.startsWith('주문이 완료')))), '주문 완료가 나오면 안 됨');
 });
@@ -197,6 +208,36 @@ await step('마이크 권한 거부 → "마이크를 쓸 수 없어요" + 직�
   assert.ok(await page.getByRole('button', { name: '직원에게 도움 요청' }).first().isVisible());
   await home();
   assert.ok(await page.getByRole('button', { name: '텍스트로 테스트' }).isVisible(), '마이크 없이 주문할 다른 방법');
+});
+
+await step('태블릿 세로(820×1180): 두 메뉴 확인 화면 — 버튼·합계가 한눈에, 가로 스크롤 없음', async () => {
+  await page.setViewportSize({ width: 820, height: 1180 });
+  await home();
+  await page.getByRole('button', { name: '텍스트로 테스트' }).click();
+  await page.fill('#text-input', '아이스 아메리카노 두 잔하고 따뜻한 라떼 하나 매장이요');
+  await page.getByRole('button', { name: '주문 분석' }).click();
+  await visible('confirm');
+  const box = await page.locator('[data-action="confirm-yes"]').boundingBox();
+  assert.ok(box.y + box.height <= 1180, `'네, 맞아요' 버튼이 화면 아래로 밀림 (${Math.round(box.y)}px)`);
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth));
+  await page.screenshot({ path: `${OUT}04-tablet.png` });
+  await page.setViewportSize({ width: 390, height: 844 });
+});
+
+await step('마이크 미지원 브라우저: 주문 시작 → "음성 주문이 안 돼요" 안내 + 글자로 주문 가능', async () => {
+  const c2 = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  await c2.addInitScript(() => { delete window.SpeechRecognition; delete window.webkitSpeechRecognition; });
+  const p2 = await c2.newPage();
+  p2.on('pageerror', (e) => errors.push(e.message));
+  await p2.goto(BASE);
+  await p2.getByRole('button', { name: /주문 시작/ }).click();
+  await p2.locator('#voice-unsupported').waitFor({ state: 'visible', timeout: 5000 });
+  assert.match(await p2.textContent('#voice-unsupported'), /음성 주문이 안 돼요/);
+  await p2.getByRole('button', { name: '텍스트로 테스트' }).click();
+  await p2.fill('#text-input', '아이스 아메리카노 하나 매장이요');
+  await p2.getByRole('button', { name: '주문 분석' }).click();
+  await p2.locator('[data-screen="confirm"]').waitFor({ state: 'visible', timeout: 8000 });
+  await c2.close();
 });
 
 await step('페이지 JS 오류 없음', async () => assert.deepEqual(errors, []));

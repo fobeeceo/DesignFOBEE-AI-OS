@@ -25,6 +25,7 @@ const EXAMPLES = [
   '딸기 아메리카노 하나 주세요.',
 ];
 
+const UNDO_SEC = 10; // 주문 취소 후 '되돌리기'를 누를 수 있는 시간
 const CANCEL_QUESTION = { type: 'confirm_cancel', text: '주문을 모두 취소할까요?' };
 const DINING_LABEL = { DINE_IN: '매장', TAKEOUT: '포장' };
 const DINING_TAG = { DINE_IN: '🍽 매장에서 드시고 가요', TAKEOUT: '🥡 포장' };
@@ -570,8 +571,22 @@ function startAdding() {
 /** 손님이 확인한 '주문 전체 취소' — 서버에 주문을 만들지 않고 처음으로 */
 async function cancelWholeOrder() {
   const my = ++flow;
-  showMessage({ title: '주문을 취소했어요.', body: '처음 화면으로 돌아갑니다.', buttons: [['처음으로', 'primary', reset]] });
-  await new Promise((r) => setTimeout(r, 2500));
+  const keep = { items: s.addBase || s.items, dining: s.dining };
+  // 잘못 눌렀을 때를 위해 잠깐 동안 되돌릴 수 있다 (서버에는 아직 아무 주문도 없다)
+  const undo = () => {
+    s.items = keep.items;
+    s.dining = keep.dining;
+    s.addBase = null;
+    s.lead = '취소를 되돌렸어요.';
+    showConfirm();
+  };
+  showMessage({
+    title: '주문을 취소했어요.',
+    body: keep.items.length ? `${UNDO_SEC}초 뒤 처음 화면으로 돌아갑니다.\n잘못 누르셨으면 ‘취소 되돌리기’를 눌러 주세요.` : '처음 화면으로 돌아갑니다.',
+    buttons: keep.items.length ? [['↩ 취소 되돌리기', 'primary', undo], ['처음으로', 'secondary', reset]] : [['처음으로', 'primary', reset]],
+    speak: '주문을 취소했어요.',
+  });
+  await new Promise((r) => setTimeout(r, (keep.items.length ? UNDO_SEC : 3) * 1000));
   if (my === flow) reset();
 }
 
@@ -801,6 +816,7 @@ if (STORE) {
   document.querySelector('.demo-tag').textContent = STORE_TEST ? '테스트 모드' : '지브릭 본점';
   $('c-cancel').hidden = false;
   if (!STORE_TEST) document.querySelector('[data-action="start-text"]').hidden = true; // 실제 운영 화면에는 테스트 기능을 두지 않는다
+  if (!STORE_TEST) $('voice-unsupported').textContent = '이 기기에서는 음성 주문이 안 돼요. 직원에게 말씀해 주세요.'; // 글자 주문 버튼이 없는 실제 운영 화면
   checkServer();
   setInterval(checkServer, 10000);
 }

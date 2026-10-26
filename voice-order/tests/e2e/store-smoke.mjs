@@ -162,6 +162,20 @@ await step('두 번 눌러도 주문은 하나 (T003만 생김)', async () => {
   assert.equal(await counter.locator('.card').count(), 2, 'T002, T003만 진행 중');
 });
 
+await step('연속 발화: 확인 화면에서 "네", "네" 연달아 → 주문은 하나만 (T004)', async () => {
+  await tablet.getByRole('button', { name: /처음으로/ }).click();
+  await tablet.evaluate(() => window.__queue.push('아이스 아메리카노 하나 포장이요', '네', '네', '네'));
+  await tablet.getByRole('button', { name: /주문 시작/ }).click();
+  await screen(tablet, 'done');
+  assert.equal(await tablet.textContent('#d-no'), 'T004');
+  await card('T004').waitFor({ timeout: 6000 });
+  await counter.waitForTimeout(2500);
+  assert.equal(await counter.locator('.card').count(), 3, 'T002, T003, T004만 진행 중');
+  // 주문이 끝나면 더 듣지 않는다 → 남은 "네"는 쓰이지 않고 남아 있다
+  assert.ok((await tablet.evaluate(() => window.__queue.length)) >= 1, '주문 뒤에도 계속 들었음');
+  await tablet.evaluate(() => { window.__queue.length = 0; });
+});
+
 await step('없는 메뉴: "아인슈페너 주세요" → 메뉴 없음 안내 + 직원 도움', async () => {
   await tablet.getByRole('button', { name: /처음으로/ }).click();
   await tablet.evaluate(() => window.__queue.push('아인슈페너 주세요.'));
@@ -181,8 +195,8 @@ await step('서버 연결 끊김: 🔴 표시 · 주문 시작 버튼 잠김 · 
   await tablet.unroute('**/api/store/GBRICK_MAIN/health');
 });
 
-await step('카운터 KPI: 실제 기록으로 계산 (총 주문 3)', async () => {
-  await counter.waitForFunction(() => document.getElementById('kpis').textContent.includes('총 주문3'));
+await step('카운터 KPI: 실제 기록으로 계산 (총 주문 4)', async () => {
+  await counter.waitForFunction(() => document.getElementById('kpis').textContent.includes('총 주문4'));
   await counter.screenshot({ path: `${OUT}09-counter-kpi.png`, fullPage: true });
 });
 
