@@ -11,6 +11,7 @@ import { fileURLToPath } from 'node:url';
 import { createJsonStore, createJsonDb } from './backend/store.mjs';
 import { createStoreOrders, MODES } from './backend/storeOrders.mjs';
 import { routeStore, isStaffApi } from './backend/storeRouter.mjs';
+import { createAiBarista } from './backend/aiBarista.mjs';
 import { createOrderService, OrderError } from './backend/orderService.mjs';
 import { route } from './backend/router.mjs';
 import { createPrintProvider } from './backend/print/printService.mjs';
@@ -205,6 +206,15 @@ export function createStoreContext({ menu, getKnowledge, dir = path.join(ROOT, '
     sessions,
     engine: createOrderService({ store: sessions, menu, getKnowledge, printProvider: createPrintProvider('browser') }),
     orders: createStoreOrders({ db: createJsonDb(path.join(dir, `store-orders.${wanted}.json`)), menu, stores, mode: wanted }),
+    // AI 바리스타: GEMINI_API_KEY가 있으면 켜진다 (VOICE_ORDER_AI=off 로 끌 수 있다). 키는 이 서버 안에서만 쓴다
+    ai: createAiBarista({
+      apiKey: env.VOICE_ORDER_AI === 'off' ? '' : env.GEMINI_API_KEY || '',
+      menu,
+      getKnowledge,
+      model: env.VOICE_ORDER_AI_MODEL || '',
+      apiBase: env.GEMINI_API_BASE || undefined,
+      log: (m) => console.log(m),
+    }),
   };
 }
 
@@ -253,6 +263,11 @@ function main() {
   console.log(` 메뉴 지식 문서 : ${path.join(ROOT, 'data', 'knowledge.json')}  (고치면 바로 반영)`);
   const modeLabel = storeCtx.mode === MODES.PRODUCTION ? 'PRODUCTION (실제 주문)' : 'TEST (연습 주문 · 실제 매출 아님)';
   console.log(`${line}\n STORE MODE : ${modeLabel}`);
+  if (storeCtx.ai.enabled) {
+    storeCtx.ai.pickModel().then((m) => console.log(` AI 바리스타 : 켜짐 (Gemini ${m}) — 알아듣지 못한 말만 AI가 대화`));
+  } else {
+    console.log(' AI 바리스타 : 꺼짐 (GEMINI_API_KEY 없음) — 규칙형으로 주문');
+  }
   const td = menu.takeout_discount;
   if (td) {
     // 이 줄이 안 보이면 예전 버전이 켜져 있는 것이다

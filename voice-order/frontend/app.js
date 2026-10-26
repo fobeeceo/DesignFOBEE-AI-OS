@@ -173,11 +173,11 @@ async function startText() {
 }
 
 // ---------- 주문 듣기 ----------
-async function listenOrder() {
+async function listenOrder(quiet = false, onSilence = null) {
   const my = ++flow;
   $('interim').textContent = '';
   show('listening');
-  await say('듣고 있습니다.');
+  if (!quiet) await say('듣고 있습니다.'); // AI 바리스타와 이야기하는 중이면 바로 듣는다
   if (my !== flow) return;
   try {
     const text = await listen((t) => ($('interim').textContent = t));
@@ -185,7 +185,9 @@ async function listenOrder() {
     await handleText(text);
   } catch (e) {
     if (my !== flow) return;
-    await handleHearFail(e instanceof SpeechFailure ? e.code : 'error');
+    const code = e instanceof SpeechFailure ? e.code : 'error';
+    if (onSilence && code === 'no-speech') return onSilence(); // 바리스타 말 뒤 조용하면 실패로 치지 않고 대답 화면 그대로
+    await handleHearFail(code);
   }
 }
 
@@ -194,7 +196,7 @@ async function handleText(text) {
   s.heard = text;
   captionMe(text); // 글자로 넣은 주문도 손님 자막으로
   if (interpretEdit(text, s.addBase || [], menu)?.type === 'cancel_order') return askQuestion(CANCEL_QUESTION);
-  const r = await call(`/api/sessions/${s.session}/parse`, { text });
+  const r = await call(`/api/sessions/${s.session}/parse`, { text, cart: s.addBase || [] });
   if (my !== flow) return;
   s.failCount = r.fail_count;
   if (r.kind === 'ok' || r.kind === 'clarify') {
@@ -205,6 +207,7 @@ async function handleText(text) {
     return proceed();
   }
   if (r.kind === 'suggest') return showSuggestions(r);
+  if (r.kind === 'chat') return showChat(r); // AI 바리스타의 대답 (매장 서버에서 AI가 켜져 있을 때만)
   if (r.kind === 'info') {
     // 메뉴 지식 문서·메뉴 설명에 있는 사실만 답한다
     return showMessage({
@@ -231,6 +234,22 @@ async function handleText(text) {
     });
   }
   return showNotHeard(); // unclear
+}
+
+/** AI 바리스타 대답: 말해 주고, 음성 주문 중이면 곧바로 손님 말을 다시 듣는다 (영상통화처럼) */
+async function showChat(r) {
+  const my = ++flow;
+  $('m-title').textContent = '바리스타';
+  $('m-body').textContent = r.say;
+  $('m-heard').textContent = s.heard ? `들은 말: “${s.heard}”` : '';
+  const help = ['직원에게 도움 요청', r.wants_help ? 'primary' : 'secondary', requestHelp];
+  const back = () => showChat({ ...r, silent: true });
+  const talk = ['🎤 말로 주문하기', r.wants_help ? 'secondary' : 'primary', () => listenOrder(true, back)];
+  buttons($('m-buttons'), r.wants_help ? [help, talk] : [talk, help]);
+  show('message');
+  if (r.silent) return; // 손님이 아무 말 안 했을 때: 화면만 두고 다시 묻지 않는다
+  await say(r.say);
+  if (my === flow && s.mode === 'VOICE' && !r.wants_help) listenOrder(true, back);
 }
 
 function helpOrRetry() {

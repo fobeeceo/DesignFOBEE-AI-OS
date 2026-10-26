@@ -171,6 +171,8 @@ function renderKpis(st) {
     ['평균 주문시간', v(st.avg_order_seconds, '초')],
     ['평균 확인 질문', v(st.avg_clarifications, '회')],
   ];
+  // AI 바리스타 사용량 (켜져 있을 때만, 실제 호출 기록으로)
+  if (st.ai) rows.push(['AI 대화', v(st.ai.calls, '회')], ['AI 실패', v(st.ai.failures, '회')], ['AI 토큰', `${(st.ai.input_tokens + st.ai.output_tokens).toLocaleString('ko-KR')}`]);
   $('kpis').replaceChildren(
     ...rows.map(([k, val]) => {
       const d = el('div', 'kpi');
