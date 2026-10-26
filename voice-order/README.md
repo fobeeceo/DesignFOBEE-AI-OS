@@ -66,7 +66,9 @@ PRODUCTION은 `VOICE_ORDER_MODE=production` + `STORE_STAFF_KEY`(직원 PIN)가 �
 
 1. **한 번만** 설치 (PowerShell): `winget install --id Cloudflare.cloudflared` → PowerShell을 새로 연다
 2. `voice-order` 폴더에서 `npm run share` (또는 `share.bat` 더블클릭)
-3. 화면에 나온 `https://xxxx.trycloudflare.com` 주소를 카카오톡 '나와의 채팅'으로 보내 휴대폰에서 연다
+3. 화면의 **`★ 휴대폰 바리스타 주문 : https://xxxx.trycloudflare.com/store/GBRICK_MAIN`** 주소를 카카오톡 '나와의 채팅'으로 보내 휴대폰에서 연다 (주문은 이 PC 카운터 화면으로 들어온다)
+   - 인터넷 공유는 **항상 TEST(연습 주문)** 로만 켜진다. 예전 서버가 켜져 있으면 먼저 알려 준다.
+   - AI 바리스타까지 쓰려면 이 PC 사용자 환경변수에 `GEMINI_API_KEY`가 있어야 한다.
 
 - 진짜 HTTPS라 **아이폰에서도 인증서 경고 없이 마이크가 된다**
 - 대시보드는 밖에서 **키가 들어 있는 주소**(`.../dashboard?key=...`, 화면에 표시)로만 열린다

@@ -26,9 +26,23 @@ const stopAll = () => children.forEach((c) => c.kill());
 process.on('SIGINT', () => { stopAll(); process.exit(0); });
 process.on('exit', stopAll);
 
+// 예전 서버가 켜져 있으면 새 서버가 못 켜지고 예전 화면이 공유된다 → 먼저 알려준다
+try {
+  await fetch(`http://localhost:${PORT}/api/health`, { signal: AbortSignal.timeout(1500) });
+  console.log(`
+[안내] 이미 다른 주문 서버가 켜져 있습니다 (${PORT}번).
+예전에 켠 검은 서버 창을 모두 닫고 다시 실행하세요.
+또는 PowerShell에: Stop-Process -Id (Get-NetTCPConnection -LocalPort ${PORT} -State Listen).OwningProcess
+`);
+  process.exit(1);
+} catch {
+  // 비어 있음 → 계속
+}
+
+// 인터넷에 열리는 주소이므로 항상 TEST(연습 주문)로만 켠다 — 실제 주문(PRODUCTION)은 공유하지 않는다
 const server = spawn(process.execPath, [path.join(ROOT, 'server.mjs')], {
   cwd: ROOT,
-  env: { ...process.env, SHARE_KEY: shareKey },
+  env: { ...process.env, SHARE_KEY: shareKey, VOICE_ORDER_MODE: 'test' },
   stdio: 'inherit',
 });
 children.push(server);
@@ -55,8 +69,10 @@ const onOutput = (buf) => {
   if (!m || shown) return;
   shown = true;
   const line = '='.repeat(64);
-  console.log(`\n${line}\n 인터넷 공유 켜짐 — 밖에서도 휴대폰으로 열 수 있습니다 (DEMO)\n${line}`);
-  console.log(` 휴대폰 주문 화면 : ${m[0]}`);
+  console.log(`\n${line}\n 인터넷 공유 켜짐 — 밖에서도 휴대폰으로 열 수 있습니다 (TEST 연습 주문)\n${line}`);
+  console.log(` ★ 휴대폰 바리스타 주문 : ${m[0]}/store/GBRICK_MAIN`);
+  console.log(`   (주문은 이 PC 카운터 화면 http://localhost:${PORT}/counter/GBRICK_MAIN 에 들어옵니다)`);
+  console.log(` 체험판(매장에 안 감) : ${m[0]}`);
   console.log(` 대시보드(키 포함): ${m[0]}/dashboard?key=${shareKey}`);
   console.log(`\n · 주소를 카카오톡 '나와의 채팅'으로 보내 휴대폰에서 누르세요`);
   console.log(` · 이 창을 닫으면 주소가 사라집니다. 다시 켜면 주소가 바뀝니다`);
