@@ -7,7 +7,7 @@ describe("GBRICK_BRAND (대표 확인 2026-10-26)", () => {
     expect(GBRICK_BRAND.nameEn).toBe("GBRICK Coffee");
     expect(GBRICK_BRAND.address.full).toBe("서울 은평구 연서로48길 12, 제각말푸르지오 5단지 상가 101호");
     expect(GBRICK_BRAND.beans).toBe("자체 블렌딩 원두");
-    expect([...GBRICK_BRAND.mainMenu]).toEqual(["아메리카노", "자몽티", "뱅쇼", "팥빙수"]);
+    expect([...GBRICK_BRAND.mainMenu]).toEqual(["아메리카노", "수제 자몽티", "뱅쇼", "수제 팥빙수"]);
   });
 
   it("팥빙수는 기온 기준 하절기 운영이며 영업 보장이 아니라고 명시한다", () => {

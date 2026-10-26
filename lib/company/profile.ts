@@ -36,7 +36,7 @@ export const GBRICK_BRAND = {
     full: "서울 은평구 연서로48길 12, 제각말푸르지오 5단지 상가 101호",
   },
   beans: "자체 블렌딩 원두",
-  mainMenu: ["아메리카노", "자몽티", "뱅쇼", "팥빙수"],
+  mainMenu: ["아메리카노", "수제 자몽티", "뱅쇼", "수제 팥빙수"],
   patbingsu: {
     seasonal: true,
     basis: "주간 기온 28℃ 이상",
