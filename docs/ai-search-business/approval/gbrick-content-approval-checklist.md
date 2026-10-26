@@ -154,12 +154,12 @@ purpose: |
 
 | 파일 | 채널 | 게시 URL | 게시 일시 (KST) | 게시 담당자 |
 |---|---|---|---|---|
-| 01-brand-intro | 블로그 | _(게시 후 입력)_ | _(게시 후 입력)_ | |
+| 01-brand-intro | 네이버 블로그 | https://blog.naver.com/surfleeds/224454500567 | 2026-10-26 | 대표 |
 | 01-brand-intro | 구글/네이버 사업장 | _(게시 후 입력)_ | _(게시 후 입력)_ | |
-| 02-location-visit | 블로그 | _(게시 후 입력)_ | _(게시 후 입력)_ | |
+| 02-location-visit | 네이버 블로그 | https://blog.naver.com/surfleeds/224454504232 | 2026-10-26 | 대표 |
 | 02-location-visit | 네이버 플레이스 | _(게시 후 입력)_ | _(게시 후 입력)_ | |
 | 02-location-visit | 인스타그램 | _(게시 후 입력)_ | _(게시 후 입력)_ | |
-| 03-menu | 블로그 | _(게시 후 입력)_ | _(게시 후 입력)_ | |
+| 03-menu | 네이버 블로그 | https://blog.naver.com/surfleeds/224454506923 | 2026-10-26 | 대표 |
 | 03-menu | 네이버 플레이스 | _(게시 후 입력)_ | _(게시 후 입력)_ | |
 | 03-menu | 인스타그램 | _(게시 후 입력)_ | _(게시 후 입력)_ | |
 
@@ -167,8 +167,8 @@ purpose: |
 
 ## 7. Set D 측정 실행 준비
 
-> **실행 조건**: 위 §6의 게시 URL이 1건 이상 채워진 후에만 실행합니다.  
-> **실행 시점**: 모든 콘텐츠 게시 완료 후 **14일 경과** 시점 권장 (AI 인덱싱 반영 대기).  
+> **실행 조건**: §6의 네이버 블로그 게시 URL 3건 확인 완료 (2026-10-26).  
+> **실행 시점**: 게시일(2026-10-26)로부터 14일 경과 → **2026-11-09(일) 이후** 실행 권장.  
 > **API 키**: 절대 출력하거나 커밋하지 않습니다.
 
 ### 필수 환경변수
@@ -180,27 +180,27 @@ GEMINI_API_KEY=<.env.local에서 로드>
 # Set D 레이블
 GBRICK_SET_LABEL=SET_D
 
-# 게시된 콘텐츠 메타데이터 (§6 표를 채운 후 작성)
+# 게시된 콘텐츠 메타데이터 — 2026-10-26 게시 완료
 # channelType: NAVER_BLOG | GOOGLE_BLOG | NAVER_PLACE | INSTAGRAM | OTHER
 PUBLISHED_URLS='[
   {
     "draftId": "gbrick-draft-20261026-01-brand-intro",
-    "publishedAt": "2026-XX-XXTXX:XX:XXZ",
-    "channelUrl": "https://...",
+    "publishedAt": "2026-10-26T00:00:00Z",
+    "channelUrl": "https://blog.naver.com/surfleeds/224454500567",
     "channelType": "NAVER_BLOG",
     "title": "지브릭커피(GBRICK Coffee) 공식 브랜드 소개"
   },
   {
     "draftId": "gbrick-draft-20261026-02-location-visit",
-    "publishedAt": "2026-XX-XXTXX:XX:XXZ",
-    "channelUrl": "https://...",
+    "publishedAt": "2026-10-26T00:00:00Z",
+    "channelUrl": "https://blog.naver.com/surfleeds/224454504232",
     "channelType": "NAVER_BLOG",
     "title": "은평뉴타운 카페 지브릭커피 — 위치·방문 정보"
   },
   {
     "draftId": "gbrick-draft-20261026-03-menu",
-    "publishedAt": "2026-XX-XXTXX:XX:XXZ",
-    "channelUrl": "https://...",
+    "publishedAt": "2026-10-26T00:00:00Z",
+    "channelUrl": "https://blog.naver.com/surfleeds/224454506923",
     "channelType": "NAVER_BLOG",
     "title": "지브릭커피 주요 메뉴 — 아메리카노·수제 자몽티·뱅쇼·하절기 수제 팥빙수"
   }
@@ -265,8 +265,8 @@ data/ai-search/gbrick/
 
 ### 게시 완료 확인 (§6 기입 후)
 
-- [ ] 게시 URL 3건 이상 §6에 기입 완료 — 날짜: ______
-- [ ] Set D 측정 예약 — 실행 예정일: ______
+- [x] 게시 URL 3건 이상 §6에 기입 완료 — 날짜: **2026-10-26**
+- [ ] Set D 측정 예약 — 실행 예정일: **2026-11-09 이후**
 
 ---
 
