@@ -44,6 +44,11 @@ export const GBRICK_BRAND = {
     note: "고정된 영업 보장 기간이 아니며, 실제 운영은 기온과 매장 상황에 따라 달라질 수 있습니다.",
   },
   phone: "02-517-1474",
+  social: {
+    instagram: "https://www.instagram.com/gbrickcoffee_seoul/",
+    youtube: "https://www.youtube.com/channel/UCHi63A9cGVGGuEgOJASGZkw",
+    tiktok: "https://www.tiktok.com/@gbrick.coffee.seou",
+  },
   confirmedBy: "대표 확인 2026-10-26",
   /** 대표가 아직 확인하지 않은 항목 — 값을 넣지 않는다. */
   unconfirmed: ["영업시간", "가격", "주차 조건", "한옥마을까지 도보 시간"],
