@@ -160,6 +160,7 @@ purpose: |
 | 02-location-visit | 네이버 플레이스 | _(게시 후 입력)_ | _(게시 후 입력)_ | |
 | 02-location-visit | 인스타그램 | _(게시 후 입력)_ | _(게시 후 입력)_ | |
 | 03-menu | 네이버 블로그 | https://blog.naver.com/surfleeds/224454506923 | 2026-10-26 | 대표 |
+| 03-menu | 구글 블로그 | https://fobeelee.blogspot.com/2026/10/gbrick-coffee_02095076095.html | 2026-10-26 | 대표 |
 | 03-menu | 네이버 플레이스 | _(게시 후 입력)_ | _(게시 후 입력)_ | |
 | 03-menu | 인스타그램 | _(게시 후 입력)_ | _(게시 후 입력)_ | |
 
