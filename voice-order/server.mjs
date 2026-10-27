@@ -215,6 +215,8 @@ export function createStoreContext({ menu, getKnowledge, dir = path.join(ROOT, '
       apiBase: env.GEMINI_API_BASE || undefined,
       log: (m) => console.log(m),
     }),
+    // AI가 켜져 있으면 손님 말을 AI 바리스타가 먼저 대화로 받는다. off면 규칙형이 못 알아들은 말만 AI
+    aiFirst: env.VOICE_ORDER_AI_FIRST !== 'off',
   };
 }
 
@@ -264,7 +266,7 @@ function main() {
   const modeLabel = storeCtx.mode === MODES.PRODUCTION ? 'PRODUCTION (실제 주문)' : 'TEST (연습 주문 · 실제 매출 아님)';
   console.log(`${line}\n STORE MODE : ${modeLabel}`);
   if (storeCtx.ai.enabled) {
-    storeCtx.ai.pickModel().then((m) => console.log(` AI 바리스타 : 켜짐 (Gemini ${m}) — 알아듣지 못한 말만 AI가 대화`));
+    storeCtx.ai.pickModel().then((m) => console.log(` AI 바리스타 : 켜짐 (Gemini ${m}) — ${storeCtx.aiFirst ? '손님 말을 AI가 먼저 대화로 받음' : '알아듣지 못한 말만 AI가 대화'}`));
   } else {
     console.log(' AI 바리스타 : 꺼짐 (GEMINI_API_KEY 없음) — 규칙형으로 주문');
   }

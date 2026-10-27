@@ -55,6 +55,7 @@ await step('AI 대화: "속이 안 좋은데 뭐 마시면 좋을까요" → 바
   await tablet.evaluate(() => window.__queue.push('속이 안 좋은데 뭐 마시면 좋을까요'));
   await tablet.getByRole('button', { name: /주문 시작/ }).click();
   await screen('message');
+  assert.equal(await tablet.evaluate(() => window.__spoken.find((t) => t.trim())), '어서 오세요. 무엇을 드릴까요?', '"듣고 있습니다" 대신 인사');
   assert.equal(await tablet.textContent('#m-title'), '바리스타');
   assert.equal(await tablet.textContent('#m-body'), '따뜻한 캐모마일이나 생강차는 어떠세요?');
   assert.equal(await tablet.textContent('#cap-ai'), '따뜻한 캐모마일이나 생강차는 어떠세요?');
@@ -69,6 +70,7 @@ await step('AI 주문: "어제 마신 그 노란 거 하나 주세요" → 따�
   await tablet.evaluate(() => window.__queue.push('어제 마신 그 노란 거 하나 주세요', '포장이요'));
   await tablet.getByRole('button', { name: '🎤 말로 주문하기' }).click();
   await screen('confirm');
+  assert.ok(await tablet.evaluate(() => window.__spoken.includes('유자차 말씀이시죠? 따뜻하게 담았어요. 매장에서 드시고 가시나요, 포장해 가시나요?')), '맞장구 + 다음 질문을 이어서 말한다');
   assert.match(await tablet.textContent('#c-lines'), /따뜻한 유자차/);
   assert.equal(await tablet.textContent('#c-total'), '5,000원');
   await tablet.screenshot({ path: `${OUT}02-confirm.png` });
@@ -86,6 +88,18 @@ await step('AI가 "직원 불러" 의도를 알아들으면 → 직원 도움 �
   assert.match(first, /직원에게 도움 요청/);
   await tablet.waitForTimeout(800);
   assert.ok(await tablet.locator('section[data-screen="message"]').isVisible(), '듣기로 넘어가지 않음');
+});
+
+await step('못 들었으면 버튼 없이 바로 다시 묻고 듣는다 → 이번엔 알아듣고 진행', async () => {
+  await tablet.reload(); // 직원 도움 화면에서 새 손님으로
+  await tablet.waitForFunction(() => document.getElementById('conn').textContent.includes('연결 정상'));
+  await tablet.evaluate(() => window.__queue.push('__nospeech__', '아이스 아메리카노 하나 주세요', '매장이요'));
+  await tablet.getByRole('button', { name: /주문 시작/ }).click();
+  await screen('confirm');
+  const spoken = await tablet.evaluate(() => window.__spoken);
+  assert.ok(spoken.includes('죄송해요, 제가 잘 못 들었어요. 한 번만 더 말씀해 주시겠어요?'));
+  assert.ok(spoken.includes('네, 아이스 아메리카노 한 잔이요. 매장에서 드시고 가시나요, 포장해 가시나요?'));
+  assert.match(await tablet.textContent('#c-lines'), /아이스 아메리카노/);
 });
 
 await step('카운터 KPI: AI 대화 횟수가 실제 호출로 보인다', async () => {

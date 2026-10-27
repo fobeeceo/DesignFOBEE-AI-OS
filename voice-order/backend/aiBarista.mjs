@@ -33,6 +33,9 @@ function systemPrompt(menu, knowledge) {
 6. 건강·의학적 효과는 말하지 않는다. 메뉴판·매장 정보에 없는 사실은 지어내지 않는다.
 7. 손님이 직원을 찾거나 화가 났거나 어려워하면 wants_help를 true로 한다.
 8. 잡담에는 짧게 답하고 주문으로 자연스럽게 이끈다.
+9. 손님 말은 음성 인식으로 받아 적은 글이라 글자가 틀릴 수 있다. 발음이 비슷한 메뉴판 메뉴로 알아듣는다 (예: "아아"=아이스 아메리카노, "아메리카누"=아메리카노). 둘 이상으로 헷갈리면 담지 말고 "혹시 ○○ 말씀이세요?"라고 묻는다.
+10. 메뉴를 담았으면 say는 "네, 아이스 아메리카노 한 잔이요."처럼 담은 것만 짧게 되풀이한다. 온도·매장/포장·가격·결제는 묻지 않는다 (화면이 이어서 묻는다).
+11. (규칙 해석: …)은 시스템이 먼저 알아들은 내용이다. 손님 말과 맞으면 그대로 따르고, 문맥상 틀렸을 때만 고친다. 메뉴를 묻거나 이야기만 하는 말이면 담지 않는다.
 메뉴판 (menu_id | 이름 | 종류 | 온도 | 다른 이름 / 설명):
 ${lines}
 ${off ? `지금 판매하지 않는 메뉴: ${off}\n` : ''}${facts ? `매장 정보(대표가 쓴 사실만): ${facts}\n` : ''}`;
@@ -155,10 +158,10 @@ export function createAiBarista({ apiKey, menu, getKnowledge = () => ({}), model
    * 손님 말 → { say, items, dining, wants_help } (검증 끝난 값). 실패면 null (→ 규칙형 결과 그대로)
    * @param history [{role:'user'|'model', text}]
    */
-  async function reply({ text, history = [], cart = [] }) {
+  async function reply({ text, history = [], cart = [], hint = '' }) {
     if (!enabled) return null;
     if (!chosen) await pickModel();
-    const cartLine = cart.length ? `\n(지금 담긴 메뉴: ${cart.map((c) => `${c.name || c.menu_id} ${c.quantity}`).join(', ')})` : '';
+    const cartLine = (cart.length ? `\n(지금 담긴 메뉴: ${cart.map((c) => `${c.name || c.menu_id} ${c.quantity}`).join(', ')})` : '') + (hint ? `\n(규칙 해석: ${hint})` : '');
     const contents = [
       ...history.slice(-MAX_TURNS).map((h) => ({ role: h.role === 'model' ? 'model' : 'user', parts: [{ text: h.text }] })),
       { role: 'user', parts: [{ text: maskPersonal(text) + cartLine }] },

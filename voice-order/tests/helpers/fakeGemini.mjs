@@ -12,6 +12,7 @@ function answer(text) {
   if (/노란/.test(text)) return { say: '유자차 말씀이시죠? 따뜻하게 담았어요.', items: [{ menu_id: 'YUZU_TEA', temperature: 'HOT', quantity: 1 }], dining: null, wants_help: false };
   if (/속이 안 좋/.test(text)) return { say: '따뜻한 캐모마일이나 생강차는 어떠세요? 한 잔에 6,000원이에요.', items: [], dining: null, wants_help: false };
   if (/없는 메뉴 시험/.test(text)) return { say: '아인슈페너 담았어요.', items: [{ menu_id: 'EINSPANNER', temperature: 'HOT', quantity: 1 }], dining: null, wants_help: false };
+  if (/아이스 아메리카노/.test(text)) return { say: '네, 아이스 아메리카노 한 잔이요.', items: [{ menu_id: 'AMERICANO', temperature: 'ICE', quantity: 1 }], dining: null, wants_help: false };
   if (/사람 불러/.test(text)) return { say: '네, 직원을 불러 드릴게요.', items: [], dining: null, wants_help: true };
   return { say: '천천히 다시 말씀해 주시겠어요?', items: [], dining: null, wants_help: false };
 }

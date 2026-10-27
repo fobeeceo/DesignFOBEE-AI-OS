@@ -53,6 +53,8 @@ const STORE = document.documentElement.dataset.mode === 'store';
 const STORE_ID = document.documentElement.dataset.storeId || '';
 const STORE_TEST = STORE && document.documentElement.dataset.orderMode !== 'production';
 let online = true;
+let AI_ON = false; // 매장 서버에 AI 바리스타가 켜져 있으면 사람 바리스타처럼 인사·맞장구·되묻기를 한다
+const GREETING = '어서 오세요. 무엇을 드릴까요?';
 
 /** 매장 모드에서는 대화·가격·도움 요청을 그 매장 경로로 보낸다 (/api/store/:id/...) */
 function call(path, body) {
@@ -177,7 +179,9 @@ async function listenOrder(quiet = false, onSilence = null) {
   const my = ++flow;
   $('interim').textContent = '';
   show('listening');
-  if (!quiet) await say('듣고 있습니다.'); // AI 바리스타와 이야기하는 중이면 바로 듣는다
+  // AI 바리스타: 처음엔 인사, 다시 들을 땐 "네, 말씀해 주세요." / AI가 없으면 예전 안내 그대로
+  if (!quiet) await say(AI_ON ? (s.greeted ? '네, 말씀해 주세요.' : GREETING) : '듣고 있습니다.'); // 이야기하는 중이면 바로 듣는다
+  s.greeted = true;
   if (my !== flow) return;
   try {
     const text = await listen((t) => ($('interim').textContent = t));
@@ -204,6 +208,7 @@ async function handleText(text) {
     s.addBase = null;
     s.unrecognized = r.unrecognized;
     if (r.dining) s.dining = r.dining; // '아메리카노 하나 포장이요'
+    s.aiSay = r.say || ''; // AI 바리스타의 맞장구 ("네, 아이스 아메리카노 한 잔이요.") → 다음 질문 앞에 말한다
     return proceed();
   }
   if (r.kind === 'suggest') return showSuggestions(r);
@@ -282,11 +287,25 @@ function showNotHeard() {
       buttons: helpOrRetry(),
     });
   }
+  if (AI_ON && s.mode === 'VOICE') return reAsk();
   return showMessage({
     title: '제가 잘 못 들었어요.',
     body: '천천히 한 번 더 말씀해 주세요.',
     buttons: helpOrRetry(),
   });
+}
+
+/** 사람 바리스타처럼: 못 들었으면 버튼을 누르게 하지 않고 바로 다시 묻고 듣는다 (실패 MAX_FAILS번이면 직원 연결 화면) */
+async function reAsk() {
+  const my = ++flow;
+  const text = '죄송해요, 제가 잘 못 들었어요. 한 번만 더 말씀해 주시겠어요?';
+  $('m-title').textContent = '바리스타';
+  $('m-body').textContent = text;
+  $('m-heard').textContent = s.heard ? `들은 말: “${s.heard}”` : '';
+  buttons($('m-buttons'), helpOrRetry());
+  show('message');
+  await say(text);
+  if (my === flow) listenOrder(true);
 }
 
 function showNotFound(unknown) {
@@ -348,7 +367,9 @@ async function askQuestion(q) {
         ],
   );
   show('question');
-  await say(q.text);
+  const ack = s.aiSay;
+  s.aiSay = '';
+  await say(ack ? `${ack} ${q.text}` : q.text);
   if (my === flow && s.mode === 'VOICE') {
     const prompt = dining
       ? '“매장” 또는 “포장”이라고 말씀해 주세요.'
@@ -497,6 +518,7 @@ async function showConfirm() {
   const lead = s.lead || ''; // 방금 고친 내용 ("아메리카노를 아이스로 바꿨어요.")
   const hintOnly = !!s.hintOnly; // 바뀐 것 없이 안내만 할 때
   s.lead = '';
+  s.aiSay = ''; // 확인 화면이 주문을 그대로 되읽으므로 맞장구는 겹치지 않게 뺀다
   s.hintOnly = false;
   let priced;
   try {
@@ -876,6 +898,7 @@ if (STORE) {
   if (!STORE_TEST) $('voice-unsupported').textContent = '이 기기에서는 음성 주문이 안 돼요. 직원에게 말씀해 주세요.'; // 글자 주문 버튼이 없는 실제 운영 화면
   checkServer();
   setInterval(checkServer, 10000);
+  api(`/api/store/${STORE_ID}/config`).then((c) => (AI_ON = !!c.ai?.enabled)).catch(() => {});
 }
 
 menu = await api('/api/menu');

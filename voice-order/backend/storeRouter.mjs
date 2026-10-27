@@ -93,23 +93,36 @@ export async function routeStore(ctx, method, pathname, body = {}) {
   }
 }
 
+/** 규칙형 해석을 AI에게 주는 한 줄 힌트 ("아이스 아메리카노 2, 포장" / "알아듣지 못함") */
+function ruleHint(r) {
+  if ((r.kind === 'ok' || r.kind === 'clarify') && r.items?.length) {
+    const temp = { HOT: '따뜻한 ', ICE: '아이스 ' };
+    const items = r.items.map((i) => `${temp[i.temperature] || ''}${i.name} ${i.quantity}`).join(', ');
+    return `${items}${r.dining ? `, ${r.dining === 'TAKEOUT' ? '포장' : '매장'}` : ''}`;
+  }
+  return r.kind === 'suggest' ? '메뉴 추천 요청' : r.kind === 'info' ? '메뉴 질문' : '알아듣지 못함';
+}
+
 /**
- * 규칙형 → (못 알아들으면) AI 바리스타. AI가 실패하면 규칙형 결과 그대로.
- * AI가 담은 메뉴는 메뉴판으로 검증된 것만 오고, 손님 화면은 기존 확인 질문·확인 화면을 그대로 거친다.
+ * AI 바리스타가 손님 말을 먼저 대화로 받는다 (대표 지시 2026-10-27: 자연스러운 바리스타). 규칙형 해석은 힌트로 함께 준다.
+ * AI가 안 되면(꺼짐·실패·시간 초과) 규칙형 결과 그대로. VOICE_ORDER_AI_FIRST=off 이면 예전처럼 못 알아들은 말만 AI.
+ * AI가 담은 메뉴는 메뉴판으로 검증된 것만 오고, 손님 화면은 기존 확인 질문·확인 화면("네"라고 해야 주문)을 그대로 거친다.
  */
-async function parseWithAi({ engine, sessions, ai }, sessionId, body) {
+async function parseWithAi({ engine, sessions, ai, aiFirst = true }, sessionId, body) {
   const r = engine.parse(sessionId, body.text);
   // "뭐 마시면 좋을까요"처럼 조건 없는 추천은 메뉴 50개를 보여주기보다 AI가 대화로 권한다 (온도·종류 조건이 있으면 기존 보기 그대로)
   const openSuggest = r.kind === 'suggest' && !r.temperature && !r.category && !r.not_coffee;
-  if (!ai?.enabled || !(AI_KINDS.has(r.kind) || openSuggest)) return r;
+  // 사실 그대로 답하는 것(메뉴 지식 답·품절 안내)과 조건 있는 추천 보기는 규칙형 그대로
+  const keep = r.kind === 'info' || r.kind === 'unavailable' || (r.kind === 'suggest' && !openSuggest);
+  if (!ai?.enabled || keep || !(aiFirst || AI_KINDS.has(r.kind) || openSuggest)) return r;
   const sess = sessions.get(sessionId);
   const history = sess.ai_turns || [];
-  const out = await ai.reply({ text: body.text, history, cart: Array.isArray(body.cart) ? body.cart.slice(0, 20) : [] });
+  const out = await ai.reply({ text: body.text, history, cart: Array.isArray(body.cart) ? body.cart.slice(0, 20) : [], hint: ruleHint(r) });
   if (!out) return r;
   const ordered = out.items.length > 0 && !out.wants_help;
   // AI가 알아들었으면 '실패'로 세지 않는다 (KPI·답 못 한 질문은 실제로 못 한 것만)
   const transcripts = sess.transcripts.map((t, i) => (i === sess.transcripts.length - 1 ? { ...t, kind: ordered ? 'ai_order' : 'ai_chat' } : t));
-  const failCount = Math.max(0, sess.fail_count - (AI_KINDS.has(r.kind) ? 1 : 0)); // suggest는 처음부터 실패로 세지 않았다
+  const failCount = Math.max(0, sess.fail_count - (AI_KINDS.has(r.kind) ? 1 : 0)); // 알아들은 말·suggest는 처음부터 실패로 세지 않았다
   sessions.update(sessionId, {
     transcripts,
     fail_count: failCount,
@@ -120,6 +133,7 @@ async function parseWithAi({ engine, sessions, ai }, sessionId, body) {
       kind: out.items.some((i) => !i.temperature) ? 'clarify' : 'ok',
       items: out.items,
       dining: out.dining || detectDining(body.text),
+      say: out.say,
       unknown: [],
       unavailable: [],
       unrecognized: [],

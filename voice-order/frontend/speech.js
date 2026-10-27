@@ -11,11 +11,32 @@ export class SpeechFailure extends Error {
   }
 }
 
+/**
+ * 이어 듣기에서 받은 조각들을 한 문장으로. 일부 안드로이드 크롬은 조각마다 앞 내용을 다시 붙여 보내므로
+ * ("아이스", "아이스 아메리카노") 앞 내용으로 시작하는 조각은 덧붙이지 않고 바꾼다.
+ */
+export function joinSegments(segments) {
+  let out = '';
+  for (const raw of segments) {
+    const seg = String(raw || '').trim();
+    if (!seg) continue;
+    if (!out || seg.startsWith(out)) out = seg;
+    else if (!out.endsWith(seg)) out = `${out} ${seg}`;
+  }
+  return out;
+}
+
 export class BrowserSpeechProvider {
-  constructor({ lang = 'ko-KR', timeoutMs = 10000 } = {}) {
+  /**
+   * @param continuous 이어 듣기: 어르신이 말 중간에 잠깐 쉬어도 끊지 않고, silenceMs 동안 조용하면 끝낸다 (?stt=classic 이면 예전 방식)
+   */
+  constructor({ lang = 'ko-KR', timeoutMs = 15000, continuous = true, silenceMs = 1600, noSpeechMs = 8000 } = {}) {
     this.name = 'browser';
     this.lang = lang;
     this.timeoutMs = timeoutMs;
+    this.continuous = continuous;
+    this.silenceMs = silenceMs;
+    this.noSpeechMs = noSpeechMs;
     this.rec = null;
   }
 
@@ -37,30 +58,43 @@ export class BrowserSpeechProvider {
       this.rec = rec;
       rec.lang = this.lang;
       rec.interimResults = true;
-      rec.continuous = false;
+      rec.continuous = this.continuous;
       rec.maxAlternatives = 1;
       let finalText = '';
       let latest = '';
       let settled = false;
+      const stop = () => {
+        try { rec.stop(); } catch { /* 이미 멈춤 */ }
+      };
+      // 이어 듣기: 아무 말이 없으면 noSpeechMs 뒤, 말하다 멈추면 silenceMs 뒤에 끝낸다
+      let quiet = this.continuous ? setTimeout(stop, this.noSpeechMs) : null;
       const done = (fn, v) => {
         if (settled) return;
         settled = true;
         clearTimeout(timer);
+        clearTimeout(quiet);
         if (this.rec === rec) this.rec = null; // 늦게 끝난 이전 듣기가 새 듣기를 지우지 않게
         fn(v);
       };
-      const timer = setTimeout(() => {
-        try { rec.stop(); } catch { /* 이미 멈춤 */ }
-      }, this.timeoutMs);
+      const timer = setTimeout(stop, this.timeoutMs);
 
       rec.onresult = (e) => {
-        let interim = '';
-        for (let i = e.resultIndex; i < e.results.length; i++) {
-          const t = e.results[i][0].transcript;
-          if (e.results[i].isFinal) finalText += t;
-          else interim += t;
+        if (this.continuous) {
+          // 처음부터 다시 모은다 (조각이 다시 오거나 고쳐져도 겹치지 않게)
+          const all = Array.from(e.results, (r) => r[0].transcript);
+          latest = joinSegments(all);
+          finalText = joinSegments(Array.from(e.results).filter((r) => r.isFinal).map((r) => r[0].transcript));
+          clearTimeout(quiet);
+          quiet = setTimeout(stop, this.silenceMs);
+        } else {
+          let interim = '';
+          for (let i = e.resultIndex; i < e.results.length; i++) {
+            const t = e.results[i][0].transcript;
+            if (e.results[i].isFinal) finalText += t;
+            else interim += t;
+          }
+          latest = (finalText + interim).trim();
         }
-        latest = (finalText + interim).trim();
         onInterim(latest);
       };
       rec.onerror = (e) => {
@@ -70,7 +104,8 @@ export class BrowserSpeechProvider {
         done(reject, new SpeechFailure(code));
       };
       rec.onend = () => {
-        const text = (finalText || latest).trim();
+        // 이어 듣기는 멈추는 순간의 말(아직 확정 전 조각 포함)까지 쓴다
+        const text = (this.continuous ? latest || finalText : finalText || latest).trim();
         if (text) done(resolve, text);
         else done(reject, new SpeechFailure('no-speech'));
       };
@@ -91,7 +126,21 @@ export class BrowserSpeechProvider {
 }
 
 export function createSpeechProvider() {
-  return new BrowserSpeechProvider();
+  const classic = typeof location !== 'undefined' && new URLSearchParams(location.search).get('stt') === 'classic';
+  return new BrowserSpeechProvider({ continuous: !classic, timeoutMs: classic ? 10000 : 15000 });
+}
+
+/** 한국어 목소리 고르기: 고음질(Premium·Enhanced·Neural·Natural) → Google → 유나·Siri → 아무 한국어 */
+export function pickKoreanVoice(voices) {
+  const ko = (voices || []).filter((v) => /^ko/i.test(v.lang || ''));
+  const rank = (v) => {
+    const n = v.name || '';
+    if (/premium|enhanced|neural|natural|고품질/i.test(n)) return 0;
+    if (/google/i.test(n)) return 1;
+    if (/yuna|유나|siri|sunhi|heami/i.test(n)) return 2;
+    return v.lang === 'ko-KR' ? 3 : 4;
+  };
+  return ko.sort((a, b) => rank(a) - rank(b))[0] || null;
 }
 
 /** 음성 안내 (TTS). 지원하지 않거나 소리가 꺼져 있으면 조용히 넘어간다 — 화면 글자가 항상 함께 나온다. */
@@ -101,8 +150,7 @@ export class Speaker {
     this.voice = null;
     if (this.synth) {
       const pick = () => {
-        const voices = this.synth.getVoices();
-        this.voice = voices.find((v) => v.lang === 'ko-KR') || voices.find((v) => v.lang?.startsWith('ko')) || null;
+        this.voice = pickKoreanVoice(this.synth.getVoices());
       };
       pick();
       this.synth.onvoiceschanged = pick;
