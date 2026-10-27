@@ -189,8 +189,8 @@ async function listenOrder(quiet = false, onSilence = null) {
     await handleText(text);
   } catch (e) {
     if (my !== flow) return;
-    const code = e instanceof SpeechFailure ? e.code : 'error';
-    if (onSilence && code === 'no-speech') return onSilence(); // 바리스타 말 뒤 조용하면 실패로 치지 않고 대답 화면 그대로
+    const code = e instanceof SpeechFailure ? e.code : e?.message === 'timeout' || e?.message === 'network' ? `api-${e.message}` : 'error'; // 기록에 원인이 남게
+    if (onSilence && (code === 'no-speech' || code === 'stuck')) return onSilence(); // 바리스타 말 뒤 조용하면 실패로 치지 않고 대답 화면 그대로
     await handleHearFail(code);
   }
 }
@@ -200,6 +200,7 @@ async function handleText(text) {
   s.heard = text;
   captionMe(text); // 글자로 넣은 주문도 손님 자막으로
   if (interpretEdit(text, s.addBase || [], menu)?.type === 'cancel_order') return askQuestion(CANCEL_QUESTION);
+  if (AI_ON) $('interim').textContent = `“${text}” … 잠시만요`; // AI가 생각하는 동안 멈춘 것처럼 보이지 않게
   const r = await call(`/api/sessions/${s.session}/parse`, { text, cart: s.addBase || [] });
   if (my !== flow) return;
   s.failCount = r.fail_count;

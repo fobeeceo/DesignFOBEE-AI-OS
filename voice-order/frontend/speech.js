@@ -1,6 +1,7 @@
 // 음성 입력(STT)·음성 안내(TTS) 추상화.
 // SpeechProvider = { name, isSupported(), listen() → Promise<string>, cancel() }
-// 실패 시 SpeechFailure(code) — code: 'no-speech' | 'not-allowed' | 'network' | 'aborted' | 'unsupported' | 'error'
+// 실패 시 SpeechFailure(code) — code: 'no-speech' | 'not-allowed' | 'network' | 'aborted' | 'unsupported' | 'stuck' | 'error'
+// 'stuck' = 멈추라고 했는데 브라우저가 끝났다는 신호를 보내지 않음 (아이폰 사파리에서 생김) → 기다리지 않고 넘어간다
 // 지금은 BrowserSpeechProvider(Web Speech API)만 있다. 서버 STT(OpenAI·Google 등)를 붙일 때는
 // 같은 모양의 provider를 만들고, API 키는 서버에만 두고 브라우저는 녹음 파일만 서버로 보낸다.
 
@@ -30,13 +31,14 @@ export class BrowserSpeechProvider {
   /**
    * @param continuous 이어 듣기: 어르신이 말 중간에 잠깐 쉬어도 끊지 않고, silenceMs 동안 조용하면 끝낸다 (?stt=classic 이면 예전 방식)
    */
-  constructor({ lang = 'ko-KR', timeoutMs = 15000, continuous = true, silenceMs = 1600, noSpeechMs = 8000 } = {}) {
+  constructor({ lang = 'ko-KR', timeoutMs = 15000, continuous = true, silenceMs = 1600, noSpeechMs = 8000, endGraceMs = 1500 } = {}) {
     this.name = 'browser';
     this.lang = lang;
     this.timeoutMs = timeoutMs;
     this.continuous = continuous;
     this.silenceMs = silenceMs;
     this.noSpeechMs = noSpeechMs;
+    this.endGraceMs = endGraceMs;
     this.rec = null;
   }
 
@@ -63,8 +65,17 @@ export class BrowserSpeechProvider {
       let finalText = '';
       let latest = '';
       let settled = false;
+      let grace = null;
+      // 멈추라고 한 뒤 endGraceMs 안에 끝 신호가 없으면 들은 말로 바로 넘어간다 (영원히 '듣는 중'으로 멈추지 않게)
+      const forceEnd = () => {
+        const text = (latest || finalText).trim();
+        if (text) done(resolve, text);
+        else done(reject, new SpeechFailure('stuck'));
+        try { rec.abort(); } catch { /* 무시 */ }
+      };
       const stop = () => {
         try { rec.stop(); } catch { /* 이미 멈춤 */ }
+        grace ||= setTimeout(forceEnd, this.endGraceMs);
       };
       // 이어 듣기: 아무 말이 없으면 noSpeechMs 뒤, 말하다 멈추면 silenceMs 뒤에 끝낸다
       let quiet = this.continuous ? setTimeout(stop, this.noSpeechMs) : null;
@@ -73,6 +84,7 @@ export class BrowserSpeechProvider {
         settled = true;
         clearTimeout(timer);
         clearTimeout(quiet);
+        clearTimeout(grace);
         if (this.rec === rec) this.rec = null; // 늦게 끝난 이전 듣기가 새 듣기를 지우지 않게
         fn(v);
       };
@@ -169,6 +181,7 @@ export class Speaker {
   speak(text) {
     if (!this.synth || !text) return Promise.resolve();
     this.synth.cancel();
+    if (this.synth.paused) this.synth.resume(); // 아이폰: 멈춤 상태로 남아 다음 말이 안 나오는 경우
     return new Promise((resolve) => {
       const u = new SpeechSynthesisUtterance(text);
       u.lang = 'ko-KR';
