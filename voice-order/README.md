@@ -66,6 +66,8 @@ PRODUCTION은 `VOICE_ORDER_MODE=production` + `STORE_STAFF_KEY`(직원 PIN)가 �
 
 1. **한 번만** 설치 (PowerShell): `winget install --id Cloudflare.cloudflared --source winget` → PowerShell을 새로 연다
 2. `voice-order` 폴더에서 `npm run share` (또는 `share.bat` 더블클릭)
+   - **한 줄로 받기+실행** (PowerShell, 압축 풀기·예전 폴더 보관까지 자동, 설치 위치 `%USERPROFILE%\GBRICK\voice-order-app`):
+     `irm https://raw.githubusercontent.com/fobeeceo/DesignFOBEE-AI-OS/feature/gbrick-voice-order-store/voice-order/scripts/phone-test.ps1 | iex`
 3. 화면의 **`★ 휴대폰 바리스타 주문 : https://xxxx.trycloudflare.com/store/GBRICK_MAIN`** 주소를 카카오톡 '나와의 채팅'으로 보내 휴대폰에서 연다 (주문은 이 PC 카운터 화면으로 들어온다)
    - 인터넷 공유는 **항상 TEST(연습 주문)** 로만 켜진다. 예전 서버가 켜져 있으면 먼저 알려 준다.
    - AI 바리스타까지 쓰려면 이 PC 사용자 환경변수에 `GEMINI_API_KEY`가 있어야 한다.
