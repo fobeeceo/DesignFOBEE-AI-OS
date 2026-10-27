@@ -77,8 +77,8 @@ export class BrowserSpeechProvider {
         try { rec.stop(); } catch { /* 이미 멈춤 */ }
         grace ||= setTimeout(forceEnd, this.endGraceMs);
       };
-      // 이어 듣기: 아무 말이 없으면 noSpeechMs 뒤, 말하다 멈추면 silenceMs 뒤에 끝낸다
-      let quiet = this.continuous ? setTimeout(stop, this.noSpeechMs) : null;
+      // 아무 말이 없으면 noSpeechMs 뒤 끝낸다. 이어 듣기는 말하다 멈추면 silenceMs 뒤에 끝낸다
+      let quiet = setTimeout(stop, this.noSpeechMs);
       const done = (fn, v) => {
         if (settled) return;
         settled = true;
@@ -99,6 +99,7 @@ export class BrowserSpeechProvider {
           clearTimeout(quiet);
           quiet = setTimeout(stop, this.silenceMs);
         } else {
+          clearTimeout(quiet); // 예전 방식: 끝은 브라우저가 정한다
           let interim = '';
           for (let i = e.resultIndex; i < e.results.length; i++) {
             const t = e.results[i][0].transcript;
@@ -137,8 +138,16 @@ export class BrowserSpeechProvider {
   }
 }
 
+/** 아이폰·아이패드 (아이패드는 '맥'으로 보이기도 한다) */
+export function isIOS() {
+  if (typeof navigator === 'undefined') return false;
+  return /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+
 export function createSpeechProvider() {
-  const classic = typeof location !== 'undefined' && new URLSearchParams(location.search).get('stt') === 'classic';
+  const stt = typeof location !== 'undefined' ? new URLSearchParams(location.search).get('stt') : null;
+  // 아이폰 사파리는 이어 듣기가 불안정하다 → 사파리가 말 끝을 정하는 예전 방식 (?stt=continuous 로 이어 듣기 시험)
+  const classic = stt === 'classic' || (isIOS() && stt !== 'continuous');
   return new BrowserSpeechProvider({ continuous: !classic, timeoutMs: classic ? 10000 : 15000 });
 }
 

@@ -7,7 +7,7 @@ import {
 import { parseOrder } from './core/parser.mjs';
 import { interpretEdit, applyEdit, editMessage } from './core/edit.mjs';
 import { won, speakItems, priceLabel } from './core/format.mjs';
-import { createSpeechProvider, Speaker, SpeechFailure } from './speech.js';
+import { createSpeechProvider, Speaker, SpeechFailure, isIOS } from './speech.js';
 import { api } from './api.js';
 
 const HOME_AFTER_DONE_SEC = 10;
@@ -68,6 +68,7 @@ function newKey() {
 
 function show(name) {
   document.body.dataset.view = name; // 확인 화면 등에서는 캐릭터를 작게
+  hideTap(); // 화면이 바뀌면 이전 '눌러서 말하기'는 치운다 (새로 들을 때 다시 나온다)
   document.querySelectorAll('[data-screen]').forEach((el) => {
     el.hidden = el.dataset.screen !== name;
   });
@@ -129,8 +130,32 @@ function say(text) {
   });
 }
 
+// 아이폰 사파리: 첫 듣기는 되는데 그다음 자동 듣기는 마이크 소리가 안 들어오는 일이 있다 (대표 현장 시험 2026-10-27).
+// 한 번이라도 아무것도 못 들으면 그때부터 '눌러서 말하기' — 손님이 누르는 순간 듣기를 시작해야 마이크가 열린다.
+const IOS = isIOS();
+let tapMode = new URLSearchParams(location.search).get('tap') === '1';
+function hideTap() {
+  const b = $('tap-talk');
+  b.hidden = true;
+  b.onclick = null;
+}
+
 /** 마이크로 듣기 — 듣는 동안 캐릭터가 '듣고 있어요', 들리는 말은 손님 자막으로 */
 function listen(onInterim) {
+  if (!tapMode) return listenNow(onInterim);
+  ++talkId;
+  setAvatar('idle');
+  return new Promise((resolve, reject) => {
+    const b = $('tap-talk');
+    b.hidden = false;
+    b.onclick = () => {
+      hideTap();
+      listenNow(onInterim).then(resolve, reject); // 누른 그 순간 바로 시작 (await 없이)
+    };
+  });
+}
+
+function listenNow(onInterim) {
   ++talkId;
   setAvatar('listening');
   return stt
@@ -141,6 +166,9 @@ function listen(onInterim) {
     .then((t) => {
       captionMe(t);
       return t;
+    }, (e) => {
+      if (IOS && !tapMode && (e.code === 'no-speech' || e.code === 'stuck')) tapMode = true; // 다음부터 눌러서 말하기
+      throw e;
     })
     .finally(() => {
       if ($('avatar').dataset.state === 'listening') setAvatar('idle');
@@ -183,6 +211,7 @@ async function listenOrder(quiet = false, onSilence = null) {
   if (!quiet) await say(AI_ON ? (s.greeted ? '네, 말씀해 주세요.' : GREETING) : '듣고 있습니다.'); // 이야기하는 중이면 바로 듣는다
   s.greeted = true;
   if (my !== flow) return;
+  if (tapMode) $('interim').textContent = '아래 🎤 버튼을 누르고 말씀해 주세요.';
   try {
     const text = await listen((t) => ($('interim').textContent = t));
     if (my !== flow) return;
@@ -299,7 +328,7 @@ function showNotHeard() {
 /** 사람 바리스타처럼: 못 들었으면 버튼을 누르게 하지 않고 바로 다시 묻고 듣는다 (실패 MAX_FAILS번이면 직원 연결 화면) */
 async function reAsk() {
   const my = ++flow;
-  const text = '죄송해요, 제가 잘 못 들었어요. 한 번만 더 말씀해 주시겠어요?';
+  const text = tapMode ? '죄송해요, 제가 잘 못 들었어요. 아래 마이크 버튼을 누르고 말씀해 주세요.' : '죄송해요, 제가 잘 못 들었어요. 한 번만 더 말씀해 주시겠어요?';
   $('m-title').textContent = '바리스타';
   $('m-body').textContent = text;
   $('m-heard').textContent = s.heard ? `들은 말: “${s.heard}”` : '';
@@ -391,7 +420,7 @@ async function listenAnswer(my, prefix, handler, prompt, interpret = interpretAn
   $(`${prefix}-listen`).hidden = true;
   for (let i = 0; i < ANSWER_TRIES; i++) {
     if (my !== flow) return;
-    status.textContent = `🎤 듣고 있어요. ${prompt}`;
+    status.textContent = tapMode ? `아래 🎤 버튼을 누르고 말씀해 주세요. ${prompt}` : `🎤 듣고 있어요. ${prompt}`;
     await new Promise((r) => setTimeout(r, 300)); // 안내 음성 끝자락이 마이크에 들어가지 않게
     let text;
     try {

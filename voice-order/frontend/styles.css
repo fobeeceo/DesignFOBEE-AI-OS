@@ -91,6 +91,9 @@ main { flex: 1; display: flex; }
 .btn.warm { background: var(--warm); border-color: var(--warm); }
 .btn.cool { background: var(--cool); border-color: var(--cool); }
 .btn.link { display: block; background: none; border: none; min-height: 56px; font-size: 1.05rem; font-weight: 700; color: var(--muted); text-decoration: underline; }
+.btn.tap-talk { min-height: 88px; font-size: 1.6rem; margin-bottom: 10px; animation: tap-pulse 1.6s ease-in-out infinite; }
+@keyframes tap-pulse { 50% { transform: scale(1.03); } }
+@media (prefers-reduced-motion: reduce) { .btn.tap-talk { animation: none; } }
 .btn.help { background: var(--card); color: var(--ink); border-color: var(--ink); font-size: 1.2rem; min-height: 68px; }
 .btn.chip { min-height: 52px; font-size: 1rem; font-weight: 600; border-width: 2px; border-color: var(--line); background: var(--card); color: var(--ink); }
 
