@@ -64,7 +64,7 @@ PRODUCTION은 `VOICE_ORDER_MODE=production` + `STORE_STAFF_KEY`(직원 PIN)가 �
 
 매장 Wi-Fi 밖(집·외부)에서 휴대폰으로 시연할 때. 매장 PC가 켜져 있어야 한다.
 
-1. **한 번만** 설치 (PowerShell): `winget install --id Cloudflare.cloudflared` → PowerShell을 새로 연다
+1. **한 번만** 설치 (PowerShell): `winget install --id Cloudflare.cloudflared --source winget` → PowerShell을 새로 연다
 2. `voice-order` 폴더에서 `npm run share` (또는 `share.bat` 더블클릭)
 3. 화면의 **`★ 휴대폰 바리스타 주문 : https://xxxx.trycloudflare.com/store/GBRICK_MAIN`** 주소를 카카오톡 '나와의 채팅'으로 보내 휴대폰에서 연다 (주문은 이 PC 카운터 화면으로 들어온다)
    - 인터넷 공유는 **항상 TEST(연습 주문)** 로만 켜진다. 예전 서버가 켜져 있으면 먼저 알려 준다.

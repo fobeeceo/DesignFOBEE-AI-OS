@@ -54,7 +54,7 @@ tunnel.on('error', () => {
   console.log(`
 [안내] 인터넷 공유 프로그램(cloudflared)이 없습니다. PowerShell에서 한 번만 설치하세요:
 
-    winget install --id Cloudflare.cloudflared
+    winget install --id Cloudflare.cloudflared --source winget
 
 설치 후 PowerShell을 새로 열고 다시 npm run share 하세요.
 (매장 안 Wi-Fi에서만 쓸 때는 npm start 로 충분합니다)
