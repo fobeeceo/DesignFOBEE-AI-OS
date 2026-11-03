@@ -4,6 +4,17 @@
 
 ## [Unreleased]
 
+### Supabase RLS 활성화 — 치명적 보안 경고 해소 (2026-11-03)
+- **문제**: 전체 17개 테이블에 RLS(Row Level Security)가 비활성화 상태. anon 키로 누구든 데이터 전체를 읽기·수정·삭제 가능했음.
+- **처리**: 신규 마이그레이션 `20261103000000_enable_rls` + `database/rls-policies.sql` 작성.
+- **정책 설계**:
+  - `profiles / projects / space_photos / design_generations / design_images / estimates` — 본인 소유 행만 접근, 관리자 전체 조회
+  - `leads / public_generations` — 비인증 INSERT 허용(문의 폼·공개 AI 스튜디오), 읽기·수정·삭제는 관리자만
+  - `lead_notes / ai_search_*` (7개) — 관리자 전용
+  - `is_admin()` SECURITY DEFINER 함수 → profiles RLS 재귀 없이 관리자 판정
+- **기존 API 영향 없음**: Prisma 백엔드는 service_role 키 사용 → RLS 자동 우회
+- **적용 방법**: Supabase 대시보드 SQL Editor에서 `database/rls-policies.sql` 실행 (§0 원칙 6 — 대표 최종 확인 후 실행)
+
 ### 「대화로 주문」 웹 체험판 — fobee.co.kr/gbrick-order (2026-10-03, 대표 지시)
 - 매장용 음성 주문(voice-order/)을 홈페이지에서 휴대폰으로 체험할 수 있게 했다. 원본은 voice-order/ 하나이고, `next.config.mjs`가 빌드 때 `scripts/sync-voice-order.mjs`로 `public/gbrick-order/`에 복사한다(복사본은 git 제외 — 같은 코드를 두 곳에 두지 않음).
 - **사실대로 표시**: 홈페이지(Vercel)는 매장 PC와 연결되어 있지 않아 주문이 매장에 가지 않는다. 그래서 첫 화면·완료 화면에 "체험판이에요. 여기서 하는 주문은 매장에 전달되지 않아요"를 적고, 주문서 출력 버튼을 숨기고, 직원 호출은 "체험판에서는 되지 않아요"로 안내한다(§0 원칙 1·3). 검색 노출 제외(noindex), 메뉴(내비게이션) 링크 없음.
