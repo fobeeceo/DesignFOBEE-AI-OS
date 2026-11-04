@@ -16,6 +16,8 @@ next-env.d.ts
 docs/*
 # AI 검색 비즈니스 문서 — 공개 가능 항목만 예외 처리 (2026-10-24)
 !docs/ai-search-business/
+# 브랜드 문서 — 메뉴 팩트 오딧·Google 등록 문구·AI 검색 데이터 (2026-11-04)
+!docs/brand/
 # 가격 가설 파일은 공개하지 않는다
 docs/ai-search-business/business-model-pricing.md
 
