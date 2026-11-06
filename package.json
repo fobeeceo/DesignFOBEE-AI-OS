@@ -21,6 +21,7 @@
     "prisma:migrate:deploy": "prisma migrate deploy",
     "prisma:status": "prisma migrate status",
     "db:check": "npx tsx database/check-db-connection.ts",
+    "db:check-supabase": "npx tsx database/check-supabase-connection.ts",
     "seed:gbrick": "npx tsx database/seed-gbrick.ts",
     "gbrick:migrate": "prisma migrate dev --name gbrick_init && npm run seed:gbrick",
     "gbrick:pilot": "npx tsx database/setup-pilot-store.ts"

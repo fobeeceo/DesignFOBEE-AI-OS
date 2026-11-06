@@ -1,0 +1,446 @@
+import { createClient } from "@supabase/supabase-js";
+import type {
+  IStoreRepository, IMenuRepository, IOrderRepository, IPaymentRepository,
+  IPointRepository, IStampRepository, ICouponRepository, IChecklistRepository, INoticeRepository,
+  StoreDto, MenuCategoryDto, MenuDto, OrderDto, PaymentDto, PointAccountDto, PointLedgerDto,
+  StampAccountDto, StampLedgerDto, CouponDto, CouponIssueDto, ChecklistDto, StoreNoticeDto,
+  CreateOrderInput,
+} from "../types";
+
+function getAdmin() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) throw new Error("Supabase 환경변수 미설정");
+  return createClient(url, key, { auth: { autoRefreshToken: false, persistSession: false } });
+}
+
+function nanoid() {
+  return Math.random().toString(36).slice(2) + Date.now().toString(36);
+}
+
+// ─── Store Repository ─────────────────────────────────────────
+
+export const sbStoreRepo: IStoreRepository = {
+  async findMany(status?: string) {
+    const sb = getAdmin();
+    let q = sb.from("gb_stores").select("*").order("name");
+    if (status) q = q.eq("status", status);
+    const { data, error } = await q;
+    if (error) throw error;
+    return (data ?? []) as unknown as StoreDto[];
+  },
+  async findById(id: string) {
+    const sb = getAdmin();
+    const { data, error } = await sb.from("gb_stores").select("*").eq("id", id).single();
+    if (error) return null;
+    return data as unknown as StoreDto;
+  },
+  async findMenus(storeId: string) {
+    return sbMenuRepo.findCategories(storeId);
+  },
+  async updateSoldOut(storeId: string, menuId: string, isSoldOut: boolean) {
+    const sb = getAdmin();
+    const { error } = await sb.from("gb_store_menu_availability").upsert(
+      { storeId, menuId, isSoldOut },
+      { onConflict: "storeId,menuId" }
+    );
+    if (error) throw error;
+  },
+};
+
+// ─── Menu Repository ──────────────────────────────────────────
+
+export const sbMenuRepo: IMenuRepository = {
+  async findCategories(storeId?: string) {
+    const sb = getAdmin();
+    const { data: cats, error: catErr } = await sb
+      .from("gb_menu_categories")
+      .select("*")
+      .eq("isActive", true)
+      .order("sortOrder");
+    if (catErr) throw catErr;
+
+    const { data: menus, error: menuErr } = await sb
+      .from("gb_menus")
+      .select("*")
+      .eq("isActive", true)
+      .order("sortOrder");
+    if (menuErr) throw menuErr;
+
+    const menuIds = (menus ?? []).map((m: { id: string }) => m.id);
+
+    const [optRes, availRes] = await Promise.all([
+      sb.from("gb_menu_options").select("*").in("menuId", menuIds).eq("isActive", true).order("sortOrder"),
+      storeId
+        ? sb.from("gb_store_menu_availability").select("*").eq("storeId", storeId).in("menuId", menuIds)
+        : Promise.resolve({ data: [], error: null }),
+    ]);
+    if (optRes.error) throw optRes.error;
+
+    const optsByMenu = groupBy(optRes.data ?? [], "menuId");
+    const availByMenu = groupBy(availRes.data ?? [], "menuId");
+
+    const result = (cats ?? []).map((cat: Record<string, unknown>) => ({
+      ...cat,
+      menus: (menus ?? [])
+        .filter((m: { categoryId: string }) => m.categoryId === cat.id)
+        .map((m: Record<string, unknown> & { id: string }) => ({
+          ...m,
+          options: optsByMenu[m.id] ?? [],
+          storeAvailability: availByMenu[m.id] ?? [],
+        })),
+    }));
+    return result as unknown as MenuCategoryDto[];
+  },
+};
+
+// ─── Order Repository ─────────────────────────────────────────
+
+export const sbOrderRepo: IOrderRepository = {
+  async findById(id: string) {
+    const sb = getAdmin();
+    const { data: order, error } = await sb.from("gb_orders").select("*, store:gb_stores(name)").eq("id", id).single();
+    if (error) return null;
+    const { data: items } = await sb.from("gb_order_items").select("*, options:gb_order_item_options(*)").eq("orderId", id);
+    return { ...order, items: items ?? [] } as unknown as OrderDto;
+  },
+  async findByOrderNumber(orderNumber: string) {
+    const sb = getAdmin();
+    const { data: order, error } = await sb.from("gb_orders").select("*, store:gb_stores(name)").eq("orderNumber", orderNumber).single();
+    if (error) return null;
+    const { data: items } = await sb.from("gb_order_items").select("*, options:gb_order_item_options(*)").eq("orderId", order.id);
+    return { ...order, items: items ?? [] } as unknown as OrderDto;
+  },
+  async findByCustomer(customerId: string, limit = 20) {
+    const sb = getAdmin();
+    const { data: orders, error } = await sb
+      .from("gb_orders")
+      .select("*, store:gb_stores(name)")
+      .eq("customerId", customerId)
+      .order("createdAt", { ascending: false })
+      .limit(limit);
+    if (error) throw error;
+    if (!orders?.length) return [];
+    const ids = orders.map((o: { id: string }) => o.id);
+    const { data: items } = await sb.from("gb_order_items").select("*, options:gb_order_item_options(*)").in("orderId", ids);
+    const itemsByOrder = groupBy(items ?? [], "orderId");
+    return orders.map((o: Record<string, unknown> & { id: string }) => ({ ...o, items: itemsByOrder[o.id] ?? [] })) as unknown as OrderDto[];
+  },
+  async findByStore(storeId: string, status?: string) {
+    const sb = getAdmin();
+    let q = sb.from("gb_orders").select("*, items:gb_order_items(*, options:gb_order_item_options(*))").eq("storeId", storeId).order("createdAt", { ascending: false });
+    if (status) q = q.eq("status", status);
+    const { data, error } = await q;
+    if (error) throw error;
+    return (data ?? []) as unknown as OrderDto[];
+  },
+  async create(input) {
+    const sb = getAdmin();
+    const orderId = nanoid();
+    const { data: order, error } = await sb.from("gb_orders").insert({
+      id: orderId,
+      orderNumber: input.orderNumber,
+      storeId: input.storeId,
+      customerId: input.customerId ?? null,
+      totalAmount: input.totalAmount,
+      discountAmount: 0,
+      finalAmount: input.finalAmount,
+      pointEarned: input.pointEarned,
+      pointUsed: input.pointUsed ?? 0,
+      couponDiscount: input.couponDiscount ?? 0,
+      pickupName: input.pickupName ?? null,
+      note: input.note ?? null,
+      isGuest: input.isGuest ?? false,
+      status: "PENDING",
+    }).select().single();
+    if (error) throw error;
+
+    const itemInserts = input.items.map((i) => ({
+      id: nanoid(),
+      orderId,
+      menuId: i.menuId,
+      menuName: i.menuName,
+      quantity: i.quantity,
+      unitPrice: i.unitPrice,
+      totalPrice: i.unitPrice * i.quantity,
+    }));
+    const { data: items, error: itemErr } = await sb.from("gb_order_items").insert(itemInserts).select();
+    if (itemErr) throw itemErr;
+
+    const optionInserts = input.items.flatMap((i, idx) =>
+      (i.options ?? []).map((o) => ({
+        id: nanoid(),
+        orderItemId: items![idx].id,
+        menuOptionId: o.menuOptionId,
+        optionName: o.optionName,
+        extraPrice: o.extraPrice,
+      }))
+    );
+    if (optionInserts.length > 0) {
+      const { error: optErr } = await sb.from("gb_order_item_options").insert(optionInserts);
+      if (optErr) throw optErr;
+    }
+
+    await sb.from("gb_order_status_history").insert({ id: nanoid(), orderId, status: "PENDING", changedBy: input.customerId ?? "guest" });
+
+    const { data: storeRow } = await sb.from("gb_stores").select("name").eq("id", input.storeId).single();
+    return { ...order, items: items ?? [], store: storeRow } as unknown as OrderDto;
+  },
+  async updateStatus(orderId: string, status: string, changedBy: string, note?: string) {
+    const sb = getAdmin();
+    const { data: order, error } = await sb.from("gb_orders").update({ status }).eq("id", orderId).select().single();
+    if (error) throw error;
+    await sb.from("gb_order_status_history").insert({ id: nanoid(), orderId, status, changedBy, note: note ?? null });
+    const { data: items } = await sb.from("gb_order_items").select("*, options:gb_order_item_options(*)").eq("orderId", orderId);
+    return { ...order, items: items ?? [] } as unknown as OrderDto;
+  },
+};
+
+// ─── Payment Repository ───────────────────────────────────────
+
+export const sbPaymentRepo: IPaymentRepository = {
+  async findByOrderId(orderId: string) {
+    const sb = getAdmin();
+    const { data, error } = await sb.from("gb_payments").select("*").eq("orderId", orderId).limit(1).single();
+    if (error) return null;
+    return data as unknown as PaymentDto;
+  },
+  async createMockPayment(orderId: string, amount: number) {
+    const sb = getAdmin();
+    const { data, error } = await sb.from("gb_payments").insert({
+      id: nanoid(), orderId, method: "MOCK", status: "COMPLETED",
+      amount, pgTransactionId: `mock_${Date.now()}`, paidAt: new Date().toISOString(),
+    }).select().single();
+    if (error) throw error;
+    return data as unknown as PaymentDto;
+  },
+  async failPayment(paymentId: string) {
+    const sb = getAdmin();
+    const { data, error } = await sb.from("gb_payments").update({ status: "FAILED" }).eq("id", paymentId).select().single();
+    if (error) throw error;
+    return data as unknown as PaymentDto;
+  },
+  async checkIdempotency(key: string) {
+    const sb = getAdmin();
+    const { data } = await sb.from("gb_idempotency_keys").select("response").eq("key", key).single();
+    if (!data?.response) return null;
+    return data.response as unknown as PaymentDto;
+  },
+  async saveIdempotency(key: string, payment: PaymentDto) {
+    const sb = getAdmin();
+    await sb.from("gb_idempotency_keys").insert({
+      id: nanoid(), key, resource: "payment", response: payment,
+      expiresAt: new Date(Date.now() + 86400_000).toISOString(),
+    });
+  },
+};
+
+// ─── Point Repository ─────────────────────────────────────────
+
+export const sbPointRepo: IPointRepository = {
+  async findOrCreateAccount(customerId: string) {
+    const sb = getAdmin();
+    const { data: existing } = await sb.from("gb_point_accounts").select("*").eq("customerId", customerId).single();
+    if (existing) return existing as unknown as PointAccountDto;
+    const { data, error } = await sb.from("gb_point_accounts").insert({ id: nanoid(), customerId, balance: 0, totalEarned: 0, totalUsed: 0 }).select().single();
+    if (error) throw error;
+    return data as unknown as PointAccountDto;
+  },
+  async getBalance(customerId: string) {
+    const sb = getAdmin();
+    const { data } = await sb.from("gb_point_accounts").select("balance").eq("customerId", customerId).single();
+    return (data as { balance: number } | null)?.balance ?? 0;
+  },
+  async getLedgers(customerId: string, limit = 20) {
+    const sb = getAdmin();
+    const { data: acct } = await sb.from("gb_point_accounts").select("id").eq("customerId", customerId).single();
+    if (!acct) return [];
+    const { data, error } = await sb.from("gb_point_ledger").select("*").eq("accountId", acct.id).order("createdAt", { ascending: false }).limit(limit);
+    if (error) throw error;
+    return (data ?? []) as unknown as PointLedgerDto[];
+  },
+  async earnPoints(accountId: string, orderId: string, amount: number, idempotencyKey: string) {
+    const sb = getAdmin();
+    const { data: existing } = await sb.from("gb_idempotency_keys").select("id").eq("key", idempotencyKey).single();
+    if (existing) throw new Error("중복 적립 요청입니다");
+    const { data: acct, error: acctErr } = await sb.from("gb_point_accounts").select("balance").eq("id", accountId).single();
+    if (acctErr) throw acctErr;
+    const newBalance = (acct.balance as number) + amount;
+    await sb.from("gb_point_accounts").update({ balance: newBalance }).eq("id", accountId);
+    const { data: ledger, error: ledgerErr } = await sb.from("gb_point_ledger").insert({
+      id: nanoid(), accountId, orderId, type: "EARN", amount, balanceAfter: newBalance,
+    }).select().single();
+    if (ledgerErr) throw ledgerErr;
+    await sb.from("gb_idempotency_keys").insert({ id: nanoid(), key: idempotencyKey, resource: "point_earn", response: { ledgerId: ledger.id }, expiresAt: new Date(Date.now() + 86400_000).toISOString() });
+    return ledger as unknown as PointLedgerDto;
+  },
+  async redeemPoints(accountId: string, orderId: string, amount: number, idempotencyKey: string) {
+    const sb = getAdmin();
+    const { data: existing } = await sb.from("gb_idempotency_keys").select("id").eq("key", idempotencyKey).single();
+    if (existing) throw new Error("중복 차감 요청입니다");
+    const { data: acct, error: acctErr } = await sb.from("gb_point_accounts").select("balance").eq("id", accountId).single();
+    if (acctErr) throw acctErr;
+    if ((acct.balance as number) < amount) throw new Error("잔여 포인트 부족");
+    const newBalance = (acct.balance as number) - amount;
+    await sb.from("gb_point_accounts").update({ balance: newBalance }).eq("id", accountId);
+    const { data: ledger, error: ledgerErr } = await sb.from("gb_point_ledger").insert({
+      id: nanoid(), accountId, orderId, type: "REDEEM", amount: -amount, balanceAfter: newBalance,
+    }).select().single();
+    if (ledgerErr) throw ledgerErr;
+    await sb.from("gb_idempotency_keys").insert({ id: nanoid(), key: idempotencyKey, resource: "point_redeem", response: { ledgerId: ledger.id }, expiresAt: new Date(Date.now() + 86400_000).toISOString() });
+    return ledger as unknown as PointLedgerDto;
+  },
+  async refundPoints(accountId: string, orderId: string, amount: number, idempotencyKey: string) {
+    const sb = getAdmin();
+    const { data: existing } = await sb.from("gb_idempotency_keys").select("id").eq("key", idempotencyKey).single();
+    if (existing) throw new Error("중복 환불 요청입니다");
+    const { data: acct, error: acctErr } = await sb.from("gb_point_accounts").select("balance, totalEarned").eq("id", accountId).single();
+    if (acctErr) throw acctErr;
+    const newBalance = Math.max(0, (acct.balance as number) - amount);
+    await sb.from("gb_point_accounts").update({ balance: newBalance }).eq("id", accountId);
+    const { data: ledger, error: ledgerErr } = await sb.from("gb_point_ledger").insert({
+      id: nanoid(), accountId, orderId, type: "REFUND", amount: -amount, balanceAfter: newBalance,
+    }).select().single();
+    if (ledgerErr) throw ledgerErr;
+    await sb.from("gb_idempotency_keys").insert({ id: nanoid(), key: idempotencyKey, resource: "point_refund", response: { ledgerId: ledger.id }, expiresAt: new Date(Date.now() + 86400_000).toISOString() });
+    return ledger as unknown as PointLedgerDto;
+  },
+  async checkIdempotency(key: string) {
+    const sb = getAdmin();
+    const { data } = await sb.from("gb_idempotency_keys").select("id").eq("key", key).single();
+    return !!data;
+  },
+};
+
+// ─── Stamp Repository ─────────────────────────────────────────
+
+export const sbStampRepo: IStampRepository = {
+  async findOrCreateAccount(customerId: string, storeId: string) {
+    const sb = getAdmin();
+    const { data: existing } = await sb.from("gb_stamp_accounts").select("*").eq("customerId", customerId).eq("storeId", storeId).single();
+    if (existing) return existing as unknown as StampAccountDto;
+    const { data, error } = await sb.from("gb_stamp_accounts").insert({ id: nanoid(), customerId, storeId, balance: 0, totalEarned: 0, totalUsed: 0 }).select().single();
+    if (error) throw error;
+    return data as unknown as StampAccountDto;
+  },
+  async earnStamps(accountId: string, orderId: string, amount: number, idempotencyKey: string) {
+    const sb = getAdmin();
+    const { data: existing } = await sb.from("gb_idempotency_keys").select("id").eq("key", idempotencyKey).single();
+    if (existing) throw new Error("중복 스탬프 요청입니다");
+    const { data: acct, error: acctErr } = await sb.from("gb_stamp_accounts").select("balance").eq("id", accountId).single();
+    if (acctErr) throw acctErr;
+    const newBalance = (acct.balance as number) + amount;
+    await sb.from("gb_stamp_accounts").update({ balance: newBalance }).eq("id", accountId);
+    const { data: ledger, error: ledgerErr } = await sb.from("gb_stamp_ledger").insert({
+      id: nanoid(), accountId, orderId, type: "EARN", amount, balanceAfter: newBalance,
+    }).select().single();
+    if (ledgerErr) throw ledgerErr;
+    await sb.from("gb_idempotency_keys").insert({ id: nanoid(), key: idempotencyKey, resource: "stamp_earn", response: { ledgerId: ledger.id }, expiresAt: new Date(Date.now() + 86400_000).toISOString() });
+    return ledger as unknown as StampLedgerDto;
+  },
+  async redeemStamps(accountId: string, amount: number, idempotencyKey: string) {
+    const sb = getAdmin();
+    const { data: existing } = await sb.from("gb_idempotency_keys").select("id").eq("key", idempotencyKey).single();
+    if (existing) throw new Error("중복 스탬프 차감입니다");
+    const { data: acct, error: acctErr } = await sb.from("gb_stamp_accounts").select("balance").eq("id", accountId).single();
+    if (acctErr) throw acctErr;
+    if ((acct.balance as number) < amount) throw new Error("스탬프 부족");
+    const newBalance = (acct.balance as number) - amount;
+    await sb.from("gb_stamp_accounts").update({ balance: newBalance }).eq("id", accountId);
+    const { data: ledger, error: ledgerErr } = await sb.from("gb_stamp_ledger").insert({
+      id: nanoid(), accountId, type: "REDEEM", amount: -amount, balanceAfter: newBalance,
+    }).select().single();
+    if (ledgerErr) throw ledgerErr;
+    await sb.from("gb_idempotency_keys").insert({ id: nanoid(), key: idempotencyKey, resource: "stamp_redeem", response: { ledgerId: ledger.id }, expiresAt: new Date(Date.now() + 86400_000).toISOString() });
+    return ledger as unknown as StampLedgerDto;
+  },
+  async checkIdempotency(key: string) {
+    const sb = getAdmin();
+    const { data } = await sb.from("gb_idempotency_keys").select("id").eq("key", key).single();
+    return !!data;
+  },
+};
+
+// ─── Coupon Repository ────────────────────────────────────────
+
+export const sbCouponRepo: ICouponRepository = {
+  async findByCode(code: string) {
+    const sb = getAdmin();
+    const { data, error } = await sb.from("gb_coupons").select("*").eq("code", code).single();
+    if (error) return null;
+    return data as unknown as CouponDto;
+  },
+  async findCustomerCoupons(customerId: string) {
+    const sb = getAdmin();
+    const { data, error } = await sb.from("gb_coupon_issues").select("*, coupon:gb_coupons(*)").eq("customerId", customerId).order("issuedAt", { ascending: false });
+    if (error) throw error;
+    return (data ?? []) as unknown as CouponIssueDto[];
+  },
+  async findIssueById(issueId: string) {
+    const sb = getAdmin();
+    const { data, error } = await sb.from("gb_coupon_issues").select("*, coupon:gb_coupons(*)").eq("id", issueId).single();
+    if (error) return null;
+    return data as unknown as CouponIssueDto;
+  },
+  async issueToCustomer(couponId: string, customerId: string, expiresAt?: Date) {
+    const sb = getAdmin();
+    const { data, error } = await sb.from("gb_coupon_issues").insert({ id: nanoid(), couponId, customerId, expiresAt: expiresAt?.toISOString() ?? null }).select("*, coupon:gb_coupons(*)").single();
+    if (error) throw error;
+    return data as unknown as CouponIssueDto;
+  },
+  async redeemCoupon(issueId: string, orderId: string, discountApplied: number) {
+    const sb = getAdmin();
+    await sb.from("gb_coupon_redemptions").insert({ id: nanoid(), couponIssueId: issueId, orderId, discountApplied });
+    await sb.from("gb_coupon_issues").update({ redeemed: true }).eq("id", issueId);
+  },
+};
+
+// ─── Checklist Repository ─────────────────────────────────────
+
+export const sbChecklistRepo: IChecklistRepository = {
+  async findByStore(storeId: string) {
+    const sb = getAdmin();
+    const { data, error } = await sb.from("gb_checklists").select("*, items:gb_checklist_items(*)").eq("storeId", storeId).eq("isActive", true);
+    if (error) throw error;
+    return (data ?? []) as unknown as ChecklistDto[];
+  },
+  async completeChecklist(checklistId: string, completedBy: string, completedByName: string, itemsChecked: Record<string, boolean>, notes?: string) {
+    const sb = getAdmin();
+    const { data, error } = await sb.from("gb_checklist_completions").insert({ id: nanoid(), checklistId, completedBy, completedByName, itemsChecked, notes: notes ?? null }).select("id").single();
+    if (error) throw error;
+    return { id: data.id };
+  },
+};
+
+// ─── Notice Repository ────────────────────────────────────────
+
+export const sbNoticeRepo: INoticeRepository = {
+  async findByStore(storeId: string) {
+    const sb = getAdmin();
+    const { data, error } = await sb
+      .from("gb_store_notices")
+      .select("*")
+      .or(`storeId.eq.${storeId},isGlobal.eq.true`)
+      .order("isPinned", { ascending: false })
+      .order("publishedAt", { ascending: false });
+    if (error) throw error;
+    return (data ?? []) as unknown as StoreNoticeDto[];
+  },
+};
+
+// ─── Helpers ──────────────────────────────────────────────────
+
+function groupBy<T extends Record<string, unknown>>(arr: T[], key: string): Record<string, T[]> {
+  return arr.reduce((acc: Record<string, T[]>, item) => {
+    const k = item[key] as string;
+    if (!acc[k]) acc[k] = [];
+    acc[k].push(item);
+    return acc;
+  }, {});
+}
+
+export type {
+  StoreDto, MenuCategoryDto, MenuDto, OrderDto, PaymentDto,
+  PointAccountDto, PointLedgerDto, StampAccountDto, StampLedgerDto,
+  CouponDto, CouponIssueDto, ChecklistDto, StoreNoticeDto,
+};
