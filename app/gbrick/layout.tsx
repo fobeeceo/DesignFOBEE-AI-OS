@@ -9,6 +9,11 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: "black-translucent",
     title: GBRICK_BRAND.name,
+    startupImage: [{ url: "/icons/apple-touch-icon.png" }],
+  },
+  icons: {
+    icon: "/icons/favicon-32.png",
+    apple: "/icons/apple-touch-icon.png",
   },
   formatDetection: { telephone: false },
 };

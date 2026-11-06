@@ -251,4 +251,14 @@ export const MOCK_CUSTOMERS = [
   { id: "cust_5", nickname: "최민준", email: "minjun@example.com", phone: "010-5678-9012", pointBalance: 1800, totalOrders: 9, totalSpent: 72000, joinedAt: "2024-05-18", lastOrderAt: "2026-10-28" },
 ];
 
+export const MOCK_CHECKLISTS = [
+  { id: "chk_1", storeId: "store_gbrick_sinchon", title: "매장 청소 및 위생 점검", category: "OPENING", isActive: true },
+  { id: "chk_2", storeId: "store_gbrick_sinchon", title: "에스프레소 머신 예열 및 점검", category: "OPENING", isActive: true },
+  { id: "chk_3", storeId: "store_gbrick_sinchon", title: "냉장·냉동 온도 확인", category: "OPENING", isActive: true },
+  { id: "chk_4", storeId: "store_gbrick_sinchon", title: "재료 재고 확인 및 발주", category: "INVENTORY", isActive: true },
+  { id: "chk_5", storeId: "store_gbrick_sinchon", title: "일일 매출 정산", category: "CLOSING", isActive: true },
+  { id: "chk_6", storeId: "store_gbrick_sinchon", title: "마감 청소 및 소독", category: "CLOSING", isActive: true },
+  { id: "chk_7", storeId: "store_gbrick_sinchon", title: "화재 감지기 및 소화기 확인", category: "SAFETY", isActive: true },
+];
+
 export const IS_MOCK_MODE = !process.env.DATABASE_URL || process.env.USE_MOCK_DATA === "true";

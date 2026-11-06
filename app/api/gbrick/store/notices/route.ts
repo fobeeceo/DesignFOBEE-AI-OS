@@ -5,6 +5,9 @@ import { noticeRepo } from "@/lib/gbrick/repositories";
 import { IS_MOCK_MODE } from "@/lib/gbrick/mockData";
 
 export async function GET(req: NextRequest) {
+  if (IS_MOCK_MODE) {
+    return NextResponse.json({ notices: [], mock: true });
+  }
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -14,7 +17,7 @@ export async function GET(req: NextRequest) {
     const storeId = searchParams.get("storeId") ?? "";
 
     const notices = await noticeRepo.findByStore(storeId);
-    return NextResponse.json({ notices, mock: IS_MOCK_MODE });
+    return NextResponse.json({ notices });
   } catch (err) {
     console.error("[GET /api/gbrick/store/notices]", err);
     return NextResponse.json({ error: "서버 오류" }, { status: 500 });

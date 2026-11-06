@@ -5,6 +5,13 @@ import { getPointAccount, getPointHistory } from "@/lib/gbrick/services/pointSer
 import { IS_MOCK_MODE } from "@/lib/gbrick/mockData";
 
 export async function GET(_req: NextRequest) {
+  if (IS_MOCK_MODE) {
+    return NextResponse.json({
+      account: { balance: 500, totalEarned: 500, totalUsed: 0 },
+      ledgers: [],
+      mock: true,
+    });
+  }
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -15,7 +22,7 @@ export async function GET(_req: NextRequest) {
       getPointHistory(user.id, 20),
     ]);
 
-    return NextResponse.json({ account, ledgers, mock: IS_MOCK_MODE });
+    return NextResponse.json({ account, ledgers });
   } catch (err) {
     console.error("[GET /api/gbrick/points]", err);
     return NextResponse.json({ error: "서버 오류" }, { status: 500 });
