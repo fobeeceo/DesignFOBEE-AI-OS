@@ -58,6 +58,19 @@ export default function MyPage() {
     window.location.href = "/gbrick";
   }
 
+  async function handleDeleteAccount() {
+    if (!confirm("정말 회원탈퇴를 하시겠습니까?\n탈퇴 후에는 복구할 수 없습니다.")) return;
+    try {
+      const res = await fetch("/api/gbrick/auth/delete-account", { method: "DELETE" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "탈퇴 실패");
+      alert("탈퇴가 완료되었습니다.");
+      window.location.href = "/gbrick";
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "탈퇴 처리 중 오류가 발생했습니다.");
+    }
+  }
+
   async function claimWelcomeCoupon() {
     const res = await fetch("/api/gbrick/coupons", {
       method: "POST",
@@ -149,6 +162,14 @@ export default function MyPage() {
         ))}
       </div>
 
+      {/* Menu links */}
+      <div className="px-5 mb-3 flex flex-col gap-2">
+        <Link href="/gbrick/history" className="flex items-center justify-between bg-white rounded-xl border border-stone-100 px-4 py-3 shadow-sm">
+          <span className="text-sm font-semibold text-stone-700">📋 주문 내역</span>
+          <span className="text-stone-400 text-sm">›</span>
+        </Link>
+      </div>
+
       <div className="px-5">
         {tab === "points" && (
           <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5">
@@ -230,6 +251,22 @@ export default function MyPage() {
             )}
           </div>
         )}
+      </div>
+
+      {/* Account actions */}
+      <div className="px-5 mt-6 pb-8 flex flex-col gap-2">
+        <button
+          onClick={handleLogout}
+          className="w-full py-3 rounded-xl text-sm font-semibold text-stone-600 border border-stone-200 bg-white"
+        >
+          로그아웃
+        </button>
+        <button
+          onClick={handleDeleteAccount}
+          className="w-full py-2.5 rounded-xl text-xs font-medium text-stone-400"
+        >
+          회원탈퇴
+        </button>
       </div>
     </main>
   );
