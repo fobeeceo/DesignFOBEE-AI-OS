@@ -252,13 +252,32 @@ export const MOCK_CUSTOMERS = [
 ];
 
 export const MOCK_CHECKLISTS = [
-  { id: "chk_1", storeId: "store_gbrick_sinchon", title: "매장 청소 및 위생 점검", category: "OPENING", isActive: true },
-  { id: "chk_2", storeId: "store_gbrick_sinchon", title: "에스프레소 머신 예열 및 점검", category: "OPENING", isActive: true },
-  { id: "chk_3", storeId: "store_gbrick_sinchon", title: "냉장·냉동 온도 확인", category: "OPENING", isActive: true },
-  { id: "chk_4", storeId: "store_gbrick_sinchon", title: "재료 재고 확인 및 발주", category: "INVENTORY", isActive: true },
-  { id: "chk_5", storeId: "store_gbrick_sinchon", title: "일일 매출 정산", category: "CLOSING", isActive: true },
-  { id: "chk_6", storeId: "store_gbrick_sinchon", title: "마감 청소 및 소독", category: "CLOSING", isActive: true },
-  { id: "chk_7", storeId: "store_gbrick_sinchon", title: "화재 감지기 및 소화기 확인", category: "SAFETY", isActive: true },
+  {
+    id: "chk_1", storeId: "store_gbrick_sinchon", title: "오픈 준비", category: "OPENING", isActive: true,
+    items: [
+      { id: "chk_1_1", title: "매장 청소 및 위생 점검", isRequired: true, sortOrder: 1 },
+      { id: "chk_1_2", title: "에스프레소 머신 예열 및 점검", isRequired: true, sortOrder: 2 },
+      { id: "chk_1_3", title: "냉장·냉동 온도 확인 (5°C 이하)", isRequired: true, sortOrder: 3 },
+      { id: "chk_1_4", title: "원두 재고 확인", isRequired: false, sortOrder: 4 },
+    ],
+  },
+  {
+    id: "chk_2", storeId: "store_gbrick_sinchon", title: "재고 및 발주", category: "INVENTORY", isActive: true,
+    items: [
+      { id: "chk_2_1", title: "우유류 재고 확인", isRequired: true, sortOrder: 1 },
+      { id: "chk_2_2", title: "시럽·소스 재고 확인", isRequired: true, sortOrder: 2 },
+      { id: "chk_2_3", title: "컵·뚜껑·빨대 재고 확인", isRequired: false, sortOrder: 3 },
+    ],
+  },
+  {
+    id: "chk_3", storeId: "store_gbrick_sinchon", title: "마감 점검", category: "CLOSING", isActive: true,
+    items: [
+      { id: "chk_3_1", title: "일일 매출 정산", isRequired: true, sortOrder: 1 },
+      { id: "chk_3_2", title: "마감 청소 및 소독", isRequired: true, sortOrder: 2 },
+      { id: "chk_3_3", title: "화재 감지기 및 소화기 확인", isRequired: true, sortOrder: 3 },
+      { id: "chk_3_4", title: "문단속 및 전기 소등", isRequired: true, sortOrder: 4 },
+    ],
+  },
 ];
 
 export const IS_MOCK_MODE = !process.env.DATABASE_URL || process.env.USE_MOCK_DATA === "true";
