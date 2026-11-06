@@ -120,15 +120,15 @@ ON CONFLICT ("id") DO NOTHING;
 -- 7. 공지사항
 INSERT INTO "gb_store_notices" (
   "id", "storeId", "title", "content", "isGlobal",
-  "isActive", "publishedAt", "updatedAt"
+  "isPinned", "publishedAt", "createdBy", "updatedAt"
 )
 VALUES
   ('notice-001', NULL, '[전체] GBRICK APP 오픈 안내',
    'GBRICK Coffee 앱이 오픈되었습니다. 앱으로 주문하시면 포인트 3% 적립!',
-   true, true, NOW(), NOW()),
+   true, false, NOW(), 'system', NOW()),
   ('notice-002', 'store-001', '[신촌점] 오늘의 추천 메뉴',
    '오늘의 추천 메뉴: 지브릭 라떼 + 버터 크루아상 세트 9,000원',
-   false, true, NOW(), NOW())
+   false, false, NOW(), 'system', NOW())
 ON CONFLICT ("id") DO NOTHING;
 
 -- 완료 확인
