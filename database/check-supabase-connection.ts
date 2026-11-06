@@ -46,7 +46,13 @@ async function main() {
 
   // 2. GBRICK 테이블 확인 (pg_tables 직접 조회)
   console.log("2️⃣  GBRICK 테이블 확인...");
-  const { data: tables, error: tableErr } = await sb.rpc("get_gb_tables").catch(() => ({ data: null, error: { message: "rpc not available" } }));
+  let tables: unknown[] | null = null;
+  try {
+    const { data, error: tableErr } = await sb.rpc("get_gb_tables");
+    if (!tableErr) tables = data;
+  } catch {
+    // rpc not available — fall through to per-table check
+  }
 
   if (!tables) {
     // rpc 없으면 각 테이블 직접 확인
