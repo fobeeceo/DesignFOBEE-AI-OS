@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -35,7 +35,7 @@ export default function OrderDetailPage() {
   const [loading, setLoading] = useState(true);
   const [polling, setPolling] = useState(true);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     try {
       const res = await fetch(`/api/gbrick/orders/${orderId}`);
       if (!res.ok) return;
@@ -47,18 +47,18 @@ export default function OrderDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [orderId]);
 
   useEffect(() => {
     load();
-  }, [orderId]);
+  }, [load]);
 
   // 30초마다 폴링 (PICKED_UP/CANCELLED 아닐 때)
   useEffect(() => {
     if (!polling) return;
     const timer = setInterval(load, 30000);
     return () => clearInterval(timer);
-  }, [polling, orderId]);
+  }, [polling, load]);
 
   if (loading) {
     return (

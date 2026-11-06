@@ -16,8 +16,9 @@ interface CouponIssue {
   coupon: { name: string; type: string; discountAmount?: number; discountRate?: number };
 }
 
+const supabase = createClient();
+
 export default function MyPage() {
-  const supabase = createClient();
   const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [pointAccount, setPointAccount] = useState<PointAccount | null>(null);
