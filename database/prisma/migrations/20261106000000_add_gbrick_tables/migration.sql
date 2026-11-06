@@ -65,6 +65,8 @@ CREATE TABLE "gb_stores" (
     "metadata" JSONB,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    CONSTRAINT "gb_stores_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "gb_store_users" (
@@ -78,6 +80,8 @@ CREATE TABLE "gb_store_users" (
     "lastLoginAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    CONSTRAINT "gb_store_users_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "gb_customers" (
@@ -93,6 +97,8 @@ CREATE TABLE "gb_customers" (
     "deletedAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    CONSTRAINT "gb_customers_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "gb_customer_consents" (
@@ -103,6 +109,8 @@ CREATE TABLE "gb_customer_consents" (
     "agreedAt" TIMESTAMP(3) NOT NULL,
     "ipAddress" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "gb_customer_consents_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "gb_menu_categories" (
@@ -114,6 +122,8 @@ CREATE TABLE "gb_menu_categories" (
     "imageUrl" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    CONSTRAINT "gb_menu_categories_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "gb_menus" (
@@ -135,6 +145,8 @@ CREATE TABLE "gb_menus" (
     "metadata" JSONB,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    CONSTRAINT "gb_menus_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "gb_menu_options" (
@@ -149,6 +161,8 @@ CREATE TABLE "gb_menu_options" (
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    CONSTRAINT "gb_menu_options_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "gb_store_menu_availability" (
@@ -158,6 +172,8 @@ CREATE TABLE "gb_store_menu_availability" (
     "isSoldOut" BOOLEAN NOT NULL DEFAULT false,
     "price" INTEGER,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    CONSTRAINT "gb_store_menu_availability_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "gb_menu_price_history" (
@@ -168,6 +184,8 @@ CREATE TABLE "gb_menu_price_history" (
     "reason" TEXT,
     "effectiveAt" TIMESTAMP(3) NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "gb_menu_price_history_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "gb_recipe_versions" (
@@ -179,6 +197,8 @@ CREATE TABLE "gb_recipe_versions" (
     "notes" TEXT,
     "isActive" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "gb_recipe_versions_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "gb_orders" (
@@ -201,6 +221,8 @@ CREATE TABLE "gb_orders" (
     "guestPhone" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    CONSTRAINT "gb_orders_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "gb_order_items" (
@@ -212,6 +234,8 @@ CREATE TABLE "gb_order_items" (
     "unitPrice" INTEGER NOT NULL,
     "totalPrice" INTEGER NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "gb_order_items_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "gb_order_item_options" (
@@ -221,6 +245,8 @@ CREATE TABLE "gb_order_item_options" (
     "optionName" TEXT NOT NULL,
     "extraPrice" INTEGER NOT NULL DEFAULT 0,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "gb_order_item_options_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "gb_order_status_history" (
@@ -230,6 +256,8 @@ CREATE TABLE "gb_order_status_history" (
     "changedBy" TEXT NOT NULL,
     "note" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "gb_order_status_history_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "gb_payments" (
@@ -245,6 +273,8 @@ CREATE TABLE "gb_payments" (
     "cancelledAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    CONSTRAINT "gb_payments_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "gb_payment_transactions" (
@@ -254,6 +284,8 @@ CREATE TABLE "gb_payment_transactions" (
     "amount" INTEGER NOT NULL,
     "pgResponse" JSONB,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "gb_payment_transactions_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "gb_refunds" (
@@ -266,6 +298,8 @@ CREATE TABLE "gb_refunds" (
     "pgPayload" JSONB,
     "refundedAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "gb_refunds_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "gb_payment_webhook_events" (
@@ -277,6 +311,8 @@ CREATE TABLE "gb_payment_webhook_events" (
     "processedAt" TIMESTAMP(3),
     "error" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "gb_payment_webhook_events_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "gb_point_accounts" (
@@ -287,6 +323,8 @@ CREATE TABLE "gb_point_accounts" (
     "totalUsed" INTEGER NOT NULL DEFAULT 0,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    CONSTRAINT "gb_point_accounts_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "gb_point_ledger" (
@@ -300,6 +338,8 @@ CREATE TABLE "gb_point_ledger" (
     "expiresAt" TIMESTAMP(3),
     "idempotencyKey" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "gb_point_ledger_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "gb_coupons" (
@@ -321,6 +361,8 @@ CREATE TABLE "gb_coupons" (
     "description" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    CONSTRAINT "gb_coupons_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "gb_coupon_issues" (
@@ -329,6 +371,8 @@ CREATE TABLE "gb_coupon_issues" (
     "customerId" TEXT NOT NULL,
     "issuedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "expiresAt" TIMESTAMP(3),
+    CONSTRAINT "gb_coupon_issues_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "gb_coupon_redemptions" (
@@ -337,6 +381,8 @@ CREATE TABLE "gb_coupon_redemptions" (
     "orderId" TEXT NOT NULL,
     "redeemedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "discountApplied" INTEGER NOT NULL,
+    CONSTRAINT "gb_coupon_redemptions_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "gb_stamp_accounts" (
@@ -348,6 +394,8 @@ CREATE TABLE "gb_stamp_accounts" (
     "totalUsed" INTEGER NOT NULL DEFAULT 0,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    CONSTRAINT "gb_stamp_accounts_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "gb_stamp_ledger" (
@@ -360,6 +408,8 @@ CREATE TABLE "gb_stamp_ledger" (
     "note" TEXT,
     "idempotencyKey" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "gb_stamp_ledger_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "gb_checklists" (
@@ -370,6 +420,8 @@ CREATE TABLE "gb_checklists" (
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    CONSTRAINT "gb_checklists_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "gb_checklist_items" (
@@ -380,6 +432,8 @@ CREATE TABLE "gb_checklist_items" (
     "sortOrder" INTEGER NOT NULL DEFAULT 0,
     "isRequired" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "gb_checklist_items_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "gb_checklist_completions" (
@@ -390,6 +444,8 @@ CREATE TABLE "gb_checklist_completions" (
     "itemsChecked" JSONB NOT NULL,
     "notes" TEXT,
     "completedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "gb_checklist_completions_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "gb_store_notices" (
@@ -404,6 +460,8 @@ CREATE TABLE "gb_store_notices" (
     "createdBy" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    CONSTRAINT "gb_store_notices_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "gb_store_inquiries" (
@@ -418,6 +476,8 @@ CREATE TABLE "gb_store_inquiries" (
     "response" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    CONSTRAINT "gb_store_inquiries_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "gb_maintenance_requests" (
@@ -433,6 +493,8 @@ CREATE TABLE "gb_maintenance_requests" (
     "resolvedAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    CONSTRAINT "gb_maintenance_requests_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "gb_campaigns" (
@@ -449,6 +511,8 @@ CREATE TABLE "gb_campaigns" (
     "createdBy" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    CONSTRAINT "gb_campaigns_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "gb_campaign_targets" (
@@ -457,6 +521,8 @@ CREATE TABLE "gb_campaign_targets" (
     "storeId" TEXT,
     "customerId" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "gb_campaign_targets_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "gb_push_notifications" (
@@ -469,6 +535,8 @@ CREATE TABLE "gb_push_notifications" (
     "scheduledAt" TIMESTAMP(3),
     "sentAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "gb_push_notifications_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "gb_notification_logs" (
@@ -480,6 +548,8 @@ CREATE TABLE "gb_notification_logs" (
     "sentAt" TIMESTAMP(3),
     "failReason" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "gb_notification_logs_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "gb_data_sync_jobs" (
@@ -493,6 +563,8 @@ CREATE TABLE "gb_data_sync_jobs" (
     "startedAt" TIMESTAMP(3),
     "completedAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "gb_data_sync_jobs_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "gb_audit_logs" (
@@ -508,6 +580,8 @@ CREATE TABLE "gb_audit_logs" (
     "ipAddress" TEXT,
     "userAgent" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "gb_audit_logs_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "gb_idempotency_keys" (
@@ -518,6 +592,8 @@ CREATE TABLE "gb_idempotency_keys" (
     "response" JSONB,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "expiresAt" TIMESTAMP(3) NOT NULL,
+    CONSTRAINT "gb_idempotency_keys_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateIndex
 CREATE UNIQUE INDEX "gb_stores_code_key" ON "gb_stores"("code");
