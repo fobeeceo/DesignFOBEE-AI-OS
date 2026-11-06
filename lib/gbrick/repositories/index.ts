@@ -12,8 +12,10 @@ import {
   sbPointRepo, sbStampRepo, sbCouponRepo, sbChecklistRepo, sbNoticeRepo,
 } from "./supabase";
 
-// DATABASE_URL 있으면 Prisma, ANON_KEY만 있으면 Supabase JS, 둘 다 없으면 Mock
-const usePrisma = !!process.env.DATABASE_URL;
+// SUPABASE_SERVICE_ROLE_KEY가 있으면 Supabase (GBRICK 전용 DB 우선)
+// DATABASE_URL만 있으면 Prisma, 둘 다 없으면 Mock
+const useSupabase = !!process.env.SUPABASE_SERVICE_ROLE_KEY;
+const usePrisma = !!process.env.DATABASE_URL && !useSupabase;
 
 function pick<T>(mock: T, prisma: T, sb: T): T {
   if (IS_MOCK_MODE) return mock;

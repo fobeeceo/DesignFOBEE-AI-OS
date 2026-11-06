@@ -1,12 +1,12 @@
 export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { menuRepo } from "@/lib/gbrick/repositories";
 import { MOCK_MENU_CATEGORIES, MOCK_MENUS, MOCK_MENU_OPTIONS, IS_MOCK_MODE } from "@/lib/gbrick/mockData";
 
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const storeId = searchParams.get("storeId");
+    const storeId = searchParams.get("storeId") ?? undefined;
 
     if (IS_MOCK_MODE) {
       const menusWithOptions = MOCK_MENUS.map((m) => ({
@@ -20,30 +20,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ categories: categoriesWithMenus, mock: true });
     }
 
-    const categories = await prisma.gbMenuCategory.findMany({
-      where: { isActive: true },
-      orderBy: { sortOrder: "asc" },
-      include: {
-        menus: {
-          where: { isActive: true },
-          orderBy: { sortOrder: "asc" },
-          include: {
-            options: {
-              where: { isActive: true },
-              orderBy: { sortOrder: "asc" },
-            },
-            ...(storeId
-              ? {
-                  storeAvailability: {
-                    where: { storeId },
-                  },
-                }
-              : {}),
-          },
-        },
-      },
-    });
-
+    const categories = await menuRepo.findCategories(storeId);
     return NextResponse.json({ categories });
   } catch (err) {
     console.error("[GET /api/gbrick/menus]", err);

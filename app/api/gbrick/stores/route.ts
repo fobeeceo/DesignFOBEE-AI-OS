@@ -1,41 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { MOCK_STORES, IS_MOCK_MODE } from "@/lib/gbrick/mockData";
-import { GbStoreStatus } from "@prisma/client";
+import { storeRepo } from "@/lib/gbrick/repositories";
+import { IS_MOCK_MODE } from "@/lib/gbrick/mockData";
 
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const status = searchParams.get("status") as GbStoreStatus | null;
-    const lat = searchParams.get("lat");
-    const lng = searchParams.get("lng");
+    const status = searchParams.get("status") ?? "ACTIVE";
 
-    if (IS_MOCK_MODE) {
-      return NextResponse.json({ stores: MOCK_STORES, mock: true });
-    }
-
-    const stores = await prisma.gbStore.findMany({
-      where: {
-        status: status ?? GbStoreStatus.ACTIVE,
-      },
-      select: {
-        id: true,
-        code: true,
-        name: true,
-        status: true,
-        address: true,
-        phone: true,
-        pointRate: true,
-        stampGoal: true,
-        imageUrl: true,
-        lat: true,
-        lng: true,
-        operatingHours: true,
-      },
-      orderBy: { name: "asc" },
-    });
-
-    return NextResponse.json({ stores });
+    const stores = await storeRepo.findMany(status);
+    return NextResponse.json({ stores, mock: IS_MOCK_MODE });
   } catch (err) {
     console.error("[GET /api/gbrick/stores]", err);
     return NextResponse.json({ error: "서버 오류" }, { status: 500 });
@@ -55,17 +28,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "code, name, address는 필수입니다" }, { status: 400 });
     }
 
-    const store = await prisma.gbStore.create({
-      data: {
-        code,
-        name,
-        address,
-        ownerName,
-        phone,
-        pointRate: pointRate ?? 0.03,
-        stampGoal: stampGoal ?? 10,
-      },
-    });
+    // POST는 HQ 전용 — Supabase repo에 create 없으면 직접 호출
+    const { createClient } = await import("@supabase/supabase-js");
+    const sb = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      { auth: { autoRefreshToken: false, persistSession: false } }
+    );
+    const { data: store, error } = await sb
+      .from("gb_stores")
+      .insert({ code, name, address, ownerName, phone, pointRate: pointRate ?? 0.03, stampGoal: stampGoal ?? 10, brandName: "GBRICK Coffee", operatingHours: {} })
+      .select()
+      .single();
+    if (error) throw error;
 
     return NextResponse.json({ store }, { status: 201 });
   } catch (err) {
