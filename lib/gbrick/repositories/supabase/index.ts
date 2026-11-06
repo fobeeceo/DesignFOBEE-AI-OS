@@ -7,10 +7,14 @@ import type {
   CreateOrderInput,
 } from "../types";
 
+// gbrick-app-dev 전용 Supabase URL — NEXT_PUBLIC_SUPABASE_URL이 다른 프로젝트를 가리킬 때 대비
+const GBRICK_SUPABASE_URL = "https://rzgrkrffksqdeztzxyrt.supabase.co";
+
 function getAdmin() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const envUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+  const url = envUrl.includes("rzgrkrffksqdeztzxyrt") ? envUrl : GBRICK_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !key) throw new Error("Supabase 환경변수 미설정");
+  if (!key) throw new Error("SUPABASE_SERVICE_ROLE_KEY 또는 ANON_KEY 미설정");
   return createClient(url, key, { auth: { autoRefreshToken: false, persistSession: false } });
 }
 
