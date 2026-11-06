@@ -6,17 +6,16 @@ import { IS_MOCK_MODE } from "@/lib/gbrick/mockData";
 
 // GET: 현재 로그인 고객 정보
 export async function GET(_req: NextRequest) {
+  if (IS_MOCK_MODE) {
+    return NextResponse.json({
+      customer: { id: "mock_user", email: "guest@gbrick.co.kr", nickname: "게스트", isActive: true, pointAccount: { balance: 500 } },
+      mock: true,
+    });
+  }
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: "인증 필요" }, { status: 401 });
-
-    if (IS_MOCK_MODE) {
-      return NextResponse.json({
-        customer: { id: user.id, email: user.email, nickname: "게스트", isActive: true },
-        mock: true,
-      });
-    }
 
     const customer = await prisma.gbCustomer.findUnique({
       where: { id: user.id },
@@ -39,14 +38,13 @@ export async function GET(_req: NextRequest) {
 
 // POST: 회원가입 후 고객 프로필 생성
 export async function POST(req: NextRequest) {
+  if (IS_MOCK_MODE) {
+    return NextResponse.json({ customer: { id: "mock_user" }, mock: true }, { status: 201 });
+  }
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: "인증 필요" }, { status: 401 });
-
-    if (IS_MOCK_MODE) {
-      return NextResponse.json({ customer: { id: user.id }, mock: true }, { status: 201 });
-    }
 
     const body = await req.json();
     const { nickname, phone, birthdate, marketingAgree, pushAgree } = body;
