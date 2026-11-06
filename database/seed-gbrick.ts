@@ -1,3 +1,4 @@
+export {};
 /**
  * GBRICK Coffee 개발 DB 시드 데이터
  * 실행: DATABASE_URL=... DIRECT_URL=... npx tsx database/seed-gbrick.ts
