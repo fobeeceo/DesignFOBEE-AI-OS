@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, use } from "react";
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 
 interface MenuOption {
@@ -39,12 +40,9 @@ interface CartItem {
   options: { menuOptionId: string; optionName: string; extraPrice: number }[];
 }
 
-export default function MenuPage({
-  params,
-}: {
-  params: Promise<{ storeId: string }>;
-}) {
-  const { storeId } = use(params);
+export default function MenuPage() {
+  const params = useParams();
+  const storeId = params.storeId as string;
   const [categories, setCategories] = useState<Category[]>([]);
   const [activeCategory, setActiveCategory] = useState("");
   const [cart, setCart] = useState<CartItem[]>([]);
