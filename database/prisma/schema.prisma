@@ -421,3 +421,840 @@ model AiMonthlyReport {
   @@map("ai_monthly_reports")
 }
 
+// ============================================================
+// GBRICK COFFEE APP — FRANCHISE MANAGEMENT PLATFORM v1.0
+// 모든 모델: Gb 접두어 / 모든 테이블: gb_ 접두어
+// DesignFOBEE 기존 16개 모델과 완전 독립 설계
+// CEO 전권 위임 명령서 v1.0 기준 구현
+// ============================================================
+
+// ─── GBRICK ENUMS ────────────────────────────────────────────
+
+enum GbStoreStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  CLOSED
+}
+
+enum GbStoreUserRole {
+  HQ_SUPER_ADMIN
+  HQ_ADMIN
+  HQ_MANAGER
+  STORE_OWNER
+  STORE_MANAGER
+  STORE_STAFF
+}
+
+enum GbOrderStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  READY
+  PICKED_UP
+  CANCELLED
+  REFUNDED
+}
+
+enum GbPaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+  REFUNDED
+  PARTIAL_REFUNDED
+}
+
+enum GbPaymentMethod {
+  MOCK
+  CARD
+  KAKAO_PAY
+  NAVER_PAY
+  TOSS
+}
+
+enum GbPointLedgerType {
+  EARN
+  REDEEM
+  EXPIRE
+  REFUND
+  ADJUSTMENT
+  REVERSAL
+}
+
+enum GbCouponType {
+  DISCOUNT_AMOUNT
+  DISCOUNT_RATE
+  FREE_ITEM
+  FREE_UPGRADE
+}
+
+enum GbCouponStatus {
+  ACTIVE
+  INACTIVE
+  EXPIRED
+}
+
+enum GbStampLedgerType {
+  EARN
+  REDEEM
+  EXPIRE
+  ADJUSTMENT
+  REVERSAL
+}
+
+enum GbNotificationChannel {
+  PUSH
+  SMS
+  EMAIL
+  KAKAO_ALIM
+}
+
+enum GbCampaignStatus {
+  DRAFT
+  SCHEDULED
+  RUNNING
+  COMPLETED
+  CANCELLED
+}
+
+enum GbChecklistCategory {
+  OPENING
+  CLOSING
+  CLEANING
+  SAFETY
+  INVENTORY
+  CUSTOM
+}
+
+enum GbInquiryStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+// ─── STORE & USERS ───────────────────────────────────────────
+
+model GbStore {
+  id                String          @id @default(cuid())
+  code              String          @unique
+  name              String
+  brandName         String          @default("GBRICK Coffee")
+  status            GbStoreStatus   @default(PENDING)
+  phone             String?
+  address           String
+  addressDetail     String?
+  lat               Float?
+  lng               Float?
+  timezone          String          @default("Asia/Seoul")
+  businessNumber    String?
+  ownerName         String?
+  openedAt          DateTime?
+  closedAt          DateTime?
+  pointRate         Float           @default(0.03)
+  stampPerOrder     Int             @default(1)
+  stampGoal         Int             @default(10)
+  operatingHours    Json?
+  imageUrl          String?
+  metadata          Json?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  storeUsers        GbStoreUser[]
+  orders            GbOrder[]
+  menuAvailability  GbStoreMenuAvailability[]
+  checklists        GbChecklist[]
+  notices           GbStoreNotice[]
+  inquiries         GbStoreInquiry[]
+  maintenanceReqs   GbMaintenanceRequest[]
+  campaignTargets   GbCampaignTarget[]
+  favoriteCustomers GbCustomer[]    @relation("GbCustomerFavoriteStore")
+  auditLogs         GbAuditLog[]
+
+  @@index([status])
+  @@map("gb_stores")
+}
+
+model GbStoreUser {
+  id          String          @id
+  storeId     String
+  store       GbStore         @relation(fields: [storeId], references: [id])
+  role        GbStoreUserRole
+  displayName String
+  email       String
+  phone       String?
+  isActive    Boolean         @default(true)
+  lastLoginAt DateTime?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@unique([storeId, id])
+  @@index([storeId, role])
+  @@map("gb_store_users")
+}
+
+// ─── CUSTOMER ────────────────────────────────────────────────
+
+model GbCustomer {
+  id              String     @id
+  nickname        String?
+  phone           String?
+  email           String?
+  birthdate       String?
+  favoriteStoreId String?
+  favoriteStore   GbStore?   @relation("GbCustomerFavoriteStore", fields: [favoriteStoreId], references: [id])
+  marketingAgree  Boolean    @default(false)
+  pushAgree       Boolean    @default(false)
+  isActive        Boolean    @default(true)
+  deletedAt       DateTime?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  orders         GbOrder[]
+  pointAccount   GbPointAccount?
+  stampAccounts  GbStampAccount[]
+  couponIssues   GbCouponIssue[]
+  consents       GbCustomerConsent[]
+  notifications  GbNotificationLog[]
+
+  @@index([phone])
+  @@index([email])
+  @@map("gb_customers")
+}
+
+model GbCustomerConsent {
+  id           String     @id @default(cuid())
+  customerId   String
+  customer     GbCustomer @relation(fields: [customerId], references: [id])
+  consentType  String
+  agreed       Boolean
+  agreedAt     DateTime
+  ipAddress    String?
+  createdAt    DateTime   @default(now())
+
+  @@index([customerId])
+  @@map("gb_customer_consents")
+}
+
+// ─── MENU ────────────────────────────────────────────────────
+
+model GbMenuCategory {
+  id          String   @id @default(cuid())
+  name        String
+  nameEn      String?
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  imageUrl    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  menus       GbMenu[]
+
+  @@index([sortOrder])
+  @@map("gb_menu_categories")
+}
+
+model GbMenu {
+  id              String         @id @default(cuid())
+  categoryId      String
+  category        GbMenuCategory @relation(fields: [categoryId], references: [id])
+  name            String
+  nameEn          String?
+  description     String?        @db.Text
+  basePrice       Int
+  imageUrl        String?
+  isSignature     Boolean        @default(false)
+  isNew           Boolean        @default(false)
+  isSoldOut       Boolean        @default(false)
+  isActive        Boolean        @default(true)
+  calories        Int?
+  allergens       String[]       @default([])
+  tags            String[]       @default([])
+  sortOrder       Int            @default(0)
+  metadata        Json?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  options           GbMenuOption[]
+  storeAvailability GbStoreMenuAvailability[]
+  orderItems        GbOrderItem[]
+  priceHistory      GbMenuPriceHistory[]
+  recipeVersions    GbRecipeVersion[]
+
+  @@index([categoryId, isActive])
+  @@index([isActive, sortOrder])
+  @@map("gb_menus")
+}
+
+model GbMenuOption {
+  id           String   @id @default(cuid())
+  menuId       String
+  menu         GbMenu   @relation(fields: [menuId], references: [id])
+  name         String
+  extraPrice   Int      @default(0)
+  isDefault    Boolean  @default(false)
+  isRequired   Boolean  @default(false)
+  groupName    String?
+  sortOrder    Int      @default(0)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  orderItemOptions GbOrderItemOption[]
+
+  @@index([menuId])
+  @@map("gb_menu_options")
+}
+
+model GbStoreMenuAvailability {
+  id          String   @id @default(cuid())
+  storeId     String
+  store       GbStore  @relation(fields: [storeId], references: [id])
+  menuId      String
+  menu        GbMenu   @relation(fields: [menuId], references: [id])
+  isSoldOut   Boolean  @default(false)
+  price       Int?
+  updatedAt   DateTime @updatedAt
+
+  @@unique([storeId, menuId])
+  @@map("gb_store_menu_availability")
+}
+
+model GbMenuPriceHistory {
+  id          String   @id @default(cuid())
+  menuId      String
+  menu        GbMenu   @relation(fields: [menuId], references: [id])
+  price       Int
+  changedBy   String
+  reason      String?
+  effectiveAt DateTime
+  createdAt   DateTime @default(now())
+
+  @@index([menuId, effectiveAt])
+  @@map("gb_menu_price_history")
+}
+
+model GbRecipeVersion {
+  id          String   @id @default(cuid())
+  menuId      String
+  menu        GbMenu   @relation(fields: [menuId], references: [id])
+  version     Int
+  content     String   @db.Text
+  changedBy   String
+  notes       String?
+  isActive    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([menuId, isActive])
+  @@map("gb_recipe_versions")
+}
+
+// ─── ORDER ───────────────────────────────────────────────────
+
+model GbOrder {
+  id              String        @id @default(cuid())
+  orderNumber     String        @unique
+  storeId         String
+  store           GbStore       @relation(fields: [storeId], references: [id])
+  customerId      String?
+  customer        GbCustomer?   @relation(fields: [customerId], references: [id])
+  status          GbOrderStatus @default(PENDING)
+  totalAmount     Int
+  discountAmount  Int           @default(0)
+  finalAmount     Int
+  pointEarned     Int           @default(0)
+  pointUsed       Int           @default(0)
+  couponId        String?
+  couponDiscount  Int           @default(0)
+  pickupName      String?
+  note            String?
+  isGuest         Boolean       @default(false)
+  guestName       String?
+  guestPhone      String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  items           GbOrderItem[]
+  statusHistory   GbOrderStatusHistory[]
+  payment         GbPayment?
+  pointLedgers    GbPointLedger[]
+  stampLedgers    GbStampLedger[]
+
+  @@index([storeId, status])
+  @@index([customerId])
+  @@index([orderNumber])
+  @@index([createdAt])
+  @@map("gb_orders")
+}
+
+model GbOrderItem {
+  id          String      @id @default(cuid())
+  orderId     String
+  order       GbOrder     @relation(fields: [orderId], references: [id])
+  menuId      String
+  menu        GbMenu      @relation(fields: [menuId], references: [id])
+  menuName    String
+  quantity    Int
+  unitPrice   Int
+  totalPrice  Int
+  createdAt   DateTime    @default(now())
+
+  options     GbOrderItemOption[]
+
+  @@index([orderId])
+  @@map("gb_order_items")
+}
+
+model GbOrderItemOption {
+  id              String       @id @default(cuid())
+  orderItemId     String
+  orderItem       GbOrderItem  @relation(fields: [orderItemId], references: [id])
+  menuOptionId    String
+  menuOption      GbMenuOption @relation(fields: [menuOptionId], references: [id])
+  optionName      String
+  extraPrice      Int          @default(0)
+  createdAt       DateTime     @default(now())
+
+  @@index([orderItemId])
+  @@map("gb_order_item_options")
+}
+
+model GbOrderStatusHistory {
+  id          String        @id @default(cuid())
+  orderId     String
+  order       GbOrder       @relation(fields: [orderId], references: [id])
+  status      GbOrderStatus
+  changedBy   String
+  note        String?
+  createdAt   DateTime      @default(now())
+
+  @@index([orderId, createdAt])
+  @@map("gb_order_status_history")
+}
+
+// ─── PAYMENT ─────────────────────────────────────────────────
+
+model GbPayment {
+  id              String           @id @default(cuid())
+  orderId         String           @unique
+  order           GbOrder          @relation(fields: [orderId], references: [id])
+  method          GbPaymentMethod  @default(MOCK)
+  status          GbPaymentStatus  @default(PENDING)
+  amount          Int
+  pgProvider      String?
+  pgTransactionId String?
+  pgPayload       Json?
+  paidAt          DateTime?
+  cancelledAt     DateTime?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  transactions    GbPaymentTransaction[]
+  refunds         GbRefund[]
+
+  @@index([status])
+  @@index([pgTransactionId])
+  @@map("gb_payments")
+}
+
+model GbPaymentTransaction {
+  id          String    @id @default(cuid())
+  paymentId   String
+  payment     GbPayment @relation(fields: [paymentId], references: [id])
+  type        String
+  amount      Int
+  pgResponse  Json?
+  createdAt   DateTime  @default(now())
+
+  @@index([paymentId])
+  @@map("gb_payment_transactions")
+}
+
+model GbRefund {
+  id          String    @id @default(cuid())
+  paymentId   String
+  payment     GbPayment @relation(fields: [paymentId], references: [id])
+  amount      Int
+  reason      String
+  requestedBy String
+  pgRefundId  String?
+  pgPayload   Json?
+  refundedAt  DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([paymentId])
+  @@map("gb_refunds")
+}
+
+model GbPaymentWebhookEvent {
+  id              String    @id @default(cuid())
+  pgProvider      String
+  eventType       String
+  externalEventId String    @unique
+  payload         Json
+  processedAt     DateTime?
+  error           String?
+  createdAt       DateTime  @default(now())
+
+  @@index([pgProvider, eventType])
+  @@map("gb_payment_webhook_events")
+}
+
+// ─── POINTS ──────────────────────────────────────────────────
+
+model GbPointAccount {
+  id          String     @id @default(cuid())
+  customerId  String     @unique
+  customer    GbCustomer @relation(fields: [customerId], references: [id])
+  balance     Int        @default(0)
+  totalEarned Int        @default(0)
+  totalUsed   Int        @default(0)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  ledgers     GbPointLedger[]
+
+  @@map("gb_point_accounts")
+}
+
+model GbPointLedger {
+  id             String            @id @default(cuid())
+  accountId      String
+  account        GbPointAccount    @relation(fields: [accountId], references: [id])
+  orderId        String?
+  order          GbOrder?          @relation(fields: [orderId], references: [id])
+  type           GbPointLedgerType
+  amount         Int
+  balanceAfter   Int
+  note           String?
+  expiresAt      DateTime?
+  idempotencyKey String?           @unique
+  createdAt      DateTime          @default(now())
+
+  @@index([accountId, createdAt])
+  @@index([orderId])
+  @@map("gb_point_ledger")
+}
+
+// ─── COUPONS ─────────────────────────────────────────────────
+
+model GbCoupon {
+  id               String         @id @default(cuid())
+  code             String         @unique
+  name             String
+  type             GbCouponType
+  status           GbCouponStatus @default(ACTIVE)
+  discountAmount   Int?
+  discountRate     Float?
+  minOrderAmount   Int?
+  maxDiscount      Int?
+  freeItemMenuId   String?
+  totalLimit       Int?
+  perCustomerLimit Int            @default(1)
+  usedCount        Int            @default(0)
+  validFrom        DateTime
+  validUntil       DateTime
+  description      String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  issues           GbCouponIssue[]
+
+  @@index([code])
+  @@index([status, validUntil])
+  @@map("gb_coupons")
+}
+
+model GbCouponIssue {
+  id          String     @id @default(cuid())
+  couponId    String
+  coupon      GbCoupon   @relation(fields: [couponId], references: [id])
+  customerId  String
+  customer    GbCustomer @relation(fields: [customerId], references: [id])
+  issuedAt    DateTime   @default(now())
+  expiresAt   DateTime?
+
+  redemption  GbCouponRedemption?
+
+  @@index([customerId])
+  @@index([couponId])
+  @@map("gb_coupon_issues")
+}
+
+model GbCouponRedemption {
+  id              String        @id @default(cuid())
+  couponIssueId   String        @unique
+  couponIssue     GbCouponIssue @relation(fields: [couponIssueId], references: [id])
+  orderId         String
+  redeemedAt      DateTime      @default(now())
+  discountApplied Int
+
+  @@index([orderId])
+  @@map("gb_coupon_redemptions")
+}
+
+// ─── STAMPS ──────────────────────────────────────────────────
+
+model GbStampAccount {
+  id          String     @id @default(cuid())
+  customerId  String
+  customer    GbCustomer @relation(fields: [customerId], references: [id])
+  storeId     String
+  balance     Int        @default(0)
+  totalEarned Int        @default(0)
+  totalUsed   Int        @default(0)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  ledgers     GbStampLedger[]
+
+  @@unique([customerId, storeId])
+  @@index([customerId])
+  @@map("gb_stamp_accounts")
+}
+
+model GbStampLedger {
+  id             String            @id @default(cuid())
+  accountId      String
+  account        GbStampAccount    @relation(fields: [accountId], references: [id])
+  orderId        String?
+  order          GbOrder?          @relation(fields: [orderId], references: [id])
+  type           GbStampLedgerType
+  amount         Int
+  balanceAfter   Int
+  note           String?
+  idempotencyKey String?           @unique
+  createdAt      DateTime          @default(now())
+
+  @@index([accountId, createdAt])
+  @@map("gb_stamp_ledger")
+}
+
+// ─── STORE OPERATIONS ────────────────────────────────────────
+
+model GbChecklist {
+  id          String              @id @default(cuid())
+  storeId     String
+  store       GbStore             @relation(fields: [storeId], references: [id])
+  title       String
+  category    GbChecklistCategory
+  isActive    Boolean             @default(true)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  items       GbChecklistItem[]
+  completions GbChecklistCompletion[]
+
+  @@index([storeId, category])
+  @@map("gb_checklists")
+}
+
+model GbChecklistItem {
+  id           String      @id @default(cuid())
+  checklistId  String
+  checklist    GbChecklist @relation(fields: [checklistId], references: [id])
+  title        String
+  description  String?
+  sortOrder    Int         @default(0)
+  isRequired   Boolean     @default(false)
+  createdAt    DateTime    @default(now())
+
+  @@index([checklistId])
+  @@map("gb_checklist_items")
+}
+
+model GbChecklistCompletion {
+  id              String      @id @default(cuid())
+  checklistId     String
+  checklist       GbChecklist @relation(fields: [checklistId], references: [id])
+  completedBy     String
+  completedByName String
+  itemsChecked    Json
+  notes           String?
+  completedAt     DateTime    @default(now())
+
+  @@index([checklistId, completedAt])
+  @@map("gb_checklist_completions")
+}
+
+model GbStoreNotice {
+  id          String    @id @default(cuid())
+  storeId     String?
+  store       GbStore?  @relation(fields: [storeId], references: [id])
+  isGlobal    Boolean   @default(false)
+  title       String
+  content     String    @db.Text
+  isPinned    Boolean   @default(false)
+  publishedAt DateTime?
+  expiresAt   DateTime?
+  createdBy   String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([storeId, publishedAt])
+  @@index([isGlobal, publishedAt])
+  @@map("gb_store_notices")
+}
+
+model GbStoreInquiry {
+  id          String          @id @default(cuid())
+  storeId     String
+  store       GbStore         @relation(fields: [storeId], references: [id])
+  title       String
+  content     String          @db.Text
+  status      GbInquiryStatus @default(OPEN)
+  createdBy   String
+  assignedTo  String?
+  resolvedAt  DateTime?
+  response    String?         @db.Text
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([storeId, status])
+  @@map("gb_store_inquiries")
+}
+
+model GbMaintenanceRequest {
+  id          String          @id @default(cuid())
+  storeId     String
+  store       GbStore         @relation(fields: [storeId], references: [id])
+  title       String
+  description String          @db.Text
+  priority    String          @default("NORMAL")
+  status      GbInquiryStatus @default(OPEN)
+  images      String[]        @default([])
+  createdBy   String
+  assignedTo  String?
+  resolvedAt  DateTime?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([storeId, status])
+  @@map("gb_maintenance_requests")
+}
+
+// ─── MARKETING & NOTIFICATIONS ───────────────────────────────
+
+model GbCampaign {
+  id              String                  @id @default(cuid())
+  title           String
+  description     String?
+  status          GbCampaignStatus        @default(DRAFT)
+  channels        GbNotificationChannel[]
+  targetType      String
+  messageTemplate String                  @db.Text
+  scheduledAt     DateTime?
+  startedAt       DateTime?
+  completedAt     DateTime?
+  createdBy       String
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+
+  targets         GbCampaignTarget[]
+  notifications   GbPushNotification[]
+
+  @@index([status])
+  @@map("gb_campaigns")
+}
+
+model GbCampaignTarget {
+  id          String      @id @default(cuid())
+  campaignId  String
+  campaign    GbCampaign  @relation(fields: [campaignId], references: [id])
+  storeId     String?
+  store       GbStore?    @relation(fields: [storeId], references: [id])
+  customerId  String?
+  createdAt   DateTime    @default(now())
+
+  @@index([campaignId])
+  @@map("gb_campaign_targets")
+}
+
+model GbPushNotification {
+  id          String      @id @default(cuid())
+  campaignId  String?
+  campaign    GbCampaign? @relation(fields: [campaignId], references: [id])
+  title       String
+  body        String      @db.Text
+  imageUrl    String?
+  deepLink    String?
+  scheduledAt DateTime?
+  sentAt      DateTime?
+  createdAt   DateTime    @default(now())
+
+  logs        GbNotificationLog[]
+
+  @@index([campaignId])
+  @@map("gb_push_notifications")
+}
+
+model GbNotificationLog {
+  id               String                 @id @default(cuid())
+  customerId       String?
+  customer         GbCustomer?            @relation(fields: [customerId], references: [id])
+  notificationId   String?
+  notification     GbPushNotification?    @relation(fields: [notificationId], references: [id])
+  channel          GbNotificationChannel
+  status           String
+  sentAt           DateTime?
+  failReason       String?
+  createdAt        DateTime               @default(now())
+
+  @@index([customerId])
+  @@index([notificationId])
+  @@map("gb_notification_logs")
+}
+
+// ─── SYSTEM ──────────────────────────────────────────────────
+
+model GbDataSyncJob {
+  id          String    @id @default(cuid())
+  jobType     String
+  status      String
+  storeId     String?
+  payload     Json?
+  result      Json?
+  errorMsg    String?
+  startedAt   DateTime?
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([jobType, status])
+  @@map("gb_data_sync_jobs")
+}
+
+model GbAuditLog {
+  id          String   @id @default(cuid())
+  storeId     String?
+  store       GbStore? @relation(fields: [storeId], references: [id])
+  actorId     String
+  actorRole   String
+  action      String
+  resource    String
+  resourceId  String?
+  oldValue    Json?
+  newValue    Json?
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+
+  @@index([storeId, createdAt])
+  @@index([actorId])
+  @@index([resource, resourceId])
+  @@map("gb_audit_logs")
+}
+
+model GbIdempotencyKey {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  resource    String
+  resourceId  String?
+  response    Json?
+  createdAt   DateTime @default(now())
+  expiresAt   DateTime
+
+  @@index([expiresAt])
+  @@map("gb_idempotency_keys")
+}
+
