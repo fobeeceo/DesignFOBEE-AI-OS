@@ -5,18 +5,54 @@ import { useEffect, useState } from "react";
 type Category = { id: string; name: string; nameEn: string; sortOrder: number };
 type Menu = { id: string; categoryId: string; name: string; nameEn: string; description: string; basePrice: number; isSignature: boolean; isNew: boolean; isSoldOut: boolean; tags: string[] };
 
+const MENU_INIT = { categoryId: "", name: "", nameEn: "", description: "", basePrice: "", isSignature: false, isNew: false };
+
 export default function MenusPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [menus, setMenus] = useState<Menu[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState(MENU_INIT);
+  const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState("");
 
-  useEffect(() => {
+  function fetchMenus() {
+    setLoading(true);
     fetch("/api/gbrick/hq/menus")
       .then((r) => r.json())
       .then((d) => { setCategories(d.categories ?? []); setMenus(d.menus ?? []); })
       .finally(() => setLoading(false));
-  }, []);
+  }
+
+  useEffect(() => { fetchMenus(); }, []);
+
+  async function handleCreate(e: React.FormEvent) {
+    e.preventDefault();
+    setSubmitting(true); setFormError("");
+    try {
+      const res = await fetch("/api/gbrick/hq/menus", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          categoryId: form.categoryId,
+          name: form.name,
+          nameEn: form.nameEn,
+          description: form.description,
+          basePrice: parseInt(form.basePrice),
+          isSignature: form.isSignature,
+          isNew: form.isNew,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "등록 실패");
+      setForm(MENU_INIT); setShowForm(false); fetchMenus();
+    } catch (err: unknown) {
+      setFormError(err instanceof Error ? err.message : "오류");
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   const filtered = activeCategory === "all" ? menus : menus.filter((m) => m.categoryId === activeCategory);
 
@@ -29,10 +65,78 @@ export default function MenusPage() {
           <h1 style={{ fontSize: 24, fontWeight: 700, color: "#2C1A0E", margin: 0 }}>메뉴 관리</h1>
           <p style={{ fontSize: 13, color: "#888", marginTop: 4 }}>전체 {menus.length}개 메뉴</p>
         </div>
-        <button style={{ background: "#C8873A", color: "#fff", border: "none", borderRadius: 8, padding: "10px 20px", fontWeight: 600, cursor: "pointer", fontSize: 13 }}>
-          + 메뉴 추가
+        <button
+          onClick={() => setShowForm(!showForm)}
+          style={{ background: "#C8873A", color: "#fff", border: "none", borderRadius: 8, padding: "10px 20px", fontWeight: 600, cursor: "pointer", fontSize: 13 }}
+        >
+          {showForm ? "취소" : "+ 메뉴 추가"}
         </button>
       </div>
+
+      {showForm && (
+        <form onSubmit={handleCreate} style={{ background: "#fff", borderRadius: 12, padding: 24, marginBottom: 24, boxShadow: "0 1px 4px rgba(0,0,0,0.06)", border: "1px solid #f0ebe4", display: "flex", flexDirection: "column", gap: 14 }}>
+          <h3 style={{ fontSize: 15, fontWeight: 700, color: "#2C1A0E", margin: 0 }}>새 메뉴 추가</h3>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div style={{ gridColumn: "1 / -1" }}>
+              <div style={{ fontSize: 11, color: "#888", marginBottom: 4 }}>카테고리 *</div>
+              <select
+                value={form.categoryId}
+                onChange={(e) => setForm((p) => ({ ...p, categoryId: e.target.value }))}
+                required
+                style={{ width: "100%", border: "1px solid #e0d9d0", borderRadius: 8, padding: "9px 12px", fontSize: 13, outline: "none" }}
+              >
+                <option value="">선택하세요</option>
+                {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+            </div>
+            {[
+              { key: "name", label: "메뉴명 *", placeholder: "지브릭 라떼" },
+              { key: "nameEn", label: "영문명", placeholder: "GBRICK Latte" },
+              { key: "basePrice", label: "가격 *", placeholder: "6500" },
+            ].map(({ key, label, placeholder }) => (
+              <div key={key}>
+                <div style={{ fontSize: 11, color: "#888", marginBottom: 4 }}>{label}</div>
+                <input
+                  value={form[key as keyof typeof form] as string}
+                  onChange={(e) => setForm((p) => ({ ...p, [key]: e.target.value }))}
+                  placeholder={placeholder}
+                  required={["name", "basePrice"].includes(key)}
+                  type={key === "basePrice" ? "number" : "text"}
+                  style={{ width: "100%", border: "1px solid #e0d9d0", borderRadius: 8, padding: "9px 12px", fontSize: 13, outline: "none", boxSizing: "border-box" }}
+                />
+              </div>
+            ))}
+            <div style={{ gridColumn: "1 / -1" }}>
+              <div style={{ fontSize: 11, color: "#888", marginBottom: 4 }}>설명</div>
+              <textarea
+                value={form.description}
+                onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
+                placeholder="메뉴 설명을 입력하세요"
+                rows={2}
+                style={{ width: "100%", border: "1px solid #e0d9d0", borderRadius: 8, padding: "9px 12px", fontSize: 13, outline: "none", resize: "none", boxSizing: "border-box" }}
+              />
+            </div>
+            <div style={{ display: "flex", gap: 20 }}>
+              <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, cursor: "pointer" }}>
+                <input type="checkbox" checked={form.isSignature} onChange={(e) => setForm((p) => ({ ...p, isSignature: e.target.checked }))} />
+                시그니처
+              </label>
+              <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, cursor: "pointer" }}>
+                <input type="checkbox" checked={form.isNew} onChange={(e) => setForm((p) => ({ ...p, isNew: e.target.checked }))} />
+                신메뉴
+              </label>
+            </div>
+          </div>
+          {formError && <div style={{ fontSize: 12, color: "#EF4444" }}>{formError}</div>}
+          <button
+            type="submit"
+            disabled={submitting}
+            style={{ background: "#2C1A0E", color: "#fff", border: "none", borderRadius: 8, padding: "11px", fontWeight: 700, cursor: "pointer", fontSize: 14, opacity: submitting ? 0.7 : 1 }}
+          >
+            {submitting ? "등록 중..." : "메뉴 등록"}
+          </button>
+        </form>
+      )}
 
       {/* Category Tabs */}
       <div style={{ display: "flex", gap: 8, marginBottom: 24, flexWrap: "wrap" }}>
