@@ -94,27 +94,27 @@ ON CONFLICT ("id") DO NOTHING;
 
 -- 6. 체크리스트 (신촌점, 홍대점, 이태원점)
 INSERT INTO "gb_checklists" (
-  "id", "storeId", "title", "category", "isActive", "sortOrder", "updatedAt"
+  "id", "storeId", "title", "category", "isActive", "updatedAt"
 )
 VALUES
-  ('cl-001', 'store-001', '매장 청소 및 위생 점검', 'OPENING', true, 1, NOW()),
-  ('cl-002', 'store-001', '재료 재고 확인', 'INVENTORY', true, 2, NOW()),
-  ('cl-003', 'store-001', '에스프레소 머신·그라인더 점검', 'OPENING', true, 3, NOW()),
-  ('cl-004', 'store-001', '냉장·냉동 온도 확인', 'SAFETY', true, 4, NOW()),
-  ('cl-005', 'store-001', '마감 청소', 'CLOSING', true, 5, NOW()),
-  ('cl-006', 'store-001', '문 잠금 확인', 'CLOSING', true, 6, NOW()),
-  ('cl-007', 'store-002', '매장 청소 및 위생 점검', 'OPENING', true, 1, NOW()),
-  ('cl-008', 'store-002', '재료 재고 확인', 'INVENTORY', true, 2, NOW()),
-  ('cl-009', 'store-002', '에스프레소 머신·그라인더 점검', 'OPENING', true, 3, NOW()),
-  ('cl-010', 'store-002', '냉장·냉동 온도 확인', 'SAFETY', true, 4, NOW()),
-  ('cl-011', 'store-002', '마감 청소', 'CLOSING', true, 5, NOW()),
-  ('cl-012', 'store-002', '문 잠금 확인', 'CLOSING', true, 6, NOW()),
-  ('cl-013', 'store-003', '매장 청소 및 위생 점검', 'OPENING', true, 1, NOW()),
-  ('cl-014', 'store-003', '재료 재고 확인', 'INVENTORY', true, 2, NOW()),
-  ('cl-015', 'store-003', '에스프레소 머신·그라인더 점검', 'OPENING', true, 3, NOW()),
-  ('cl-016', 'store-003', '냉장·냉동 온도 확인', 'SAFETY', true, 4, NOW()),
-  ('cl-017', 'store-003', '마감 청소', 'CLOSING', true, 5, NOW()),
-  ('cl-018', 'store-003', '문 잠금 확인', 'CLOSING', true, 6, NOW())
+  ('cl-001', 'store-001', '매장 청소 및 위생 점검', 'OPENING', true, NOW()),
+  ('cl-002', 'store-001', '재료 재고 확인', 'INVENTORY', true, NOW()),
+  ('cl-003', 'store-001', '에스프레소 머신·그라인더 점검', 'OPENING', true, NOW()),
+  ('cl-004', 'store-001', '냉장·냉동 온도 확인', 'SAFETY', true, NOW()),
+  ('cl-005', 'store-001', '마감 청소', 'CLOSING', true, NOW()),
+  ('cl-006', 'store-001', '문 잠금 확인', 'CLOSING', true, NOW()),
+  ('cl-007', 'store-002', '매장 청소 및 위생 점검', 'OPENING', true, NOW()),
+  ('cl-008', 'store-002', '재료 재고 확인', 'INVENTORY', true, NOW()),
+  ('cl-009', 'store-002', '에스프레소 머신·그라인더 점검', 'OPENING', true, NOW()),
+  ('cl-010', 'store-002', '냉장·냉동 온도 확인', 'SAFETY', true, NOW()),
+  ('cl-011', 'store-002', '마감 청소', 'CLOSING', true, NOW()),
+  ('cl-012', 'store-002', '문 잠금 확인', 'CLOSING', true, NOW()),
+  ('cl-013', 'store-003', '매장 청소 및 위생 점검', 'OPENING', true, NOW()),
+  ('cl-014', 'store-003', '재료 재고 확인', 'INVENTORY', true, NOW()),
+  ('cl-015', 'store-003', '에스프레소 머신·그라인더 점검', 'OPENING', true, NOW()),
+  ('cl-016', 'store-003', '냉장·냉동 온도 확인', 'SAFETY', true, NOW()),
+  ('cl-017', 'store-003', '마감 청소', 'CLOSING', true, NOW()),
+  ('cl-018', 'store-003', '문 잠금 확인', 'CLOSING', true, NOW())
 ON CONFLICT ("id") DO NOTHING;
 
 -- 7. 공지사항
