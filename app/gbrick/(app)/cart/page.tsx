@@ -88,7 +88,7 @@ export default function CartPage() {
       if (!res.ok) throw new Error(data.error ?? "주문 실패");
 
       sessionStorage.removeItem("gbrick_cart");
-      router.push(`/gbrick/history?newOrder=${data.order.orderNumber}`);
+      router.push(`/gbrick/orders/${data.order.id}`);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "주문 실패");
     } finally {

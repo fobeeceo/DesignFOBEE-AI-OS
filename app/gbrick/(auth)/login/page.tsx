@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
-export default function GbrickLoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -20,7 +21,8 @@ export default function GbrickLoginPage() {
       const supabase = createClient();
       const { error: authErr } = await supabase.auth.signInWithPassword({ email, password });
       if (authErr) throw authErr;
-      router.push("/gbrick");
+      const redirect = searchParams.get("redirect") ?? "/gbrick";
+      router.push(redirect);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "로그인 실패");
     } finally {
@@ -88,5 +90,13 @@ export default function GbrickLoginPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function GbrickLoginPage() {
+  return (
+    <Suspense fallback={<div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>로딩 중...</div>}>
+      <LoginForm />
+    </Suspense>
   );
 }

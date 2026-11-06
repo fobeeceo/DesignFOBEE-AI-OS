@@ -60,14 +60,46 @@ export async function middleware(request: NextRequest) {
   );
 
   const { data: { user } } = await supabase.auth.getUser();
+  const { pathname } = request.nextUrl;
 
-  // 인증 게이트: /hq(AI Headquarters)만 로그인 필요.
-  // /owner(점주 포탈)는 빈 인쇄 양식만 제공하므로 공개 접근 허용.
-  const isProtected = request.nextUrl.pathname.startsWith("/hq");
+  // ── GBRICK 인증 게이트 ───────────────────────────────────────────
+  // /gbrick-hq : HQ 관리자 (HQ_ADMIN 이상 필요 — 미구현 시 로그인만 확인)
+  // /store     : 매장 대시보드 (STORE_STAFF 이상)
+  // /gbrick    : 고객 앱 (로그인 없이 메뉴/매장 조회 가능, 주문 시 필요)
+
+  if (pathname.startsWith("/gbrick-hq") && !pathname.startsWith("/gbrick-hq/login")) {
+    if (!user) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/gbrick-hq/login";
+      url.searchParams.set("redirect", pathname);
+      return NextResponse.redirect(url);
+    }
+  }
+
+  if (pathname.startsWith("/store/") && !pathname.startsWith("/store/login")) {
+    if (!user) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/store/login";
+      url.searchParams.set("redirect", pathname);
+      return NextResponse.redirect(url);
+    }
+  }
+
+  // 고객 앱: 주문·마이페이지·히스토리는 로그인 필요
+  const gbrickAuthRequired = ["/gbrick/cart", "/gbrick/history", "/gbrick/mypage"];
+  if (gbrickAuthRequired.some((p) => pathname.startsWith(p)) && !user) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/gbrick/login";
+    url.searchParams.set("redirect", pathname);
+    return NextResponse.redirect(url);
+  }
+
+  // ── 기존 DesignFOBEE HQ 게이트 ──────────────────────────────────
+  const isProtected = pathname.startsWith("/hq");
   if (!user && isProtected) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
-    url.searchParams.set("redirect", request.nextUrl.pathname);
+    url.searchParams.set("redirect", pathname);
     return NextResponse.redirect(url);
   }
 

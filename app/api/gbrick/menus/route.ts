@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { MOCK_MENU_CATEGORIES, MOCK_MENUS, MOCK_MENU_OPTIONS, IS_MOCK_MODE } from "@/lib/gbrick/mockData";

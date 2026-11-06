@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { GbOrderStatus } from "@prisma/client";
 import { createClient } from "@/lib/supabase/server";

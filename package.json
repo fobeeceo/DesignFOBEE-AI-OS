@@ -17,7 +17,12 @@
     "verify": "node scripts/verify-before-commit.js",
     "postinstall": "prisma generate",
     "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev"
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:migrate:deploy": "prisma migrate deploy",
+    "prisma:status": "prisma migrate status",
+    "db:check": "npx tsx database/check-db-connection.ts",
+    "seed:gbrick": "npx tsx database/seed-gbrick.ts",
+    "gbrick:migrate": "prisma migrate dev --name gbrick_init && npm run seed:gbrick"
   },
   "prisma": {
     "schema": "database/prisma/schema.prisma"
