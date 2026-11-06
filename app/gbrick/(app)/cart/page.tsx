@@ -48,14 +48,14 @@ export default function CartPage() {
     return (
       <main className="flex flex-col min-h-screen pb-20">
         <header className="flex items-center px-5 py-4 text-white" style={{ background: "#2C1A0E" }}>
-          <Link href="/gbrick/(app)/stores" className="text-amber-200 mr-3 text-lg">←</Link>
+          <Link href="/gbrick/stores" className="text-amber-200 mr-3 text-lg">←</Link>
           <span className="font-bold">장바구니</span>
         </header>
         <div className="flex-1 flex flex-col items-center justify-center gap-4 text-stone-400">
           <span className="text-5xl">🛒</span>
           <p className="text-sm">장바구니가 비어있습니다</p>
           <Link
-            href="/gbrick/(app)/stores"
+            href="/gbrick/stores"
             className="text-sm font-semibold px-5 py-2.5 rounded-xl text-white"
             style={{ background: "#C8873A" }}
           >
@@ -88,7 +88,7 @@ export default function CartPage() {
       if (!res.ok) throw new Error(data.error ?? "주문 실패");
 
       sessionStorage.removeItem("gbrick_cart");
-      router.push(`/gbrick/(app)/history?newOrder=${data.order.orderNumber}`);
+      router.push(`/gbrick/history?newOrder=${data.order.orderNumber}`);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "주문 실패");
     } finally {
@@ -99,7 +99,7 @@ export default function CartPage() {
   return (
     <main className="flex flex-col min-h-screen pb-32">
       <header className="flex items-center px-5 py-4 text-white" style={{ background: "#2C1A0E" }}>
-        <Link href="/gbrick/(app)/stores" className="text-amber-200 mr-3 text-lg">←</Link>
+        <Link href="/gbrick/stores" className="text-amber-200 mr-3 text-lg">←</Link>
         <span className="font-bold">장바구니</span>
       </header>
 

@@ -19,7 +19,7 @@ export default function StoreLoginPage() {
       const supabase = createClient();
       const { error: authErr } = await supabase.auth.signInWithPassword({ email, password });
       if (authErr) throw authErr;
-      router.push("/store/(dashboard)/orders");
+      router.push("/store/orders");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "로그인 실패");
     } finally {

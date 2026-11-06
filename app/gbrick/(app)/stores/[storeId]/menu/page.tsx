@@ -120,7 +120,7 @@ export default function MenuPage({
         className="flex items-center px-5 py-4 text-white"
         style={{ background: "#2C1A0E" }}
       >
-        <Link href="/gbrick/(app)/stores" className="text-amber-200 mr-3 text-lg">←</Link>
+        <Link href="/gbrick/stores" className="text-amber-200 mr-3 text-lg">←</Link>
         <span className="font-bold">메뉴 주문</span>
         <div className="ml-auto flex items-center gap-1">
           <span className="text-xs text-amber-300">포인트 3% 적립</span>
@@ -206,7 +206,7 @@ export default function MenuPage({
       {cartCount > 0 && (
         <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] px-4 pb-4 pt-2 bg-white border-t border-stone-100">
           <Link
-            href="/gbrick/(app)/cart"
+            href="/gbrick/cart"
             onClick={() => {
               sessionStorage.setItem("gbrick_cart", JSON.stringify({ storeId, items: cart }));
             }}

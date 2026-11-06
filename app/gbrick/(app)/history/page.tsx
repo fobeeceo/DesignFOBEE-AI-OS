@@ -61,7 +61,7 @@ function HistoryContent() {
             <span className="text-5xl">📋</span>
             <p className="text-sm">주문 내역이 없습니다</p>
             <Link
-              href="/gbrick/(app)/stores"
+              href="/gbrick/stores"
               className="text-sm font-semibold px-5 py-2.5 rounded-xl text-white"
               style={{ background: "#C8873A" }}
             >

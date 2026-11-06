@@ -51,7 +51,7 @@ export default function StoreListPage() {
             return (
               <Link
                 key={store.id}
-                href={`/gbrick/(app)/stores/${store.id}/menu`}
+                href={`/gbrick/stores/${store.id}/menu`}
                 className="block bg-white rounded-2xl shadow-sm border border-stone-100 overflow-hidden"
               >
                 <div

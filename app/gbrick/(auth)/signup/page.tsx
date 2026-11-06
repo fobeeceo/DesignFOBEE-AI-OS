@@ -49,7 +49,7 @@ export default function GbrickSignupPage() {
         style={{ background: "#2C1A0E" }}
       >
         <button
-          onClick={() => step === 2 ? setStep(1) : router.push("/gbrick/(auth)/login")}
+          onClick={() => step === 2 ? setStep(1) : router.push("/gbrick/login")}
           className="text-amber-200 mr-3 text-lg"
         >
           ←
@@ -149,7 +149,7 @@ export default function GbrickSignupPage() {
 
         <div className="mt-6 text-center">
           <span className="text-sm text-stone-500">이미 계정이 있으신가요? </span>
-          <Link href="/gbrick/(auth)/login" className="text-sm font-semibold" style={{ color: "#C8873A" }}>
+          <Link href="/gbrick/login" className="text-sm font-semibold" style={{ color: "#C8873A" }}>
             로그인
           </Link>
         </div>

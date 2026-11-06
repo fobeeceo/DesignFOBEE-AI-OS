@@ -82,7 +82,7 @@ export default function GbrickLoginPage() {
 
         <div className="mt-6 text-center">
           <span className="text-sm text-stone-500">아직 회원이 아니신가요? </span>
-          <Link href="/gbrick/(auth)/signup" className="text-sm font-semibold" style={{ color: "#C8873A" }}>
+          <Link href="/gbrick/signup" className="text-sm font-semibold" style={{ color: "#C8873A" }}>
             회원가입
           </Link>
         </div>

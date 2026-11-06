@@ -16,14 +16,14 @@ export default function GbrickHome() {
         </p>
         <div className="flex flex-col gap-3 w-full max-w-xs">
           <Link
-            href="/gbrick/(app)/stores"
+            href="/gbrick/stores"
             className="block w-full text-center py-3.5 rounded-xl font-semibold text-sm"
             style={{ background: "#C8873A", color: "#fff" }}
           >
             주문하기
           </Link>
           <Link
-            href="/gbrick/(auth)/login"
+            href="/gbrick/login"
             className="block w-full text-center py-3.5 rounded-xl font-semibold text-sm border border-amber-300 text-amber-200"
           >
             로그인 / 회원가입
@@ -87,9 +87,9 @@ export default function GbrickHome() {
 function GbBottomNav({ active }: { active: string }) {
   const items = [
     { key: "home", label: "홈", icon: "🏠", href: "/gbrick" },
-    { key: "order", label: "주문", icon: "☕", href: "/gbrick/(app)/stores" },
-    { key: "history", label: "내역", icon: "📋", href: "/gbrick/(app)/history" },
-    { key: "mypage", label: "마이", icon: "👤", href: "/gbrick/(app)/mypage" },
+    { key: "order", label: "주문", icon: "☕", href: "/gbrick/stores" },
+    { key: "history", label: "내역", icon: "📋", href: "/gbrick/history" },
+    { key: "mypage", label: "마이", icon: "👤", href: "/gbrick/mypage" },
   ];
   return (
     <nav
