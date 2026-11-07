@@ -21,7 +21,9 @@ export async function GET(req: NextRequest) {
     }
 
     const categories = await menuRepo.findCategories(storeId);
-    return NextResponse.json({ categories });
+    return NextResponse.json({ categories }, {
+      headers: { "Cache-Control": "no-store, no-cache, must-revalidate" },
+    });
   } catch (err) {
     console.error("[GET /api/gbrick/menus]", err);
     return NextResponse.json({ error: "서버 오류" }, { status: 500 });

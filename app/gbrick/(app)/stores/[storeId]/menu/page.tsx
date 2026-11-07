@@ -51,7 +51,7 @@ export default function MenuPage() {
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    fetch(`/api/gbrick/menus?storeId=${storeId}`)
+    fetch(`/api/gbrick/menus?storeId=${storeId}`, { cache: "no-store" })
       .then((r) => r.json())
       .then((d) => {
         setCategories(d.categories ?? []);
