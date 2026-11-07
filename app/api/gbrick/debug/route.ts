@@ -11,7 +11,7 @@ export async function GET() {
   const hasSvcRole = !!process.env.SUPABASE_SERVICE_ROLE_KEY;
   const isMock = (!hasDb && !hasAnon && !hasSvcRole) || process.env.USE_MOCK_DATA === "true";
 
-  let menuDebug: { totalActive?: number; espresso?: number; catSelectStarIds?: unknown[]; menusFiltered?: unknown[]; menuIdTypes?: unknown[]; error?: string } = {};
+  let menuDebug: { totalActive?: number; espresso?: number; catSelectStarIds?: unknown[]; menusFiltered?: unknown[]; menuIdTypes?: unknown[]; selectStarCategoryIds?: unknown[]; error?: string } = {};
   try {
     const url = "https://rzgrkrffksqdeztzxyrt.supabase.co";
     const key = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
@@ -19,6 +19,8 @@ export async function GET() {
 
     const { data: cats } = await sb.from("gb_menu_categories").select("*").eq("isActive", true);
     const { data: menus } = await sb.from("gb_menus").select("id,categoryId,isActive").eq("isActive", true);
+    // select("*")로 menus를 가져올 때 categoryId 타입 비교
+    const { data: menusSelectStar } = await sb.from("gb_menus").select("*").eq("isActive", true).limit(3);
     const espMenus = (menus ?? []).filter((m: { categoryId: string }) => m.categoryId === "cat-esp-002");
 
     // select("*")로 반환되는 카테고리 id 값 그대로 확인
@@ -37,12 +39,20 @@ export async function GET() {
       categoryIdType: typeof m.categoryId,
     }));
 
+    // select("*")로 반환된 categoryId 타입/값 확인
+    const selectStarCategoryIds = (menusSelectStar ?? []).slice(0, 3).map((m: Record<string, unknown>) => ({
+      id: m.id,
+      categoryIdType: typeof m.categoryId,
+      categoryIdValue: JSON.stringify(m.categoryId),
+    }));
+
     menuDebug = {
       totalActive: menus?.length ?? 0,
       espresso: espMenus.length,
       catSelectStarIds,
       menusFiltered,
       menuIdTypes,
+      selectStarCategoryIds,
     };
   } catch (e) {
     menuDebug = { error: String(e) };

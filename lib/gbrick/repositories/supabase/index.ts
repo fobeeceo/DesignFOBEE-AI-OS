@@ -64,9 +64,10 @@ export const sbMenuRepo: IMenuRepository = {
       .order("sortOrder");
     if (catErr) throw catErr;
 
+    // select("*")는 FK 관계가 있을 때 categoryId를 객체로 오버라이드할 수 있으므로 명시적 컬럼 지정
     const { data: menus, error: menuErr } = await sb
       .from("gb_menus")
-      .select("*")
+      .select("id, categoryId, name, nameEn, description, basePrice, imageUrl, isSignature, isNew, isSoldOut, sortOrder, isActive, tags")
       .eq("isActive", true)
       .order("sortOrder");
     if (menuErr) throw menuErr;
