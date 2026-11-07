@@ -38,15 +38,17 @@ export default function MyPage() {
   async function loadProfile() {
     setLoading(true);
     try {
-      const [customerRes, pointsRes, couponsRes] = await Promise.all([
+      const [customerRes, pointsRes, couponsRes, stampsRes] = await Promise.all([
         fetch("/api/gbrick/customers"),
         fetch("/api/gbrick/points"),
         fetch("/api/gbrick/coupons"),
+        fetch("/api/gbrick/stamps"),
       ]);
-      const [cd, pd, cod] = await Promise.all([customerRes.json(), pointsRes.json(), couponsRes.json()]);
+      const [cd, pd, cod, sd] = await Promise.all([customerRes.json(), pointsRes.json(), couponsRes.json(), stampsRes.json()]);
       setCustomer(cd.customer ?? null);
       setPointAccount(pd.account ?? null);
       setCoupons(cod.coupons ?? []);
+      setStampCount(sd.total ?? 0);
     } catch (err) {
       console.error(err);
     } finally {
@@ -188,7 +190,7 @@ export default function MyPage() {
                 </p>
               </div>
             </div>
-            <p className="text-xs text-stone-400">주문 금액의 3% 자동 적립 · 100P 단위 사용 가능</p>
+            <p className="text-xs text-stone-400">주문 금액의 2% 자동 적립 · 100P 단위 사용 가능</p>
           </div>
         )}
 

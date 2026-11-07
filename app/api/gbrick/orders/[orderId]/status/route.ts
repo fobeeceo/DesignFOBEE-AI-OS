@@ -1,37 +1,43 @@
 import { NextRequest, NextResponse } from "next/server";
-import { GbOrderStatus } from "@prisma/client";
-import { createClient } from "@/lib/supabase/server";
-import { updateOrderStatus } from "@/lib/gbrick/services/orderService";
 import { IS_MOCK_MODE } from "@/lib/gbrick/mockData";
+import { orderRepo } from "@/lib/gbrick/repositories";
+
+export const dynamic = "force-dynamic";
+
+const VALID_TRANSITIONS: Record<string, string[]> = {
+  PENDING:   ["ACCEPTED", "CANCELLED"],
+  ACCEPTED:  ["READY", "CANCELLED"],
+  READY:     ["COMPLETED"],
+  COMPLETED: [],
+  CANCELLED: [],
+};
 
 export async function PATCH(
   req: NextRequest,
   { params }: { params: { orderId: string } }
 ) {
-  const body = await req.json();
-  const { status, note } = body;
-
-  if (!status || !Object.values(GbOrderStatus).includes(status as GbOrderStatus)) {
-    return NextResponse.json({ error: "유효하지 않은 상태값" }, { status: 400 });
-  }
-
-  if (IS_MOCK_MODE) {
-    return NextResponse.json({
-      order: { id: params.orderId, status, note, updatedAt: new Date().toISOString() },
-      mock: true,
-    });
-  }
-
   try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return NextResponse.json({ error: "인증 필요" }, { status: 401 });
+    const { status } = await req.json();
 
-    const order = await updateOrderStatus(params.orderId, status as GbOrderStatus, user.id, note);
-    return NextResponse.json({ order });
+    if (IS_MOCK_MODE) {
+      return NextResponse.json({ ok: true, status, mock: true });
+    }
+
+    const order = await orderRepo.findById(params.orderId);
+    if (!order) return NextResponse.json({ error: "주문 없음" }, { status: 404 });
+
+    const allowed = VALID_TRANSITIONS[order.status] ?? [];
+    if (!allowed.includes(status)) {
+      return NextResponse.json(
+        { error: `${order.status} → ${status} 전환 불가` },
+        { status: 400 }
+      );
+    }
+
+    const updated = await orderRepo.updateStatus(params.orderId, status, "store_staff");
+    return NextResponse.json({ ok: true, order: updated });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "서버 오류";
-    console.error("[PATCH /api/gbrick/orders/:id/status]", err);
-    return NextResponse.json({ error: message }, { status: 400 });
+    console.error(`[PATCH /api/gbrick/orders/${params.orderId}/status]`, err);
+    return NextResponse.json({ error: "서버 오류" }, { status: 500 });
   }
 }

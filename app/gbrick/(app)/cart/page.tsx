@@ -68,7 +68,7 @@ export default function CartPage() {
 
   const subtotal = cart.items.reduce((s, i) => s + i.unitPrice * i.quantity, 0);
   const finalAmount = Math.max(0, subtotal - pointUse);
-  const earnedPoints = Math.floor(finalAmount * 0.03);
+  const earnedPoints = Math.floor(finalAmount * 0.02);
 
   async function handleOrder() {
     setLoading(true);

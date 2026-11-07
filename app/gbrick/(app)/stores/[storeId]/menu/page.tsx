@@ -121,7 +121,7 @@ export default function MenuPage() {
         <Link href="/gbrick/stores" className="text-amber-200 mr-3 text-lg">←</Link>
         <span className="font-bold">메뉴 주문</span>
         <div className="ml-auto flex items-center gap-1">
-          <span className="text-xs text-amber-300">포인트 3% 적립</span>
+          <span className="text-xs text-amber-300">포인트 2% 적립</span>
         </div>
       </header>
 
