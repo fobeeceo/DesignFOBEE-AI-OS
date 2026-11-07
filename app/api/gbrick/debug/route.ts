@@ -16,12 +16,18 @@ export async function GET() {
   let storeCount: number | null = null;
   let sbError: string | null = null;
 
+  let queryResult: unknown = null;
+
   if (key) {
     try {
       const sb = createClient(url, key, { auth: { autoRefreshToken: false, persistSession: false } });
-      const { count, error } = await sb.from("gb_stores").select("*", { count: "exact", head: true });
-      if (error) sbError = error.message;
-      else storeCount = count;
+      const { data, error } = await sb.from("gb_stores").select("id, name, status").limit(5);
+      if (error) {
+        sbError = JSON.stringify({ message: error.message, code: error.code, details: error.details, hint: error.hint });
+      } else {
+        storeCount = data?.length ?? 0;
+        queryResult = data;
+      }
     } catch (e) {
       sbError = String(e);
     }
@@ -36,6 +42,6 @@ export async function GET() {
       hasDbUrl,
       useMock,
     },
-    supabase: { storeCount, error: sbError },
+    supabase: { storeCount, error: sbError, rows: queryResult },
   });
 }
