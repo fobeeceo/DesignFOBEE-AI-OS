@@ -313,7 +313,8 @@ export const MOCK_CHECKLISTS = [
 
 const hasDatabase = !!process.env.DATABASE_URL;
 const hasSupabase = !!(
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY &&
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY !== "placeholder-key"
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||
+  (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY &&
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY !== "placeholder-key")
 );
 export const IS_MOCK_MODE = (!hasDatabase && !hasSupabase) || process.env.USE_MOCK_DATA === "true";
