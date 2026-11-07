@@ -21,7 +21,17 @@ export async function GET(req: NextRequest) {
     }
 
     const categories = await menuRepo.findCategories(storeId);
-    return NextResponse.json({ categories }, {
+    const isDebug = searchParams.get("debug") === "1";
+    return NextResponse.json({
+      categories,
+      ...(isDebug ? {
+        _debug: (categories as unknown as Record<string, unknown>[]).map((c) => ({
+          catId: c.id,
+          catName: c.name,
+          menuCount: Array.isArray(c.menus) ? (c.menus as unknown[]).length : 0,
+        }))
+      } : {}),
+    }, {
       headers: { "Cache-Control": "no-store, no-cache, must-revalidate" },
     });
   } catch (err) {

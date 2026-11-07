@@ -84,16 +84,26 @@ export const sbMenuRepo: IMenuRepository = {
     const optsByMenu = groupBy(optRes.data ?? [], "menuId");
     const availByMenu = groupBy(availRes.data ?? [], "menuId");
 
-    const result = (cats ?? []).map((cat: Record<string, unknown>) => ({
-      ...cat,
-      menus: (menus ?? [])
-        .filter((m: { categoryId: string }) => m.categoryId === cat.id)
-        .map((m: Record<string, unknown> & { id: string }) => ({
+    // String() 변환으로 타입 불일치(UUID vs text) 방어
+    const menusByCatId = new Map<string, (typeof menus)[number][]>();
+    for (const m of (menus ?? [])) {
+      const key = String((m as Record<string, unknown>).categoryId ?? "");
+      if (!menusByCatId.has(key)) menusByCatId.set(key, []);
+      menusByCatId.get(key)!.push(m as (typeof menus)[number]);
+    }
+
+    const result = (cats ?? []).map((cat: Record<string, unknown>) => {
+      const key = String(cat.id ?? "");
+      const catMenus = menusByCatId.get(key) ?? [];
+      return {
+        ...cat,
+        menus: catMenus.map((m: Record<string, unknown> & { id: string }) => ({
           ...m,
           options: optsByMenu[m.id] ?? [],
           storeAvailability: availByMenu[m.id] ?? [],
         })),
-    }));
+      };
+    });
     return result as unknown as MenuCategoryDto[];
   },
 };

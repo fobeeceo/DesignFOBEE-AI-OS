@@ -11,7 +11,7 @@ export async function GET() {
   const hasSvcRole = !!process.env.SUPABASE_SERVICE_ROLE_KEY;
   const isMock = (!hasDb && !hasAnon && !hasSvcRole) || process.env.USE_MOCK_DATA === "true";
 
-  let menuDebug: { totalActive?: number; espresso?: number; espressoIds?: string[]; catIds?: string[]; error?: string } = {};
+  let menuDebug: { totalActive?: number; espresso?: number; catSelectStarIds?: unknown[]; menusFiltered?: unknown[]; menuIdTypes?: unknown[]; error?: string } = {};
   try {
     const url = "https://rzgrkrffksqdeztzxyrt.supabase.co";
     const key = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
@@ -30,11 +30,19 @@ export async function GET() {
       count: (menus ?? []).filter((m: { categoryId: unknown }) => m.categoryId === cat.id).length,
     }));
 
+    // 실제 반환 타입 확인 (처음 3개 메뉴)
+    const menuIdTypes = (menus ?? []).slice(0, 3).map((m: Record<string, unknown>) => ({
+      id: m.id,
+      categoryId: m.categoryId,
+      categoryIdType: typeof m.categoryId,
+    }));
+
     menuDebug = {
       totalActive: menus?.length ?? 0,
       espresso: espMenus.length,
       catSelectStarIds,
       menusFiltered,
+      menuIdTypes,
     };
   } catch (e) {
     menuDebug = { error: String(e) };
