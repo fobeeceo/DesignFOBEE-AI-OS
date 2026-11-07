@@ -14,7 +14,7 @@ VALUES
   ('cat-fod-005', '푸드', 'Food', 5, true, NOW())
 ON CONFLICT ("id") DO NOTHING;
 
--- 2. 매장
+-- 2. 매장 (실제 운영 5개점)
 INSERT INTO "gb_stores" (
   "id", "code", "name", "brandName", "status",
   "phone", "address", "lat", "lng",
@@ -22,18 +22,31 @@ INSERT INTO "gb_stores" (
   "operatingHours", "updatedAt"
 )
 VALUES
-  ('store-001', 'GBR-001', '지브릭커피 신촌점', 'GBRICK Coffee', 'ACTIVE',
-   '02-517-1474', '서울 서대문구 신촌로 123', 37.5596, 126.9377,
-   0.03, 1, 10, '{}', NOW()),
-  ('store-002', 'GBR-002', '지브릭커피 홍대점', 'GBRICK Coffee', 'ACTIVE',
-   '02-333-5678', '서울 마포구 와우산로 94', 37.5519, 126.9237,
-   0.03, 1, 10, '{}', NOW()),
-  ('store-003', 'GBR-003', '지브릭커피 이태원점', 'GBRICK Coffee', 'ACTIVE',
-   '02-794-9012', '서울 용산구 이태원로 180', 37.5345, 126.9941,
-   0.03, 1, 10, '{}', NOW()),
-  ('store-004', 'GBR-004', '지브릭커피 강남점', 'GBRICK Coffee', 'PENDING',
-   '02-555-3456', '서울 강남구 테헤란로 152', 37.4979, 127.0276,
-   0.03, 1, 10, '{}', NOW())
+  ('store-001', 'GBR-001', 'GBRICK Coffee 은평뉴타운 본점', 'GBRICK Coffee', 'ACTIVE',
+   '02-388-0001', '서울특별시 은평구 은평뉴타운로', 37.6245, 126.9195,
+   0.03, 1, 10,
+   '{"mon":{"open":"09:00","close":"22:00"},"tue":{"open":"09:00","close":"22:00"},"wed":{"open":"09:00","close":"22:00"},"thu":{"open":"09:00","close":"22:00"},"fri":{"open":"09:00","close":"22:00"},"sat":{"open":"09:00","close":"22:00"},"sun":{"open":"10:00","close":"21:00"}}',
+   NOW()),
+  ('store-002', 'GBR-002', 'GBRICK Coffee 일산 가좌점', 'GBRICK Coffee', 'ACTIVE',
+   '031-900-0002', '경기도 고양시 일산서구 가좌동', 37.6587, 126.7398,
+   0.03, 1, 10,
+   '{"mon":{"open":"09:00","close":"22:00"},"tue":{"open":"09:00","close":"22:00"},"wed":{"open":"09:00","close":"22:00"},"thu":{"open":"09:00","close":"22:00"},"fri":{"open":"09:00","close":"22:00"},"sat":{"open":"09:00","close":"22:00"},"sun":{"open":"10:00","close":"21:00"}}',
+   NOW()),
+  ('store-003', 'GBR-003', 'GBRICK Coffee 김포 월곶점', 'GBRICK Coffee', 'ACTIVE',
+   '031-980-0003', '경기도 김포시 월곶면', 37.6065, 126.6218,
+   0.03, 1, 10,
+   '{"mon":{"open":"09:00","close":"22:00"},"tue":{"open":"09:00","close":"22:00"},"wed":{"open":"09:00","close":"22:00"},"thu":{"open":"09:00","close":"22:00"},"fri":{"open":"09:00","close":"22:00"},"sat":{"open":"09:00","close":"22:00"},"sun":{"open":"10:00","close":"21:00"}}',
+   NOW()),
+  ('store-004', 'GBR-004', 'GBRICK Coffee 고양 덕은점', 'GBRICK Coffee', 'ACTIVE',
+   '031-900-0004', '경기도 고양시 덕양구 덕은동', 37.6490, 126.8340,
+   0.03, 1, 10,
+   '{"mon":{"open":"09:00","close":"22:00"},"tue":{"open":"09:00","close":"22:00"},"wed":{"open":"09:00","close":"22:00"},"thu":{"open":"09:00","close":"22:00"},"fri":{"open":"09:00","close":"22:00"},"sat":{"open":"09:00","close":"22:00"},"sun":{"open":"10:00","close":"21:00"}}',
+   NOW()),
+  ('store-005', 'GBR-005', 'GBRICK Coffee 경기도 인덕원점', 'GBRICK Coffee', 'ACTIVE',
+   '031-420-0005', '경기도 안양시 동안구 인덕원동', 37.3895, 126.9607,
+   0.03, 1, 10,
+   '{"mon":{"open":"09:00","close":"22:00"},"tue":{"open":"09:00","close":"22:00"},"wed":{"open":"09:00","close":"22:00"},"thu":{"open":"09:00","close":"22:00"},"fri":{"open":"09:00","close":"22:00"},"sat":{"open":"09:00","close":"22:00"},"sun":{"open":"10:00","close":"21:00"}}',
+   NOW())
 ON CONFLICT ("id") DO NOTHING;
 
 -- 3. 메뉴
@@ -92,7 +105,7 @@ VALUES (
 )
 ON CONFLICT ("id") DO NOTHING;
 
--- 6. 체크리스트 (신촌점, 홍대점, 이태원점)
+-- 6. 체크리스트 (은평뉴타운 본점, 가좌점, 월곶점)
 INSERT INTO "gb_checklists" (
   "id", "storeId", "title", "category", "isActive", "updatedAt"
 )
@@ -126,7 +139,7 @@ VALUES
   ('notice-001', NULL, '[전체] GBRICK APP 오픈 안내',
    'GBRICK Coffee 앱이 오픈되었습니다. 앱으로 주문하시면 포인트 3% 적립!',
    true, false, NOW(), 'system', NOW()),
-  ('notice-002', 'store-001', '[신촌점] 오늘의 추천 메뉴',
+  ('notice-002', 'store-001', '[은평뉴타운 본점] 오늘의 추천 메뉴',
    '오늘의 추천 메뉴: 지브릭 라떼 + 버터 크루아상 세트 9,000원',
    false, false, NOW(), 'system', NOW())
 ON CONFLICT ("id") DO NOTHING;
