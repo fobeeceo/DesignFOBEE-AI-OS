@@ -3,15 +3,25 @@ import { storeRepo } from "@/lib/gbrick/repositories";
 import { IS_MOCK_MODE } from "@/lib/gbrick/mockData";
 
 export async function GET(req: NextRequest) {
-  try {
-    const { searchParams } = new URL(req.url);
-    const status = searchParams.get("status") ?? "ACTIVE";
+  const { searchParams } = new URL(req.url);
+  const status = searchParams.get("status") ?? "ACTIVE";
 
+  // Supabase 시도
+  try {
     const stores = await storeRepo.findMany(status);
     return NextResponse.json({ stores, mock: IS_MOCK_MODE });
   } catch (err) {
-    console.error("[GET /api/gbrick/stores]", err);
-    return NextResponse.json({ error: "서버 오류" }, { status: 500 });
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("[GET /api/gbrick/stores] Supabase 오류:", msg);
+
+    // Supabase 실패 시 Mock 폴백 (앱이 항상 매장을 표시하도록)
+    try {
+      const { mockStoreRepo } = await import("@/lib/gbrick/repositories/mock");
+      const stores = await mockStoreRepo.findMany(status);
+      return NextResponse.json({ stores, mock: true, fallback: true, reason: msg });
+    } catch {
+      return NextResponse.json({ stores: [], mock: true, error: msg }, { status: 500 });
+    }
   }
 }
 
