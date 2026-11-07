@@ -90,43 +90,57 @@ export const sbMenuRepo: IMenuRepository = {
   },
   async findCategories(storeId?: string) {
     const sb = getAdmin();
+
+    // isActive 컬럼이 없는 환경을 대비해 필터 없이 조회 후 JS에서 필터링
     const { data: cats, error: catErr } = await sb
       .from("gb_menu_categories")
       .select("*")
-      .eq("isActive", true)
       .order("sortOrder");
     if (catErr) throw catErr;
 
-    // select("*")는 FK 관계가 있을 때 categoryId를 객체로 오버라이드할 수 있으므로 명시적 컬럼 지정
+    const activeCats = (cats ?? []).filter((c: Record<string, unknown>) => {
+      // isActive 컬럼이 없으면 모두 포함, 있으면 true인 것만
+      return c.isActive === undefined || c.isActive === null || c.isActive === true;
+    });
+
     const { data: menus, error: menuErr } = await sb
       .from("gb_menus")
       .select("id, categoryId, name, nameEn, description, basePrice, imageUrl, isSignature, isNew, isSoldOut, sortOrder, isActive, tags")
-      .eq("isActive", true)
       .order("sortOrder");
     if (menuErr) throw menuErr;
 
-    const menuIds = (menus ?? []).map((m: { id: string }) => m.id);
+    // isActive 필터 (컬럼 없으면 전체 포함)
+    const activeMenus = (menus ?? []).filter((m: Record<string, unknown>) => {
+      return m.isActive === undefined || m.isActive === null || m.isActive === true;
+    });
+
+    const menuIds = activeMenus.map((m: { id: string }) => m.id);
 
     const [optRes, availRes] = await Promise.all([
-      sb.from("gb_menu_options").select("*").in("menuId", menuIds).eq("isActive", true).order("sortOrder"),
-      storeId
+      menuIds.length > 0
+        ? sb.from("gb_menu_options").select("*").in("menuId", menuIds).order("sortOrder")
+        : Promise.resolve({ data: [], error: null }),
+      storeId && menuIds.length > 0
         ? sb.from("gb_store_menu_availability").select("*").eq("storeId", storeId).in("menuId", menuIds)
         : Promise.resolve({ data: [], error: null }),
     ]);
     if (optRes.error) throw optRes.error;
 
-    const optsByMenu = groupBy(optRes.data ?? [], "menuId");
+    const optsByMenu = groupBy(
+      (optRes.data ?? []).filter((o: Record<string, unknown>) => o.isActive !== false),
+      "menuId"
+    );
     const availByMenu = groupBy(availRes.data ?? [], "menuId");
 
     // String() 변환으로 타입 불일치(UUID vs text) 방어
-    const menusByCatId = new Map<string, (typeof menus)[number][]>();
-    for (const m of (menus ?? [])) {
+    const menusByCatId = new Map<string, typeof activeMenus>();
+    for (const m of activeMenus) {
       const key = String((m as Record<string, unknown>).categoryId ?? "");
       if (!menusByCatId.has(key)) menusByCatId.set(key, []);
-      menusByCatId.get(key)!.push(m as (typeof menus)[number]);
+      menusByCatId.get(key)!.push(m);
     }
 
-    const result = (cats ?? []).map((cat: Record<string, unknown>) => {
+    const result = activeCats.map((cat: Record<string, unknown>) => {
       const key = String(cat.id ?? "");
       const catMenus = menusByCatId.get(key) ?? [];
       return {
