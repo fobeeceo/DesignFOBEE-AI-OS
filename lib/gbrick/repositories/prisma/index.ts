@@ -30,11 +30,24 @@ export const prismaStoreRepo: IStoreRepository = {
       update: { isSoldOut },
     });
   },
+  async update(id: string, data: Record<string, unknown>) {
+    const store = await prisma.gbStore.update({
+      where: { id },
+      data: { ...data, updatedAt: new Date() } as never,
+    });
+    return store as unknown as StoreDto;
+  },
 };
 
 // ─── Menu Repository ──────────────────────────────────────────
 
 export const prismaMenuRepo: IMenuRepository = {
+  async updateMenu(menuId: string, data: Record<string, unknown>) {
+    await prisma.gbMenu.update({
+      where: { id: menuId },
+      data: { ...data, updatedAt: new Date() } as never,
+    });
+  },
   async findCategories(storeId?: string) {
     const categories = await prisma.gbMenuCategory.findMany({
       where: { isActive: true },

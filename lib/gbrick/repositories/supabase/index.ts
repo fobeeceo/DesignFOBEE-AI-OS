@@ -50,11 +50,22 @@ export const sbStoreRepo: IStoreRepository = {
     );
     if (error) throw error;
   },
+  async update(id: string, data: Record<string, unknown>) {
+    const sb = getAdmin();
+    const { data: row, error } = await sb.from("gb_stores").update({ ...data, updatedAt: new Date().toISOString() }).eq("id", id).select().single();
+    if (error) throw error;
+    return row as unknown as StoreDto;
+  },
 };
 
 // ─── Menu Repository ──────────────────────────────────────────
 
 export const sbMenuRepo: IMenuRepository = {
+  async updateMenu(menuId: string, data: Record<string, unknown>) {
+    const sb = getAdmin();
+    const { error } = await sb.from("gb_menus").update({ ...data, updatedAt: new Date().toISOString() }).eq("id", menuId);
+    if (error) throw error;
+  },
   async findCategories(storeId?: string) {
     const sb = getAdmin();
     const { data: cats, error: catErr } = await sb

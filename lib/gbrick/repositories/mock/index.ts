@@ -100,11 +100,13 @@ export const mockStoreRepo: IStoreRepository = {
     return mockMenuRepo.findCategories(_storeId);
   },
   async updateSoldOut(_storeId: string, _menuId: string, _isSoldOut: boolean) {},
+  async update(_id: string, _data: Record<string, unknown>) { return {} as StoreDto; },
 };
 
 // ─── Menu Repository ──────────────────────────────────────────
 
 export const mockMenuRepo: IMenuRepository = {
+  async updateMenu(_menuId: string, _data: Record<string, unknown>) {},
   async findCategories(_storeId?: string) {
     return MOCK_MENU_CATEGORIES.map((cat) => ({
       ...cat,

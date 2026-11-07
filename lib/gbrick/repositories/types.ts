@@ -218,15 +218,30 @@ export interface StoreNoticeDto {
 
 // ─── Repository Interfaces ───────────────────────────────────
 
+export interface OperatingHour {
+  open: string;
+  close: string;
+  closed: boolean;
+}
+export interface StoreOperatingHours {
+  mon: OperatingHour; tue: OperatingHour; wed: OperatingHour;
+  thu: OperatingHour; fri: OperatingHour; sat: OperatingHour; sun: OperatingHour;
+}
+
 export interface IStoreRepository {
   findMany(status?: string): Promise<StoreDto[]>;
   findById(id: string): Promise<StoreDto | null>;
   findMenus(storeId: string): Promise<MenuCategoryDto[]>;
   updateSoldOut(storeId: string, menuId: string, isSoldOut: boolean): Promise<void>;
+  update(id: string, data: { operatingHours?: StoreOperatingHours; phone?: string; imageUrl?: string }): Promise<StoreDto>;
 }
 
 export interface IMenuRepository {
   findCategories(storeId?: string): Promise<MenuCategoryDto[]>;
+  updateMenu(menuId: string, data: {
+    name?: string; nameEn?: string; description?: string;
+    basePrice?: number; imageUrl?: string; isSignature?: boolean; isNew?: boolean;
+  }): Promise<void>;
 }
 
 export interface IOrderRepository {
