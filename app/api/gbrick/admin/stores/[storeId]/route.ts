@@ -10,21 +10,21 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ sto
     // 카테고리는 항상 조회 (storeId 필터 없음 — 전 매장 공통 메뉴)
     const categoriesPromise = menuRepo.findCategories(storeId);
 
-    // 매장 조회 — Supabase에 없으면 mock 폴백
+    // 매장 조회 — 없으면 가상 store 객체 사용 (카테고리/메뉴는 항상 로드)
     let store = await storeRepo.findById(storeId);
     if (!store) {
-      try {
-        const { mockStoreRepo } = await import("@/lib/gbrick/repositories/mock");
-        store = await mockStoreRepo.findById(storeId);
-      } catch { /* mock 도 없으면 null */ }
+      store = {
+        id: storeId,
+        name: "지브릭커피",
+        status: "ACTIVE",
+        address: "",
+        phone: "",
+        imageUrl: null,
+        operatingHours: null,
+      } as unknown as Awaited<ReturnType<typeof storeRepo.findById>>;
     }
 
     const categories = await categoriesPromise;
-
-    // 매장도 없으면 404 (mock까지 없는 완전히 모르는 ID)
-    if (!store) {
-      return NextResponse.json({ error: "매장 없음", storeId }, { status: 404 });
-    }
 
     return NextResponse.json({ store, categories }, { headers: { "Cache-Control": "no-store" } });
   } catch (err) {
