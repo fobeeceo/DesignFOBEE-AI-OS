@@ -23,13 +23,27 @@ export async function GET() {
       const sb = createClient(url, key, { auth: { autoRefreshToken: false, persistSession: false } });
       const { data, error } = await sb.from("gb_stores").select("id, name, status").limit(5);
       if (error) {
-        sbError = JSON.stringify({ message: error.message, code: error.code, details: error.details, hint: error.hint });
+        sbError = JSON.stringify({ message: error.message, code: (error as Record<string,unknown>).code, details: (error as Record<string,unknown>).details, hint: (error as Record<string,unknown>).hint });
       } else {
         storeCount = data?.length ?? 0;
         queryResult = data;
       }
     } catch (e) {
       sbError = String(e);
+    }
+
+    // raw HTTP test
+    try {
+      const res = await fetch(`${url}/rest/v1/gb_stores?select=id,name&limit=1`, {
+        headers: {
+          apikey: key,
+          Authorization: `Bearer ${key}`,
+        },
+      });
+      const text = await res.text();
+      queryResult = { httpStatus: res.status, body: text.slice(0, 300) };
+    } catch (e2) {
+      sbError = (sbError ?? "") + " | rawFetch: " + String(e2);
     }
   }
 
