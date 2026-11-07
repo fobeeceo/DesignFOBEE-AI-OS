@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams } from "next/navigation";
 
 // ─── Types ───────────────────────────────────────────────────
@@ -81,6 +81,8 @@ export default function OwnerAppPage() {
   const [newOpt, setNewOpt] = useState({ groupName: "추가옵션", name: "", extraPrice: "0" });
   const [modalTab, setModalTab] = useState<"info" | "options">("info");
   const [soldOuts, setSoldOuts] = useState<Record<string, boolean>>({});
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const showToast = (msg: string) => {
     setToast(msg);
@@ -143,6 +145,29 @@ export default function OwnerAppPage() {
       });
       showToast("저장됐습니다"); setEditMenu(null); await fetchData();
     } catch { showToast("저장 실패"); } finally { setSaving(false); }
+  }
+
+  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/gbrick/admin/upload", { method: "POST", body: fd });
+      const d = await res.json() as { url?: string; error?: string };
+      if (d.url) {
+        setEditForm(p => ({ ...p, imageUrl: d.url! }));
+        showToast("사진 업로드됨");
+      } else {
+        showToast(d.error ?? "업로드 실패");
+      }
+    } catch {
+      showToast("업로드 실패");
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
   }
 
   async function handleAddOption() {
@@ -495,11 +520,52 @@ export default function OwnerAppPage() {
             <div className="overflow-y-auto px-5" style={{ maxHeight: "calc(90vh - 160px)", paddingBottom: "calc(1.5rem + env(safe-area-inset-bottom))" }}>
               {modalTab === "info" && (
                 <div className="space-y-3">
+                  {/* 메뉴 사진 */}
+                  <div>
+                    <label className="text-xs font-semibold text-stone-600">메뉴 사진</label>
+                    <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                    <div className="mt-1">
+                      {editForm.imageUrl ? (
+                        <div className="relative rounded-xl overflow-hidden">
+                          <img src={editForm.imageUrl} alt="메뉴 사진" className="w-full h-44 object-cover" />
+                          <div className="absolute inset-0 flex items-end gap-2 p-3" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%)" }}>
+                            <button onClick={() => fileInputRef.current?.click()} disabled={uploading}
+                              className="flex-1 py-2 rounded-lg text-white text-xs font-bold flex items-center justify-center gap-1.5"
+                              style={{ background: "rgba(200,135,58,0.9)" }}>
+                              📷 {uploading ? "업로드 중..." : "사진 변경"}
+                            </button>
+                            <button onClick={() => setEditForm(p => ({ ...p, imageUrl: "" }))}
+                              className="py-2 px-3 rounded-lg text-white text-xs font-bold"
+                              style={{ background: "rgba(239,68,68,0.85)" }}>
+                              삭제
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <button onClick={() => fileInputRef.current?.click()} disabled={uploading}
+                          className="w-full h-36 border-2 border-dashed border-stone-200 rounded-xl flex flex-col items-center justify-center gap-2 transition-colors"
+                          style={{ background: uploading ? "#F5F5F4" : "#FAFAF9" }}>
+                          {uploading ? (
+                            <>
+                              <div className="w-6 h-6 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
+                              <span className="text-xs text-amber-500 font-semibold">업로드 중...</span>
+                            </>
+                          ) : (
+                            <>
+                              <span className="text-3xl">📷</span>
+                              <span className="text-sm font-semibold text-stone-500">사진 추가</span>
+                              <span className="text-xs text-stone-400">갤러리에서 선택</span>
+                            </>
+                          )}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
                   {[
                     { label: "메뉴명 *", key: "name", placeholder: "메뉴 이름", type: "text" },
                     { label: "영문명", key: "nameEn", placeholder: "English name", type: "text" },
                     { label: "가격 (원) *", key: "basePrice", placeholder: "0", type: "number" },
-                    { label: "이미지 URL", key: "imageUrl", placeholder: "https://...", type: "text" },
                   ].map(field => (
                     <div key={field.key}>
                       <label className="text-xs font-semibold text-stone-600">{field.label}</label>
@@ -515,9 +581,9 @@ export default function OwnerAppPage() {
                       onChange={e => setEditForm(p => ({ ...p, description: e.target.value }))}
                       className="w-full mt-1 px-3 py-2.5 border border-stone-200 rounded-xl text-sm resize-none" rows={2} placeholder="메뉴 설명" />
                   </div>
-                  <button onClick={saveMenuEdit} disabled={saving || !editForm.name || !editForm.basePrice}
+                  <button onClick={saveMenuEdit} disabled={saving || uploading || !editForm.name || !editForm.basePrice}
                     className="w-full mt-2 py-3.5 rounded-xl text-white font-bold text-sm"
-                    style={{ background: saving ? "#9CA3AF" : "#C8873A" }}>
+                    style={{ background: (saving || uploading) ? "#9CA3AF" : "#C8873A" }}>
                     {saving ? "저장 중..." : "저장"}
                   </button>
                 </div>
