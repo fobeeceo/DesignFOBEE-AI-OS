@@ -129,18 +129,20 @@ export default function GbrickLoginPage() {
 
         {/* 소셜 로그인 */}
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {/* 네이버 로그인 */}
           <button style={{
             width: "100%", padding: "13px", borderRadius: 50,
-            fontSize: 15, fontWeight: 600,
-            background: "#1A0E05", color: "white",
+            fontSize: 15, fontWeight: 700,
+            background: "#03C75A", color: "white",
             border: "none", cursor: "pointer",
             display: "flex", alignItems: "center", justifyContent: "center", gap: 8
           }}>
-            <svg width="17" height="17" viewBox="0 0 814 1000" fill="white">
-              <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-37.5-155.5-120.2c-43.3-74.1-82.4-187.9-82.4-296.1 0-159.9 104.1-245 206.4-245 54.6 0 100 37.5 134.2 37.5 32.8 0 84.4-39.5 146.6-39.5zM517.7 95.5c29.1-35 50.6-83.8 50.6-132.6 0-6.5-.6-13-1.9-18.2-47.9 1.9-104.1 31.9-137.9 71.9-26 29.5-48.1 76.9-48.1 126.5 0 7.1 1.3 14.2 1.9 16.5 2.6.6 6.5 1.3 10.4 1.3 43.3 0 95.9-28.5 124.9-65.4z"/>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
+              <path d="M16.273 12.845L7.376 0H0v24h7.727V11.155L16.624 24H24V0h-7.727z"/>
             </svg>
-            애플로 로그인
+            네이버로 로그인
           </button>
+          {/* 카카오 로그인 */}
           <button style={{
             width: "100%", padding: "13px", borderRadius: 50,
             fontSize: 15, fontWeight: 700,
