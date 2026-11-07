@@ -48,6 +48,19 @@ export const prismaMenuRepo: IMenuRepository = {
       data: { ...data, updatedAt: new Date() } as never,
     });
   },
+  async findOptions(menuId: string) {
+    const opts = await prisma.gbMenuOption.findMany({ where: { menuId, isActive: true }, orderBy: { sortOrder: "asc" } });
+    return opts as unknown as import("../types").MenuOptionDto[];
+  },
+  async addOption(menuId: string, data: { groupName: string; name: string; extraPrice: number; isDefault?: boolean }) {
+    const opt = await prisma.gbMenuOption.create({
+      data: { menuId, name: data.name, extraPrice: data.extraPrice, isDefault: data.isDefault ?? false, groupName: data.groupName, sortOrder: 99, isActive: true } as never,
+    });
+    return opt as unknown as import("../types").MenuOptionDto;
+  },
+  async deleteOption(optionId: string) {
+    await prisma.gbMenuOption.update({ where: { id: optionId }, data: { isActive: false } as never });
+  },
   async findCategories(storeId?: string) {
     const categories = await prisma.gbMenuCategory.findMany({
       where: { isActive: true },

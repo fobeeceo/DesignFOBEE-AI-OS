@@ -242,6 +242,9 @@ export interface IMenuRepository {
     name?: string; nameEn?: string; description?: string;
     basePrice?: number; imageUrl?: string; isSignature?: boolean; isNew?: boolean;
   }): Promise<void>;
+  findOptions(menuId: string): Promise<MenuOptionDto[]>;
+  addOption(menuId: string, data: { groupName: string; name: string; extraPrice: number; isDefault?: boolean }): Promise<MenuOptionDto>;
+  deleteOption(optionId: string): Promise<void>;
 }
 
 export interface IOrderRepository {

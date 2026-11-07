@@ -5,6 +5,8 @@ import { useParams } from "next/navigation";
 
 // ─── Types ───────────────────────────────────────────────────
 
+interface MenuOptionRow { id: string; name: string; extraPrice: number; isDefault: boolean; groupName: string; }
+
 interface OperatingHour { open: string; close: string; closed: boolean; }
 interface StoreOperatingHours {
   mon: OperatingHour; tue: OperatingHour; wed: OperatingHour;
@@ -54,6 +56,10 @@ export default function AdminPage() {
   const [hours, setHours] = useState<StoreOperatingHours>(DEFAULT_HOURS);
   const [editMenu, setEditMenu] = useState<Menu | null>(null);
   const [editForm, setEditForm] = useState({ name: "", nameEn: "", description: "", basePrice: "", imageUrl: "" });
+  const [menuOptions, setMenuOptions] = useState<MenuOptionRow[]>([]);
+  const [optLoading, setOptLoading] = useState(false);
+  const [newOpt, setNewOpt] = useState({ groupName: "추가옵션", name: "", extraPrice: "0" });
+  const [modalTab, setModalTab] = useState<"info" | "options">("info");
 
   // sold-out 로컬 상태 (storeId별 오버라이드)
   const [soldOuts, setSoldOuts] = useState<Record<string, boolean>>({});
@@ -116,6 +122,53 @@ export default function AdminPage() {
       basePrice: String(menu.basePrice),
       imageUrl: menu.imageUrl ?? "",
     });
+    setModalTab("info");
+    setNewOpt({ groupName: "추가옵션", name: "", extraPrice: "0" });
+    // 옵션 로드
+    setOptLoading(true);
+    fetch(`/api/gbrick/admin/menus/${menu.id}/options`, { cache: "no-store" })
+      .then(r => r.json())
+      .then(d => setMenuOptions(d.options ?? []))
+      .catch(() => setMenuOptions([]))
+      .finally(() => setOptLoading(false));
+  }
+
+  async function handleAddOption() {
+    if (!editMenu || !newOpt.name.trim()) return;
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/gbrick/admin/menus/${editMenu.id}/options`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ groupName: newOpt.groupName, name: newOpt.name.trim(), extraPrice: Number(newOpt.extraPrice) }),
+      });
+      const d = await res.json() as { option: MenuOptionRow };
+      setMenuOptions(p => [...p, d.option]);
+      setNewOpt(p => ({ ...p, name: "", extraPrice: "0" }));
+      showToast("옵션이 추가되었습니다");
+    } catch {
+      showToast("오류가 발생했습니다");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleDeleteOption(optionId: string) {
+    if (!editMenu) return;
+    setSaving(true);
+    try {
+      await fetch(`/api/gbrick/admin/menus/${editMenu.id}/options`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ optionId }),
+      });
+      setMenuOptions(p => p.filter(o => o.id !== optionId));
+      showToast("옵션이 삭제되었습니다");
+    } catch {
+      showToast("오류가 발생했습니다");
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function saveMenuEdit() {
@@ -404,71 +457,147 @@ export default function AdminPage() {
           onClick={() => setEditMenu(null)}
         >
           <div
-            className="w-full max-w-[480px] mx-auto bg-white rounded-t-3xl px-5 pt-6"
-            style={{ paddingBottom: "calc(2rem + env(safe-area-inset-bottom))" }}
+            className="w-full max-w-[480px] mx-auto bg-white rounded-t-3xl pt-5 overflow-hidden"
+            style={{ maxHeight: "90vh" }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="w-10 h-1 bg-stone-200 rounded-full mx-auto mb-5" />
-            <h3 className="font-bold text-base text-stone-800 mb-4">메뉴 수정</h3>
+            <div className="w-10 h-1 bg-stone-200 rounded-full mx-auto mb-4" />
+            <h3 className="font-bold text-base text-stone-800 mb-3 px-5">{editMenu.name}</h3>
 
-            <div className="space-y-3">
-              <div>
-                <label className="text-xs font-semibold text-stone-600">메뉴명 *</label>
-                <input
-                  value={editForm.name}
-                  onChange={(e) => setEditForm((p) => ({ ...p, name: e.target.value }))}
-                  className="w-full mt-1 px-3 py-2.5 border border-stone-200 rounded-xl text-sm"
-                  placeholder="메뉴 이름"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-stone-600">영문명</label>
-                <input
-                  value={editForm.nameEn}
-                  onChange={(e) => setEditForm((p) => ({ ...p, nameEn: e.target.value }))}
-                  className="w-full mt-1 px-3 py-2.5 border border-stone-200 rounded-xl text-sm"
-                  placeholder="English name"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-stone-600">설명</label>
-                <textarea
-                  value={editForm.description}
-                  onChange={(e) => setEditForm((p) => ({ ...p, description: e.target.value }))}
-                  className="w-full mt-1 px-3 py-2.5 border border-stone-200 rounded-xl text-sm resize-none"
-                  rows={2}
-                  placeholder="메뉴 설명"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-stone-600">가격 (원) *</label>
-                <input
-                  type="number"
-                  value={editForm.basePrice}
-                  onChange={(e) => setEditForm((p) => ({ ...p, basePrice: e.target.value }))}
-                  className="w-full mt-1 px-3 py-2.5 border border-stone-200 rounded-xl text-sm"
-                  placeholder="0"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-stone-600">이미지 URL</label>
-                <input
-                  value={editForm.imageUrl}
-                  onChange={(e) => setEditForm((p) => ({ ...p, imageUrl: e.target.value }))}
-                  className="w-full mt-1 px-3 py-2.5 border border-stone-200 rounded-xl text-sm"
-                  placeholder="https://..."
-                />
-              </div>
+            {/* 탭 */}
+            <div className="flex border-b border-stone-100 px-5 gap-4 mb-4">
+              {(["info", "options"] as const).map(t => (
+                <button
+                  key={t}
+                  onClick={() => setModalTab(t)}
+                  className="pb-2 text-sm font-semibold transition-colors"
+                  style={{
+                    color: modalTab === t ? "#2C1A0E" : "#9CA3AF",
+                    borderBottom: modalTab === t ? "2px solid #C8873A" : "2px solid transparent",
+                  }}
+                >
+                  {t === "info" ? "메뉴 정보" : "옵션 관리"}
+                </button>
+              ))}
             </div>
 
-            <button
-              onClick={saveMenuEdit}
-              disabled={saving || !editForm.name || !editForm.basePrice}
-              className="w-full mt-5 py-3.5 rounded-xl text-white font-bold text-sm"
-              style={{ background: saving ? "#9CA3AF" : "#C8873A" }}
-            >
-              {saving ? "저장 중..." : "저장"}
-            </button>
+            {/* 스크롤 영역 */}
+            <div className="overflow-y-auto px-5" style={{ maxHeight: "calc(90vh - 160px)", paddingBottom: "calc(1.5rem + env(safe-area-inset-bottom))" }}>
+
+              {/* ─ 메뉴 정보 탭 ─ */}
+              {modalTab === "info" && (
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-xs font-semibold text-stone-600">메뉴명 *</label>
+                    <input value={editForm.name} onChange={(e) => setEditForm((p) => ({ ...p, name: e.target.value }))}
+                      className="w-full mt-1 px-3 py-2.5 border border-stone-200 rounded-xl text-sm" placeholder="메뉴 이름" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-stone-600">영문명</label>
+                    <input value={editForm.nameEn} onChange={(e) => setEditForm((p) => ({ ...p, nameEn: e.target.value }))}
+                      className="w-full mt-1 px-3 py-2.5 border border-stone-200 rounded-xl text-sm" placeholder="English name" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-stone-600">설명</label>
+                    <textarea value={editForm.description} onChange={(e) => setEditForm((p) => ({ ...p, description: e.target.value }))}
+                      className="w-full mt-1 px-3 py-2.5 border border-stone-200 rounded-xl text-sm resize-none" rows={2} placeholder="메뉴 설명" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-stone-600">가격 (원) *</label>
+                    <input type="number" value={editForm.basePrice} onChange={(e) => setEditForm((p) => ({ ...p, basePrice: e.target.value }))}
+                      className="w-full mt-1 px-3 py-2.5 border border-stone-200 rounded-xl text-sm" placeholder="0" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-stone-600">이미지 URL</label>
+                    <input value={editForm.imageUrl} onChange={(e) => setEditForm((p) => ({ ...p, imageUrl: e.target.value }))}
+                      className="w-full mt-1 px-3 py-2.5 border border-stone-200 rounded-xl text-sm" placeholder="https://..." />
+                  </div>
+                  <button onClick={saveMenuEdit} disabled={saving || !editForm.name || !editForm.basePrice}
+                    className="w-full mt-2 py-3.5 rounded-xl text-white font-bold text-sm"
+                    style={{ background: saving ? "#9CA3AF" : "#C8873A" }}>
+                    {saving ? "저장 중..." : "저장"}
+                  </button>
+                </div>
+              )}
+
+              {/* ─ 옵션 관리 탭 ─ */}
+              {modalTab === "options" && (
+                <div>
+                  {/* 현재 옵션 목록 */}
+                  {optLoading ? (
+                    <p className="text-xs text-stone-400 text-center py-4">불러오는 중...</p>
+                  ) : menuOptions.length === 0 ? (
+                    <p className="text-xs text-stone-400 text-center py-4">등록된 옵션이 없습니다</p>
+                  ) : (
+                    <div className="mb-4">
+                      {Object.entries(
+                        menuOptions.reduce<Record<string, MenuOptionRow[]>>((acc, o) => {
+                          const g = o.groupName || "기타";
+                          if (!acc[g]) acc[g] = [];
+                          acc[g].push(o);
+                          return acc;
+                        }, {})
+                      ).map(([group, opts]) => (
+                        <div key={group} className="mb-3">
+                          <p className="text-[11px] font-bold text-stone-500 uppercase tracking-wide mb-1.5">{group}</p>
+                          {opts.map(opt => (
+                            <div key={opt.id} className="flex items-center justify-between bg-stone-50 rounded-xl px-3 py-2.5 mb-1">
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm text-stone-800">{opt.name}</span>
+                                {opt.isDefault && <span className="text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-600 rounded-full">기본</span>}
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <span className="text-xs font-semibold" style={{ color: "#C8873A" }}>
+                                  {opt.extraPrice > 0 ? `+${opt.extraPrice.toLocaleString()}원` : "무료"}
+                                </span>
+                                <button onClick={() => handleDeleteOption(opt.id)}
+                                  className="w-6 h-6 rounded-full bg-red-100 text-red-500 flex items-center justify-center text-xs font-bold">
+                                  ✕
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* 옵션 추가 폼 */}
+                  <div className="bg-stone-50 rounded-2xl p-4">
+                    <p className="text-xs font-bold text-stone-600 mb-3">새 옵션 추가</p>
+                    <div className="mb-2">
+                      <label className="text-[11px] text-stone-500 font-semibold">그룹</label>
+                      <select value={newOpt.groupName} onChange={e => setNewOpt(p => ({ ...p, groupName: e.target.value }))}
+                        className="w-full mt-1 text-sm border border-stone-200 rounded-xl px-3 py-2 bg-white">
+                        <option value="추가옵션">추가옵션</option>
+                        <option value="온도">온도</option>
+                        <option value="사이즈">사이즈</option>
+                        <option value="기타">기타</option>
+                      </select>
+                    </div>
+                    <div className="flex gap-2 mb-3">
+                      <div className="flex-1">
+                        <label className="text-[11px] text-stone-500 font-semibold">옵션명</label>
+                        <input value={newOpt.name} onChange={e => setNewOpt(p => ({ ...p, name: e.target.value }))}
+                          placeholder="예: 바닐라시럽"
+                          className="w-full mt-1 text-sm border border-stone-200 rounded-xl px-3 py-2" />
+                      </div>
+                      <div className="w-24">
+                        <label className="text-[11px] text-stone-500 font-semibold">추가금액</label>
+                        <input type="number" value={newOpt.extraPrice} onChange={e => setNewOpt(p => ({ ...p, extraPrice: e.target.value }))}
+                          placeholder="0"
+                          className="w-full mt-1 text-sm border border-stone-200 rounded-xl px-3 py-2" />
+                      </div>
+                    </div>
+                    <button onClick={handleAddOption} disabled={saving || !newOpt.name.trim()}
+                      className="w-full py-3 rounded-xl text-white font-bold text-sm"
+                      style={{ background: saving || !newOpt.name.trim() ? "#9CA3AF" : "#2C1A0E" }}>
+                      {saving ? "처리 중..." : "옵션 추가"}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}

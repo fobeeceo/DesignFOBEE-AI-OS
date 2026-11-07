@@ -66,6 +66,28 @@ export const sbMenuRepo: IMenuRepository = {
     const { error } = await sb.from("gb_menus").update({ ...data, updatedAt: new Date().toISOString() }).eq("id", menuId);
     if (error) throw error;
   },
+  async findOptions(menuId: string) {
+    const sb = getAdmin();
+    const { data } = await sb.from("gb_menu_options").select("*").eq("menuId", menuId).eq("isActive", true).order("sortOrder");
+    return (data ?? []) as unknown as import("../types").MenuOptionDto[];
+  },
+  async addOption(menuId: string, data: { groupName: string; name: string; extraPrice: number; isDefault?: boolean }) {
+    const sb = getAdmin();
+    const id = `opt-${nanoid()}`;
+    const { data: row, error } = await sb.from("gb_menu_options").insert({
+      id, menuId, name: data.name, extraPrice: data.extraPrice,
+      isDefault: data.isDefault ?? false, groupName: data.groupName,
+      sortOrder: 99, isActive: true,
+      createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+    }).select().single();
+    if (error) throw error;
+    return row as unknown as import("../types").MenuOptionDto;
+  },
+  async deleteOption(optionId: string) {
+    const sb = getAdmin();
+    const { error } = await sb.from("gb_menu_options").update({ isActive: false, updatedAt: new Date().toISOString() }).eq("id", optionId);
+    if (error) throw error;
+  },
   async findCategories(storeId?: string) {
     const sb = getAdmin();
     const { data: cats, error: catErr } = await sb

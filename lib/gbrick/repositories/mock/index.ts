@@ -107,6 +107,9 @@ export const mockStoreRepo: IStoreRepository = {
 
 export const mockMenuRepo: IMenuRepository = {
   async updateMenu(_menuId: string, _data: Record<string, unknown>) {},
+  async findOptions(_menuId: string) { return []; },
+  async addOption(_menuId: string, _data: Record<string, unknown>) { return {} as import("../types").MenuOptionDto; },
+  async deleteOption(_optionId: string) {},
   async findCategories(_storeId?: string) {
     return MOCK_MENU_CATEGORIES.map((cat) => ({
       ...cat,
