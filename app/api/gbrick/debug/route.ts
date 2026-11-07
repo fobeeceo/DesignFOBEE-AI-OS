@@ -23,7 +23,8 @@ export async function GET() {
       const sb = createClient(url, key, { auth: { autoRefreshToken: false, persistSession: false } });
       const { data, error } = await sb.from("gb_stores").select("id, name, status").limit(5);
       if (error) {
-        sbError = JSON.stringify({ message: error.message, code: (error as Record<string,unknown>).code, details: (error as Record<string,unknown>).details, hint: (error as Record<string,unknown>).hint });
+        const e = error as unknown as Record<string,unknown>;
+        sbError = JSON.stringify({ message: error.message, code: e.code, details: e.details, hint: e.hint });
       } else {
         storeCount = data?.length ?? 0;
         queryResult = data;
