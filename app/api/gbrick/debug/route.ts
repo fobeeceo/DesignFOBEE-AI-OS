@@ -17,15 +17,24 @@ export async function GET() {
     const key = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
     const sb = createClient(url, key, { auth: { autoRefreshToken: false, persistSession: false } });
 
-    const { data: cats } = await sb.from("gb_menu_categories").select("id,name").eq("isActive", true);
+    const { data: cats } = await sb.from("gb_menu_categories").select("*").eq("isActive", true);
     const { data: menus } = await sb.from("gb_menus").select("id,categoryId,isActive").eq("isActive", true);
     const espMenus = (menus ?? []).filter((m: { categoryId: string }) => m.categoryId === "cat-esp-002");
+
+    // select("*")로 반환되는 카테고리 id 값 그대로 확인
+    const catSelectStarIds = (cats ?? []).map((c: Record<string, unknown>) => ({ id: c.id, name: c.name }));
+
+    // findCategories와 완전히 동일한 필터 시뮬레이션
+    const menusFiltered = (cats ?? []).map((cat: Record<string, unknown>) => ({
+      catId: cat.id,
+      count: (menus ?? []).filter((m: { categoryId: unknown }) => m.categoryId === cat.id).length,
+    }));
 
     menuDebug = {
       totalActive: menus?.length ?? 0,
       espresso: espMenus.length,
-      espressoIds: espMenus.map((m: { id: string }) => m.id).slice(0, 10),
-      catIds: (cats ?? []).map((c: { id: string }) => c.id),
+      catSelectStarIds,
+      menusFiltered,
     };
   } catch (e) {
     menuDebug = { error: String(e) };
