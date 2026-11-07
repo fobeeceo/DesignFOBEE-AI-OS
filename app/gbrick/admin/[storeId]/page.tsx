@@ -83,6 +83,7 @@ export default function OwnerAppPage() {
   const [soldOuts, setSoldOuts] = useState<Record<string, boolean>>({});
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [fetchError, setFetchError] = useState("");
 
   const showToast = (msg: string) => {
     setToast(msg);
@@ -91,16 +92,28 @@ export default function OwnerAppPage() {
 
   const fetchData = useCallback(async () => {
     setLoading(true);
+    setFetchError("");
     try {
       const res = await fetch(`/api/gbrick/admin/stores/${storeId}`, { cache: "no-store" });
-      const d = await res.json() as { store: Store; categories: Category[] };
+      const d = await res.json() as { store: Store; categories: Category[]; error?: string };
+      if (d.error) {
+        setFetchError(`API 오류: ${d.error} (storeId: ${storeId})`);
+        return;
+      }
+      if (!d.store) {
+        setFetchError(`매장을 찾을 수 없습니다 (storeId: ${storeId})`);
+        return;
+      }
       setStore(d.store);
-      setCategories(d.categories ?? []);
-      if (d.categories?.[0]) setActiveCat(d.categories[0].id);
+      const cats = d.categories ?? [];
+      setCategories(cats);
+      if (cats[0]) setActiveCat(cats[0].id);
       if (d.store.operatingHours) setHours({ ...DEFAULT_HOURS, ...(d.store.operatingHours as StoreOperatingHours) });
       const init: Record<string, boolean> = {};
-      (d.categories ?? []).forEach(cat => cat.menus.forEach(m => { init[m.id] = m.storeAvailability?.[0]?.isSoldOut ?? m.isSoldOut; }));
+      cats.forEach(cat => cat.menus.forEach(m => { init[m.id] = m.storeAvailability?.[0]?.isSoldOut ?? m.isSoldOut; }));
       setSoldOuts(init);
+    } catch (e) {
+      setFetchError(`네트워크 오류: ${String(e)}`);
     } finally {
       setLoading(false);
     }
@@ -263,6 +276,13 @@ export default function OwnerAppPage() {
         {/* ════ 홈 탭 ════ */}
         {tab === "home" && (
           <div className="px-4 pt-5 flex flex-col gap-4">
+            {fetchError && (
+              <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+                <p className="text-xs font-bold text-red-600 mb-1">⚠️ 데이터 로드 실패</p>
+                <p className="text-xs text-red-500 break-all">{fetchError}</p>
+                <button onClick={fetchData} className="mt-2 text-xs font-bold text-red-600 underline">다시 시도</button>
+              </div>
+            )}
 
             {/* 오늘 현황 카드 */}
             <div className="rounded-2xl overflow-hidden shadow-sm" style={{ background: "#2C1A0E" }}>
@@ -364,6 +384,16 @@ export default function OwnerAppPage() {
 
             {/* 메뉴 리스트 */}
             <div className="px-4 pt-4 flex flex-col gap-2">
+              {categories.length === 0 && (
+                <div className="text-center py-10 text-sm text-stone-400">
+                  <p className="text-2xl mb-2">⚠️</p>
+                  <p className="font-semibold">메뉴를 불러올 수 없습니다</p>
+                  <p className="text-xs mt-1">storeId: {storeId}</p>
+                  <button onClick={fetchData} className="mt-3 px-4 py-2 rounded-lg text-xs font-bold text-white" style={{ background: "#C8873A" }}>
+                    새로고침
+                  </button>
+                </div>
+              )}
               {menus.map(menu => {
                 const sold = soldOuts[menu.id] ?? false;
                 return (
