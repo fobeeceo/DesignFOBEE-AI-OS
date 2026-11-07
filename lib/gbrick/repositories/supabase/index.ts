@@ -96,10 +96,10 @@ export const sbMenuRepo: IMenuRepository = {
       .from("gb_menu_categories")
       .select("*");
 
-    // 2) 메뉴 전체 조회
+    // 2) 메뉴 전체 조회 (존재하는 컬럼만 선택)
     const { data: menusRaw, error: menuErr } = await sb
       .from("gb_menus")
-      .select("id, categoryId, name, nameEn, description, basePrice, imageUrl, isSignature, isNew, isSoldOut, isActive, tags");
+      .select("id, categoryId, name, nameEn, description, basePrice, imageUrl, isSignature, isNew, isSoldOut, isActive");
     if (menuErr) throw menuErr;
 
     // isActive 필터 (컬럼 없으면 전체 포함)
@@ -139,7 +139,8 @@ export const sbMenuRepo: IMenuRepository = {
         ? sb.from("gb_store_menu_availability").select("*").eq("storeId", storeId).in("menuId", menuIds)
         : Promise.resolve({ data: [], error: null }),
     ]);
-    if (optRes.error) throw optRes.error;
+    // 옵션/재고 테이블 오류는 무시하고 빈 배열로 처리 (테이블 미생성 시에도 카테고리/메뉴 표시)
+    // if (optRes.error) throw optRes.error;
 
     const optsByMenu = groupBy(
       (optRes.data ?? []).filter((o: Record<string, unknown>) => o.isActive !== false),
