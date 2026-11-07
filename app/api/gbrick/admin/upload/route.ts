@@ -3,10 +3,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { nanoid } from "nanoid";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// getAdmin()과 동일한 URL 선택 로직 — gbrick-app-dev 버킷에 업로드
+const GBRICK_SUPABASE_URL = "https://rzgrkrffksqdeztzxyrt.supabase.co";
+
+function getStorageClient() {
+  const envUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+  const url = envUrl.includes("rzgrkrffksqdeztzxyrt") ? envUrl : GBRICK_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
+  return createClient(url, key, { auth: { autoRefreshToken: false, persistSession: false } });
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -18,6 +23,7 @@ export async function POST(req: NextRequest) {
     const filename = `menu/${nanoid()}.${ext}`;
     const buffer = Buffer.from(await file.arrayBuffer());
 
+    const supabase = getStorageClient();
     const { error } = await supabase.storage
       .from("gbrick-menu-images")
       .upload(filename, buffer, { contentType: file.type, upsert: true });
