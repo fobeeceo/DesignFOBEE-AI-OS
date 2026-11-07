@@ -27,6 +27,7 @@ interface Menu {
   id: string; categoryId: string; name: string; nameEn?: string | null;
   description?: string | null; basePrice: number; imageUrl?: string | null;
   isSignature: boolean; isNew: boolean; isSoldOut: boolean;
+  sortOrder?: number | null;
   storeAvailability?: { isSoldOut: boolean }[];
 }
 interface Category { id: string; name: string; menus: Menu[]; }
@@ -86,6 +87,7 @@ export default function OwnerAppPage() {
   const [newOpt, setNewOpt] = useState({ groupName: "추가옵션", name: "", extraPrice: "0" });
   const [modalTab, setModalTab] = useState<"info" | "options">("info");
   const [soldOuts, setSoldOuts] = useState<Record<string, boolean>>({});
+  const [sortMode, setSortMode] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [fetchError, setFetchError] = useState("");
@@ -157,12 +159,39 @@ export default function OwnerAppPage() {
     if (!editMenu) return;
     setSaving(true);
     try {
-      await fetch(`/api/gbrick/admin/menus/${editMenu.id}`, {
+      const res = await fetch(`/api/gbrick/admin/menus/${editMenu.id}`, {
         method: "PATCH", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: editForm.name, nameEn: editForm.nameEn || null, description: editForm.description || null, basePrice: Number(editForm.basePrice), imageUrl: editForm.imageUrl || null }),
       });
+      if (!res.ok) { const d = await res.json().catch(() => ({})); showToast(`저장 실패: ${(d as { error?: string }).error ?? res.status}`); return; }
       showToast("저장됐습니다"); setEditMenu(null); await fetchData();
     } catch { showToast("저장 실패"); } finally { setSaving(false); }
+  }
+
+  async function saveSortOrder() {
+    const cat = categories.find(c => c.id === activeCat);
+    if (!cat) return;
+    setSaving(true);
+    try {
+      await Promise.all(cat.menus.map((menu, idx) =>
+        fetch(`/api/gbrick/admin/menus/${menu.id}`, {
+          method: "PATCH", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sortOrder: idx }),
+        })
+      ));
+      showToast("순서가 저장됐습니다");
+      setSortMode(false);
+    } catch { showToast("순서 저장 실패"); } finally { setSaving(false); }
+  }
+
+  function moveMenu(catId: string, fromIdx: number, toIdx: number) {
+    setCategories(prev => prev.map(cat => {
+      if (cat.id !== catId) return cat;
+      const menus = [...cat.menus];
+      const [moved] = menus.splice(fromIdx, 1);
+      menus.splice(toIdx, 0, moved);
+      return { ...cat, menus };
+    }));
   }
 
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -376,15 +405,38 @@ export default function OwnerAppPage() {
         {/* ════ 메뉴 탭 ════ */}
         {tab === "menu" && (
           <div className="pb-4">
-            {/* 카테고리 탭 */}
-            <div className="flex overflow-x-auto gap-2 px-4 py-3 bg-white border-b border-stone-100">
-              {categories.map(cat => (
-                <button key={cat.id} onClick={() => setActiveCat(cat.id)}
-                  className="shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-colors"
-                  style={{ background: activeCat === cat.id ? "#2C1A0E" : "#F5F5F4", color: activeCat === cat.id ? "#fff" : "#6B7280" }}>
-                  {cat.name} <span className="opacity-60">({cat.menus.length})</span>
+            {/* 카테고리 탭 + 순서 편집 토글 */}
+            <div className="flex items-center gap-2 px-4 py-3 bg-white border-b border-stone-100">
+              <div className="flex overflow-x-auto gap-2 flex-1 min-w-0">
+                {categories.map(cat => (
+                  <button key={cat.id} onClick={() => { setActiveCat(cat.id); setSortMode(false); }}
+                    className="shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-colors"
+                    style={{ background: activeCat === cat.id ? "#2C1A0E" : "#F5F5F4", color: activeCat === cat.id ? "#fff" : "#6B7280" }}>
+                    {cat.name} <span className="opacity-60">({cat.menus.length})</span>
+                  </button>
+                ))}
+              </div>
+              {/* 순서 편집 토글 */}
+              {!sortMode ? (
+                <button onClick={() => setSortMode(true)}
+                  className="shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold border"
+                  style={{ borderColor: "#C8873A", color: "#C8873A", background: "white" }}>
+                  순서 편집
                 </button>
-              ))}
+              ) : (
+                <div className="flex shrink-0 gap-1.5">
+                  <button onClick={() => setSortMode(false)}
+                    className="px-3 py-1.5 rounded-full text-xs font-semibold"
+                    style={{ background: "#F5F5F4", color: "#6B7280" }}>
+                    취소
+                  </button>
+                  <button onClick={saveSortOrder} disabled={saving}
+                    className="px-3 py-1.5 rounded-full text-xs font-semibold text-white"
+                    style={{ background: saving ? "#D1C5BB" : "#2C1A0E" }}>
+                    저장
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* 메뉴 리스트 */}
@@ -399,11 +451,33 @@ export default function OwnerAppPage() {
                   </button>
                 </div>
               )}
-              {menus.map(menu => {
+              {sortMode && menus.length > 0 && (
+                <p className="text-xs text-stone-400 text-center pb-1">↑↓ 버튼으로 순서를 변경하고 저장하세요</p>
+              )}
+              {menus.map((menu, idx) => {
                 const sold = soldOuts[menu.id] ?? false;
                 return (
                   <div key={menu.id} className="bg-white rounded-xl shadow-sm border border-stone-100 p-3 flex items-center gap-3"
-                    style={{ opacity: sold ? 0.6 : 1 }}>
+                    style={{ opacity: sold && !sortMode ? 0.6 : 1 }}>
+                    {/* 순서 편집 모드: ↑↓ 버튼 */}
+                    {sortMode && (
+                      <div className="flex flex-col gap-1 shrink-0">
+                        <button
+                          onClick={() => idx > 0 && moveMenu(activeCat, idx, idx - 1)}
+                          disabled={idx === 0}
+                          className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold"
+                          style={{ background: idx === 0 ? "#F3F4F6" : "#2C1A0E", color: idx === 0 ? "#D1D5DB" : "white" }}>
+                          ↑
+                        </button>
+                        <button
+                          onClick={() => idx < menus.length - 1 && moveMenu(activeCat, idx, idx + 1)}
+                          disabled={idx === menus.length - 1}
+                          className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold"
+                          style={{ background: idx === menus.length - 1 ? "#F3F4F6" : "#2C1A0E", color: idx === menus.length - 1 ? "#D1D5DB" : "white" }}>
+                          ↓
+                        </button>
+                      </div>
+                    )}
                     <div className="w-14 h-14 rounded-xl flex items-center justify-center shrink-0 overflow-hidden" style={{ background: "#F5F0EB" }}>
                       {menu.imageUrl
                         ? <img src={menu.imageUrl} alt={menu.name} className="w-full h-full object-cover" />
@@ -418,25 +492,27 @@ export default function OwnerAppPage() {
                       {menu.description && <p className="text-xs text-stone-400 truncate">{menu.description}</p>}
                       <p className="text-sm font-bold mt-0.5" style={{ color: "#2C1A0E" }}>{menu.basePrice.toLocaleString()}원</p>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <button onClick={() => openEdit(menu)} className="p-2 rounded-lg text-stone-500" style={{ background: "#F5F0EB" }}>
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
-                          <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                        </svg>
-                      </button>
-                      <div className="flex flex-col items-center gap-0.5">
-                        <button onClick={() => toggleSoldOut(menu.id)}
-                          className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors"
-                          style={{ background: sold ? "#EF4444" : "#D1D5DB" }}>
-                          <span className="inline-block h-4 w-4 rounded-full bg-white shadow transition-transform"
-                            style={{ transform: sold ? "translateX(24px)" : "translateX(2px)" }} />
+                    {!sortMode && (
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button onClick={() => openEdit(menu)} className="p-2 rounded-lg text-stone-500" style={{ background: "#F5F0EB" }}>
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                          </svg>
                         </button>
-                        <span className="text-[10px]" style={{ color: sold ? "#EF4444" : "#9CA3AF" }}>
-                          {sold ? "품절" : "판매중"}
-                        </span>
+                        <div className="flex flex-col items-center gap-0.5">
+                          <button onClick={() => toggleSoldOut(menu.id)}
+                            className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors"
+                            style={{ background: sold ? "#EF4444" : "#D1D5DB" }}>
+                            <span className="inline-block h-4 w-4 rounded-full bg-white shadow transition-transform"
+                              style={{ transform: sold ? "translateX(24px)" : "translateX(2px)" }} />
+                          </button>
+                          <span className="text-[10px]" style={{ color: sold ? "#EF4444" : "#9CA3AF" }}>
+                            {sold ? "품절" : "판매중"}
+                          </span>
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 );
               })}

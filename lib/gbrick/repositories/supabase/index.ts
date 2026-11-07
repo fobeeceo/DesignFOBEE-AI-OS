@@ -96,11 +96,23 @@ export const sbMenuRepo: IMenuRepository = {
       .from("gb_menu_categories")
       .select("*");
 
-    // 2) 메뉴 전체 조회 (존재하는 컬럼만 선택)
-    const { data: menusRaw, error: menuErr } = await sb
-      .from("gb_menus")
-      .select("id, categoryId, name, nameEn, description, basePrice, imageUrl, isSignature, isNew, isSoldOut, isActive");
-    if (menuErr) throw menuErr;
+    // 2) 메뉴 전체 조회 — sortOrder 컬럼이 있으면 함께 가져오고 없으면 무시
+    let menusRaw: any[] | null = null; // eslint-disable-line
+    {
+      const withSort = await sb
+        .from("gb_menus")
+        .select("id, categoryId, name, nameEn, description, basePrice, imageUrl, isSignature, isNew, isSoldOut, isActive, sortOrder")
+        .order("sortOrder", { ascending: true, nullsFirst: false });
+      if (!withSort.error) {
+        menusRaw = withSort.data;
+      } else {
+        const noSort = await sb
+          .from("gb_menus")
+          .select("id, categoryId, name, nameEn, description, basePrice, imageUrl, isSignature, isNew, isSoldOut, isActive");
+        if (noSort.error) throw noSort.error;
+        menusRaw = noSort.data;
+      }
+    }
 
     // isActive 필터 (컬럼 없으면 전체 포함)
     const activeMenus = (menusRaw ?? []).filter((m: Record<string, unknown>) =>
