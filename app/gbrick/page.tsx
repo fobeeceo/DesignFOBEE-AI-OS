@@ -47,16 +47,19 @@ export default function GbrickHome() {
         display: "flex", alignItems: "center", justifyContent: "space-between",
         padding: "calc(env(safe-area-inset-top) + 14px) 20px 14px"
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-          <div style={{
-            width: 28, height: 28, borderRadius: "50%", background: "#1A0E05",
-            display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0
-          }}>
-            <span style={{ color: "#C8873A", fontSize: 12, fontWeight: 900 }}>G</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ position: "relative", width: 26, height: 32, flexShrink: 0 }}>
+            <svg width="26" height="32" viewBox="0 0 60 76" fill="none">
+              <path d="M30 4 C20 16 5 30 5 47 C5 61 16 73 30 73 C44 73 55 61 55 47 C55 30 40 16 30 4Z" fill="#D42B2B"/>
+            </svg>
+            <span style={{
+              position: "absolute", left: "50%", top: "58%",
+              transform: "translate(-50%, -50%)",
+              color: "white", fontSize: 13, fontWeight: 900, fontFamily: "Georgia, serif",
+              lineHeight: 1, userSelect: "none"
+            }}>G</span>
           </div>
-          <span style={{ fontSize: 18, fontWeight: 900, letterSpacing: "0.08em", color: "#1A0E05" }}>GBRICK</span>
-          <span style={{ width: 1, height: 14, background: "#C8873A", opacity: 0.4 }} />
-          <span style={{ fontSize: 11, fontWeight: 700, color: "#C8873A", letterSpacing: "0.14em" }}>COFFEE</span>
+          <span style={{ fontSize: 17, fontWeight: 900, letterSpacing: "0.04em", color: "#1A0E05" }}>G.BRICK COFFEE</span>
         </div>
         <div style={{ display: "flex", gap: 18, alignItems: "center" }}>
           {/* QR */}
@@ -211,11 +214,16 @@ function NearStoreCard({ store }: { store: Store & { dist?: number | null } }) {
     <div style={{ background: "white", borderRadius: 16, padding: "16px 16px 14px" }}>
       <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
         {/* 로고 */}
-        <div style={{
-          width: 54, height: 54, borderRadius: 14, background: "#1A0E05",
-          flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center"
-        }}>
-          <span style={{ color: "#C8873A", fontSize: 22, fontWeight: 900, fontFamily: "Georgia, serif" }}>G</span>
+        <div style={{ position: "relative", width: 54, height: 54, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <svg width="36" height="44" viewBox="0 0 60 76" fill="none">
+            <path d="M30 4 C20 16 5 30 5 47 C5 61 16 73 30 73 C44 73 55 61 55 47 C55 30 40 16 30 4Z" fill="#D42B2B"/>
+          </svg>
+          <span style={{
+            position: "absolute", left: "50%", top: "55%",
+            transform: "translate(-50%, -50%)",
+            color: "white", fontSize: 17, fontWeight: 900, fontFamily: "Georgia, serif",
+            lineHeight: 1, userSelect: "none"
+          }}>G</span>
         </div>
         {/* 정보 */}
         <div style={{ flex: 1, minWidth: 0 }}>

@@ -31,17 +31,18 @@ export default function GbrickLoginPage() {
         padding: "28px 0 36px",
         display: "flex", flexDirection: "column", alignItems: "center", gap: 10
       }}>
-        <div style={{
-          width: 60, height: 60, borderRadius: "50%", background: "#1A0E05",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          boxShadow: "0 4px 20px rgba(26,14,5,0.35)"
-        }}>
-          <span style={{ color: "#C8873A", fontSize: 26, fontWeight: 900, fontFamily: "Georgia, serif" }}>G</span>
+        <div style={{ position: "relative", width: 60, height: 74 }}>
+          <svg width="60" height="74" viewBox="0 0 60 76" fill="none">
+            <path d="M30 4 C20 16 5 30 5 47 C5 61 16 73 30 73 C44 73 55 61 55 47 C55 30 40 16 30 4Z" fill="#D42B2B"/>
+          </svg>
+          <span style={{
+            position: "absolute", left: "50%", top: "58%",
+            transform: "translate(-50%, -50%)",
+            color: "white", fontSize: 26, fontWeight: 900, fontFamily: "Georgia, serif",
+            lineHeight: 1, userSelect: "none"
+          }}>G</span>
         </div>
-        <div style={{ textAlign: "center" }}>
-          <p style={{ fontSize: 18, fontWeight: 900, color: "#1A0E05", letterSpacing: "0.1em" }}>GBRICK</p>
-          <p style={{ fontSize: 11, fontWeight: 700, color: "rgba(26,14,5,0.55)", letterSpacing: "0.22em", marginTop: 2 }}>COFFEE</p>
-        </div>
+        <p style={{ fontSize: 20, fontWeight: 900, color: "#1A0E05", letterSpacing: "0.06em", textAlign: "center" }}>G.BRICK COFFEE</p>
       </div>
 
       {/* 폼 영역 */}
