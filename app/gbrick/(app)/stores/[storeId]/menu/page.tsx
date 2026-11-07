@@ -226,12 +226,13 @@ export default function MenuPage() {
       {/* Menu option modal */}
       {selectedMenu && (
         <div
-          className="fixed inset-0 z-50 flex items-end"
+          className="fixed inset-0 z-[200] flex items-end"
           style={{ background: "rgba(0,0,0,0.5)" }}
           onClick={() => setSelectedMenu(null)}
         >
           <div
-            className="w-full max-w-[480px] mx-auto bg-white rounded-t-3xl px-5 pt-6 pb-8"
+            className="w-full max-w-[480px] mx-auto bg-white rounded-t-3xl px-5 pt-6"
+            style={{ paddingBottom: "calc(2rem + env(safe-area-inset-bottom))" }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="w-10 h-1 bg-stone-200 rounded-full mx-auto mb-5" />
