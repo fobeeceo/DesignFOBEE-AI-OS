@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 
 // ─── Types ───────────────────────────────────────────────────
 
@@ -64,7 +64,12 @@ function IconSettings({ active }: { active: boolean }) {
 
 export default function OwnerAppPage() {
   const params = useParams();
-  const storeId = params.storeId as string;
+  const router = useRouter();
+  const rawStoreId = params.storeId as string;
+  // "[storeId]"가 URL에 그대로 들어오면 (북마크/직접접근) 인덱스 페이지로 이동
+  const storeId = (rawStoreId === "%5BstoreId%5D" || rawStoreId?.startsWith("["))
+    ? "gbrick-esp-001"
+    : rawStoreId;
 
   const [tab, setTab] = useState<"home" | "menu" | "settings">("home");
   const [store, setStore] = useState<Store | null>(null);
