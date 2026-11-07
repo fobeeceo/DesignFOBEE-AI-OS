@@ -91,17 +91,15 @@ export const sbMenuRepo: IMenuRepository = {
   async findCategories(storeId?: string) {
     const sb = getAdmin();
 
-    // 1) 카테고리 테이블 조회 (오류 무시 — 없을 수도 있음)
+    // 1) 카테고리 테이블 조회 (sortOrder 컬럼 없을 수 있으므로 order 없이)
     const { data: catsRaw } = await sb
       .from("gb_menu_categories")
-      .select("*")
-      .order("sortOrder");
+      .select("*");
 
     // 2) 메뉴 전체 조회
     const { data: menusRaw, error: menuErr } = await sb
       .from("gb_menus")
-      .select("id, categoryId, name, nameEn, description, basePrice, imageUrl, isSignature, isNew, isSoldOut, sortOrder, isActive, tags")
-      .order("sortOrder");
+      .select("id, categoryId, name, nameEn, description, basePrice, imageUrl, isSignature, isNew, isSoldOut, isActive, tags");
     if (menuErr) throw menuErr;
 
     // isActive 필터 (컬럼 없으면 전체 포함)
@@ -135,7 +133,7 @@ export const sbMenuRepo: IMenuRepository = {
 
     const [optRes, availRes] = await Promise.all([
       menuIds.length > 0
-        ? sb.from("gb_menu_options").select("*").in("menuId", menuIds).order("sortOrder")
+        ? sb.from("gb_menu_options").select("*").in("menuId", menuIds)
         : Promise.resolve({ data: [], error: null }),
       storeId && menuIds.length > 0
         ? sb.from("gb_store_menu_availability").select("*").eq("storeId", storeId).in("menuId", menuIds)
