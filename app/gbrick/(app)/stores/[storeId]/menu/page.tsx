@@ -149,7 +149,7 @@ export default function MenuPage() {
           .map((cat) => (
             <div key={cat.id}>
               <h2 className="text-xs font-bold text-stone-500 uppercase tracking-widest mb-2">
-                {cat.name}
+                {cat.name} <span className="text-red-500">({cat.menus.length})</span>
               </h2>
               {cat.menus.map((menu) => (
                 <button
