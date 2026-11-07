@@ -91,28 +91,45 @@ export const sbMenuRepo: IMenuRepository = {
   async findCategories(storeId?: string) {
     const sb = getAdmin();
 
-    // isActive 컬럼이 없는 환경을 대비해 필터 없이 조회 후 JS에서 필터링
-    const { data: cats, error: catErr } = await sb
+    // 1) 카테고리 테이블 조회 (오류 무시 — 없을 수도 있음)
+    const { data: catsRaw } = await sb
       .from("gb_menu_categories")
       .select("*")
       .order("sortOrder");
-    if (catErr) throw catErr;
 
-    const activeCats = (cats ?? []).filter((c: Record<string, unknown>) => {
-      // isActive 컬럼이 없으면 모두 포함, 있으면 true인 것만
-      return c.isActive === undefined || c.isActive === null || c.isActive === true;
-    });
-
-    const { data: menus, error: menuErr } = await sb
+    // 2) 메뉴 전체 조회
+    const { data: menusRaw, error: menuErr } = await sb
       .from("gb_menus")
       .select("id, categoryId, name, nameEn, description, basePrice, imageUrl, isSignature, isNew, isSoldOut, sortOrder, isActive, tags")
       .order("sortOrder");
     if (menuErr) throw menuErr;
 
     // isActive 필터 (컬럼 없으면 전체 포함)
-    const activeMenus = (menus ?? []).filter((m: Record<string, unknown>) => {
-      return m.isActive === undefined || m.isActive === null || m.isActive === true;
-    });
+    const activeMenus = (menusRaw ?? []).filter((m: Record<string, unknown>) =>
+      m.isActive === undefined || m.isActive === null || m.isActive === true
+    );
+
+    // 3) 카테고리 테이블이 비어있으면 메뉴의 categoryId에서 가상 카테고리 생성
+    let activeCats: Record<string, unknown>[];
+    const dbCats = (catsRaw ?? []).filter((c: Record<string, unknown>) =>
+      c.isActive === undefined || c.isActive === null || c.isActive === true
+    );
+
+    if (dbCats.length > 0) {
+      activeCats = dbCats;
+    } else {
+      // gb_menu_categories가 비어있음 → categoryId 값으로 가상 카테고리 구성
+      const seen = new Set<string>();
+      activeCats = [];
+      for (const m of activeMenus) {
+        const catId = String((m as Record<string, unknown>).categoryId ?? "");
+        if (catId && !seen.has(catId)) {
+          seen.add(catId);
+          // 카테고리 이름은 ID에서 추출 (예: cat-esp-002 → 에스프레소)
+          activeCats.push({ id: catId, name: catId, sortOrder: activeCats.length });
+        }
+      }
+    }
 
     const menuIds = activeMenus.map((m: { id: string }) => m.id);
 
@@ -132,7 +149,6 @@ export const sbMenuRepo: IMenuRepository = {
     );
     const availByMenu = groupBy(availRes.data ?? [], "menuId");
 
-    // String() 변환으로 타입 불일치(UUID vs text) 방어
     const menusByCatId = new Map<string, typeof activeMenus>();
     for (const m of activeMenus) {
       const key = String((m as Record<string, unknown>).categoryId ?? "");
