@@ -9,10 +9,10 @@ export const GBRICK_BRAND = {
 } as const;
 
 export const POINT_DEFAULTS = {
-  rate: 0.03,
+  rate: 0.02,          // 구매금액의 2% 적립 (연금형 포인트)
   minEarnAmount: 1000,
   maxEarnPerOrder: 10000,
-  expiryDays: 365,
+  expiryDays: 3650,    // 10년 (사실상 무기한 — 연금처럼 장기 보유)
 } as const;
 
 export const STAMP_DEFAULTS = {
