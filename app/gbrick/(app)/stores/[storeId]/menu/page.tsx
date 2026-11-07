@@ -1,8 +1,23 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+
+const DEFAULT_OPTIONS: MenuOption[] = [
+  { id: "def-van",    name: "바닐라시럽",   extraPrice: 500, isDefault: false, groupName: "추가옵션" },
+  { id: "def-haz",   name: "헤이즐넛시럽", extraPrice: 500, isDefault: false, groupName: "추가옵션" },
+  { id: "def-whip",  name: "휘핑크림",     extraPrice: 500, isDefault: false, groupName: "추가옵션" },
+  { id: "def-eshot", name: "에스프레소샷", extraPrice: 500, isDefault: false, groupName: "추가옵션" },
+  { id: "def-pearl", name: "펄",           extraPrice: 700, isDefault: false, groupName: "추가옵션" },
+  { id: "def-milk",  name: "우유추가",     extraPrice: 500, isDefault: false, groupName: "추가옵션" },
+  { id: "def-decaf", name: "디카페인샷",   extraPrice: 500, isDefault: false, groupName: "추가옵션" },
+  { id: "def-oat",   name: "오트밀크",     extraPrice: 500, isDefault: false, groupName: "추가옵션" },
+  { id: "def-almond",name: "아몬드브리즈", extraPrice: 500, isDefault: false, groupName: "추가옵션" },
+  { id: "def-lowsug",name: "저당시럽",     extraPrice: 300, isDefault: false, groupName: "추가옵션" },
+  { id: "def-hot",   name: "따뜻하게",     extraPrice: 0,   isDefault: true,  groupName: "온도" },
+  { id: "def-ice",   name: "아이스",       extraPrice: 0,   isDefault: false, groupName: "온도" },
+];
 
 interface MenuOption {
   id: string;
@@ -42,6 +57,7 @@ interface CartItem {
 
 export default function MenuPage() {
   const params = useParams();
+  const router = useRouter();
   const storeId = params.storeId as string;
   const [categories, setCategories] = useState<Category[]>([]);
   const [activeCategory, setActiveCategory] = useState("");
@@ -49,6 +65,8 @@ export default function MenuPage() {
   const [loading, setLoading] = useState(true);
   const [selectedMenu, setSelectedMenu] = useState<Menu | null>(null);
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
+  // 추가옵션은 다중 선택(체크 토글)
+  const [selectedExtras, setSelectedExtras] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     fetch(`/api/gbrick/menus?storeId=${storeId}`, { cache: "no-store" })
@@ -63,46 +81,72 @@ export default function MenuPage() {
 
   function openMenu(menu: Menu) {
     if (menu.isSoldOut) return;
-    setSelectedMenu(menu);
+    // 옵션이 없으면 기본 옵션 삽입
+    const opts = menu.options.length > 0 ? menu.options : DEFAULT_OPTIONS;
+    setSelectedMenu({ ...menu, options: opts });
+    setSelectedExtras(new Set());
+    // 온도 등 단일선택 그룹 기본값 설정
     const defaults: Record<string, string> = {};
-    const groups = [...new Set(menu.options.map((o) => o.groupName ?? "default"))];
-    groups.forEach((g) => {
-      const def = menu.options.find((o) => (o.groupName ?? "default") === g && o.isDefault);
+    const singleGroups = [...new Set(opts.filter(o => o.groupName === "온도").map((o) => o.groupName ?? "default"))];
+    singleGroups.forEach((g) => {
+      const def = opts.find((o) => (o.groupName ?? "default") === g && o.isDefault);
       if (def) defaults[g] = def.id;
     });
     setSelectedOptions(defaults);
   }
 
+  function toggleExtra(optId: string) {
+    setSelectedExtras((prev) => {
+      const next = new Set(prev);
+      if (next.has(optId)) next.delete(optId); else next.add(optId);
+      return next;
+    });
+  }
+
   function addToCart() {
     if (!selectedMenu) return;
-    const chosenOptions = Object.values(selectedOptions).map((optId) => {
+    // 추가옵션(다중) + 온도(단일) 합산
+    const extraOpts = [...selectedExtras].map((optId) => {
       const opt = selectedMenu.options.find((o) => o.id === optId)!;
       return { menuOptionId: opt.id, optionName: opt.name, extraPrice: opt.extraPrice };
     });
+    const singleOpts = Object.values(selectedOptions).map((optId) => {
+      const opt = selectedMenu.options.find((o) => o.id === optId)!;
+      return { menuOptionId: opt.id, optionName: opt.name, extraPrice: opt.extraPrice };
+    }).filter(Boolean);
+    const chosenOptions = [...extraOpts, ...singleOpts];
     const extraTotal = chosenOptions.reduce((s, o) => s + o.extraPrice, 0);
-    setCart((prev) => {
-      const existing = prev.findIndex((c) => c.menuId === selectedMenu.id);
-      if (existing >= 0) {
-        const next = [...prev];
-        next[existing].quantity += 1;
-        return next;
-      }
-      return [
-        ...prev,
-        {
-          menuId: selectedMenu.id,
-          menuName: selectedMenu.name,
-          quantity: 1,
-          unitPrice: selectedMenu.basePrice + extraTotal,
-          options: chosenOptions,
-        },
-      ];
-    });
+    const newItem: CartItem = {
+      menuId: selectedMenu.id,
+      menuName: selectedMenu.name,
+      quantity: 1,
+      unitPrice: selectedMenu.basePrice + extraTotal,
+      options: chosenOptions,
+    };
+    const updatedCart = [...cart];
+    const existing = updatedCart.findIndex((c) => c.menuId === selectedMenu.id);
+    if (existing >= 0) {
+      updatedCart[existing].quantity += 1;
+    } else {
+      updatedCart.push(newItem);
+    }
+    setCart(updatedCart);
+    sessionStorage.setItem("gbrick_cart", JSON.stringify({ storeId, items: updatedCart }));
     setSelectedMenu(null);
+    router.push("/gbrick/cart");
   }
 
   const cartTotal = cart.reduce((s, c) => s + c.unitPrice * c.quantity, 0);
   const cartCount = cart.reduce((s, c) => s + c.quantity, 0);
+
+  // 모달에서 실시간 가격 계산
+  const modalExtraTotal = selectedMenu
+    ? [...selectedExtras].reduce((s, id) => {
+        const opt = selectedMenu.options.find((o) => o.id === id);
+        return s + (opt?.extraPrice ?? 0);
+      }, 0)
+    : 0;
+  const modalTotal = selectedMenu ? selectedMenu.basePrice + modalExtraTotal : 0;
 
   if (loading) {
     return (
@@ -241,44 +285,72 @@ export default function MenuPage() {
               <p className="text-sm text-stone-500 mb-4">{selectedMenu.description}</p>
             )}
 
-            {Object.entries(
-              selectedMenu.options.reduce((acc, opt) => {
-                const g = opt.groupName ?? "옵션";
-                if (!acc[g]) acc[g] = [];
-                acc[g].push(opt);
-                return acc;
-              }, {} as Record<string, MenuOption[]>)
-            ).map(([group, opts]) => (
-              <div key={group} className="mb-4">
-                <p className="text-sm font-semibold text-stone-700 mb-2">{group}</p>
-                <div className="flex gap-2 flex-wrap">
-                  {opts.map((opt) => (
-                    <button
-                      key={opt.id}
-                      onClick={() =>
-                        setSelectedOptions((prev) => ({ ...prev, [group]: opt.id }))
-                      }
-                      className="px-4 py-2 rounded-xl text-sm border transition-colors"
-                      style={{
-                        background: selectedOptions[group] === opt.id ? "#2C1A0E" : "#F5F5F4",
-                        color: selectedOptions[group] === opt.id ? "#fff" : "#374151",
-                        borderColor: selectedOptions[group] === opt.id ? "#2C1A0E" : "#E5E7EB",
-                      }}
-                    >
-                      {opt.name}
-                      {opt.extraPrice > 0 && ` +${opt.extraPrice.toLocaleString()}`}
-                    </button>
-                  ))}
+            {/* 추가옵션 — 다중 선택 */}
+            {(() => {
+              const extraOpts = selectedMenu.options.filter(o => o.groupName === "추가옵션");
+              if (extraOpts.length === 0) return null;
+              return (
+                <div className="mb-4">
+                  <p className="text-sm font-semibold text-stone-700 mb-2">추가옵션</p>
+                  <div className="flex gap-2 flex-wrap">
+                    {extraOpts.map((opt) => {
+                      const on = selectedExtras.has(opt.id);
+                      return (
+                        <button
+                          key={opt.id}
+                          onClick={() => toggleExtra(opt.id)}
+                          className="px-4 py-2 rounded-xl text-sm border transition-colors"
+                          style={{
+                            background: on ? "#2C1A0E" : "#F5F5F4",
+                            color: on ? "#fff" : "#374151",
+                            borderColor: on ? "#2C1A0E" : "#E5E7EB",
+                          }}
+                        >
+                          {opt.name}{opt.extraPrice > 0 && ` +${opt.extraPrice.toLocaleString()}`}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })()}
+
+            {/* 온도 — 단일 선택 */}
+            {(() => {
+              const tempOpts = selectedMenu.options.filter(o => o.groupName === "온도");
+              if (tempOpts.length === 0) return null;
+              return (
+                <div className="mb-4">
+                  <p className="text-sm font-semibold text-stone-700 mb-2">온도</p>
+                  <div className="flex gap-2 flex-wrap">
+                    {tempOpts.map((opt) => {
+                      const on = selectedOptions["온도"] === opt.id;
+                      return (
+                        <button
+                          key={opt.id}
+                          onClick={() => setSelectedOptions(p => ({ ...p, "온도": opt.id }))}
+                          className="px-4 py-2 rounded-xl text-sm border transition-colors"
+                          style={{
+                            background: on ? "#2C1A0E" : "#F5F5F4",
+                            color: on ? "#fff" : "#374151",
+                            borderColor: on ? "#2C1A0E" : "#E5E7EB",
+                          }}
+                        >
+                          {opt.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
 
             <button
               onClick={addToCart}
               className="w-full py-3.5 rounded-xl text-white font-bold mt-2"
               style={{ background: "#C8873A" }}
             >
-              담기 · {selectedMenu.basePrice.toLocaleString()}원
+              담기 · {modalTotal.toLocaleString()}원
             </button>
           </div>
         </div>
