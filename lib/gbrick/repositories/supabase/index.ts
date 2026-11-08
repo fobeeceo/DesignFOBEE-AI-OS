@@ -11,10 +11,18 @@ import type {
 const GBRICK_SUPABASE_URL = "https://rzgrkrffksqdeztzxyrt.supabase.co";
 
 function getAdmin() {
+  // URL: GBRICK 전용 URL 우선, 없으면 하드코딩된 GBRICK URL
   const envUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
   const url = envUrl.includes("rzgrkrffksqdeztzxyrt") ? envUrl : GBRICK_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!key) throw new Error("SUPABASE_SERVICE_ROLE_KEY 또는 ANON_KEY 미설정");
+
+  // KEY 우선순위: GBRICK 전용 서비스키 → GBRICK 전용 anon키 → 범용 키 (범용키는 DesignFOBEE 프로젝트용일 수 있으므로 마지막)
+  const key =
+    process.env.GBRICK_SUPABASE_SERVICE_ROLE_KEY ??
+    process.env.NEXT_PUBLIC_GBRICK_SUPABASE_ANON_KEY ??
+    (envUrl.includes("rzgrkrffksqdeztzxyrt") ? (process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) : null) ??
+    null;
+
+  if (!key) throw new Error("GBRICK Supabase 키 미설정 — Vercel에 NEXT_PUBLIC_GBRICK_SUPABASE_ANON_KEY 추가 필요");
   return createClient(url, key, { auth: { autoRefreshToken: false, persistSession: false } });
 }
 
