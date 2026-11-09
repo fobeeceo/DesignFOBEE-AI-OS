@@ -203,10 +203,15 @@ export default function MenuPage() {
                   className="w-full flex items-center gap-3 p-3 rounded-xl bg-white shadow-sm border border-stone-100 mb-2 text-left disabled:opacity-40"
                 >
                   <div
-                    className="w-16 h-16 rounded-xl shrink-0 flex items-center justify-center text-2xl"
+                    className="w-16 h-16 rounded-xl shrink-0 flex items-center justify-center text-2xl overflow-hidden"
                     style={{ background: "#F5F0EB" }}
                   >
-                    ☕
+                    {menu.imageUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={menu.imageUrl} alt={menu.name} className="w-full h-full object-cover" />
+                    ) : (
+                      "☕"
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5 flex-wrap">
