@@ -60,6 +60,39 @@ function IconSettings({ active }: { active: boolean }) {
     </svg>
   );
 }
+function IconOrders({ active }: { active: boolean }) {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? "#2C1A0E" : "#9CA3AF"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
+      <rect x="9" y="3" width="6" height="4" rx="2"/>
+      <line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/>
+    </svg>
+  );
+}
+
+// ─── Order Types ─────────────────────────────────────────────
+interface OrderItem { menuName: string; quantity: number; unitPrice: number; }
+interface OrderRow {
+  id: string; orderNumber: string; status: string;
+  finalAmount: number; pickupName?: string | null; note?: string | null;
+  createdAt: string; items?: OrderItem[];
+}
+
+const ORDER_STATUS_LABEL: Record<string, { label: string; color: string }> = {
+  PENDING:   { label: "대기중",   color: "#F59E0B" },
+  CONFIRMED: { label: "접수됨",   color: "#3B82F6" },
+  PREPARING: { label: "준비중",   color: "#8B5CF6" },
+  READY:     { label: "준비완료", color: "#10B981" },
+  PICKED_UP: { label: "픽업완료", color: "#6B7280" },
+  CANCELLED: { label: "취소됨",   color: "#EF4444" },
+};
+
+const NEXT_STATUS: Record<string, { action: string; next: string }> = {
+  PENDING:   { action: "접수", next: "CONFIRMED" },
+  CONFIRMED: { action: "준비시작", next: "PREPARING" },
+  PREPARING: { action: "준비완료", next: "READY" },
+  READY:     { action: "픽업완료", next: "PICKED_UP" },
+};
 
 // ─── Main Page ───────────────────────────────────────────────
 
@@ -72,7 +105,7 @@ export default function OwnerAppPage() {
     ? "gbrick-esp-001"
     : rawStoreId;
 
-  const [tab, setTab] = useState<"home" | "menu" | "settings">("home");
+  const [tab, setTab] = useState<"home" | "orders" | "menu" | "settings">("home");
   const [store, setStore] = useState<Store | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -91,6 +124,50 @@ export default function OwnerAppPage() {
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [fetchError, setFetchError] = useState("");
+  const [orders, setOrders] = useState<OrderRow[]>([]);
+  const [orderUpdating, setOrderUpdating] = useState<string | null>(null);
+  const [orderFilter, setOrderFilter] = useState<"active" | "all">("active");
+  const orderRefreshRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const fetchOrders = useCallback(async () => {
+    try {
+      const status = orderFilter === "active" ? "&status=PENDING,CONFIRMED,PREPARING,READY" : "";
+      const res = await fetch(`/api/gbrick/admin/orders?storeId=${storeId}${status}`, { cache: "no-store" });
+      const d = await res.json() as { orders: OrderRow[]; _warn?: string };
+      setOrders(d.orders ?? []);
+    } catch { /* 조용히 실패 */ }
+  }, [storeId, orderFilter]);
+
+  useEffect(() => {
+    if (tab !== "orders") return;
+    fetchOrders();
+    orderRefreshRef.current = setInterval(fetchOrders, 30_000);
+    return () => { if (orderRefreshRef.current) clearInterval(orderRefreshRef.current); };
+  }, [tab, fetchOrders]);
+
+  async function handleOrderStatus(orderId: string, nextStatus: string) {
+    setOrderUpdating(orderId);
+    try {
+      const res = await fetch(`/api/gbrick/orders/${orderId}/status`, {
+        method: "PATCH", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: nextStatus }),
+      });
+      if (res.ok) { showToast(`상태 변경: ${ORDER_STATUS_LABEL[nextStatus]?.label ?? nextStatus}`); await fetchOrders(); }
+      else { const d = await res.json().catch(() => ({})); showToast(`오류: ${(d as { error?: string }).error ?? res.status}`); }
+    } catch { showToast("서버 오류"); } finally { setOrderUpdating(null); }
+  }
+
+  async function handleCancelOrder(orderId: string) {
+    setOrderUpdating(orderId);
+    try {
+      const res = await fetch(`/api/gbrick/orders/${orderId}/status`, {
+        method: "PATCH", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "CANCELLED", note: "사장님 취소" }),
+      });
+      if (res.ok) { showToast("주문 취소됨"); await fetchOrders(); }
+      else { showToast("취소 실패"); }
+    } catch { showToast("서버 오류"); } finally { setOrderUpdating(null); }
+  }
 
   const showToast = (msg: string) => {
     setToast(msg);
@@ -520,6 +597,115 @@ export default function OwnerAppPage() {
           </div>
         )}
 
+        {/* ════ 주문 탭 ════ */}
+        {tab === "orders" && (
+          <div className="flex flex-col h-full">
+            {/* 필터 + 새로고침 */}
+            <div className="flex items-center gap-2 px-4 py-3 bg-white border-b border-stone-100">
+              <div className="flex gap-2 flex-1">
+                {(["active", "all"] as const).map(f => (
+                  <button key={f} onClick={() => setOrderFilter(f)}
+                    className="px-4 py-1.5 rounded-full text-sm font-medium transition-colors"
+                    style={{ background: orderFilter === f ? "#2C1A0E" : "#F5F5F4", color: orderFilter === f ? "#fff" : "#6B7280" }}>
+                    {f === "active" ? "진행중" : "전체"}
+                  </button>
+                ))}
+              </div>
+              <button onClick={fetchOrders} className="p-2 rounded-lg" style={{ background: "#F5F5F4" }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
+                  <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+                </svg>
+              </button>
+            </div>
+
+            {/* 주문 목록 */}
+            <div className="px-4 pt-4 flex flex-col gap-3 overflow-y-auto pb-4">
+              {orders.length === 0 ? (
+                <div className="text-center py-16">
+                  <p className="text-4xl mb-3">📋</p>
+                  <p className="text-sm font-semibold text-stone-500">
+                    {orderFilter === "active" ? "진행 중인 주문이 없습니다" : "주문 내역이 없습니다"}
+                  </p>
+                  <p className="text-xs text-stone-400 mt-1">고객이 주문하면 여기에 표시됩니다</p>
+                </div>
+              ) : (
+                orders.map(order => {
+                  const st = ORDER_STATUS_LABEL[order.status] ?? { label: order.status, color: "#9CA3AF" };
+                  const next = NEXT_STATUS[order.status];
+                  const isUpdating = orderUpdating === order.id;
+                  const canCancel = ["PENDING", "CONFIRMED", "PREPARING"].includes(order.status);
+                  const timeAgo = (() => {
+                    const diff = Math.floor((Date.now() - new Date(order.createdAt).getTime()) / 60000);
+                    if (diff < 1) return "방금";
+                    if (diff < 60) return `${diff}분 전`;
+                    return `${Math.floor(diff / 60)}시간 전`;
+                  })();
+                  return (
+                    <div key={order.id} className="bg-white rounded-2xl shadow-sm border overflow-hidden"
+                      style={{ borderColor: order.status === "PENDING" ? "#F59E0B" : "#E7E5E4" }}>
+                      {/* 주문 헤더 */}
+                      <div className="px-4 pt-3 pb-2 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-mono text-stone-400">{order.orderNumber}</span>
+                          <span className="px-2 py-0.5 rounded-full text-[11px] font-bold text-white"
+                            style={{ background: st.color }}>{st.label}</span>
+                        </div>
+                        <span className="text-xs text-stone-400">{timeAgo}</span>
+                      </div>
+                      {/* 픽업명 + 금액 */}
+                      <div className="px-4 pb-2 flex items-center justify-between">
+                        <div>
+                          <span className="text-base font-black text-stone-800">{order.pickupName ?? "손님"}</span>
+                          {order.note && <p className="text-xs text-amber-600 mt-0.5">📝 {order.note}</p>}
+                        </div>
+                        <span className="text-sm font-bold" style={{ color: "#2C1A0E" }}>
+                          {order.finalAmount.toLocaleString()}원
+                        </span>
+                      </div>
+                      {/* 메뉴 목록 */}
+                      {order.items && order.items.length > 0 && (
+                        <div className="mx-4 mb-3 bg-stone-50 rounded-xl px-3 py-2.5 space-y-1">
+                          {order.items.map((item, i) => (
+                            <div key={i} className="flex items-center justify-between text-sm">
+                              <span className="text-stone-700">{item.menuName}</span>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-stone-400">×{item.quantity}</span>
+                                <span className="text-xs font-semibold" style={{ color: "#C8873A" }}>
+                                  {(item.unitPrice * item.quantity).toLocaleString()}원
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {/* 액션 버튼 */}
+                      {(next || canCancel) && (
+                        <div className="px-4 pb-3 flex gap-2">
+                          {next && (
+                            <button onClick={() => handleOrderStatus(order.id, next.next)} disabled={isUpdating}
+                              className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold transition-opacity"
+                              style={{ background: isUpdating ? "#9CA3AF" : "#2C1A0E", opacity: isUpdating ? 0.7 : 1 }}>
+                              {isUpdating ? "처리 중..." : next.action}
+                            </button>
+                          )}
+                          {canCancel && (
+                            <button onClick={() => handleCancelOrder(order.id)} disabled={isUpdating}
+                              className="py-2.5 px-4 rounded-xl text-sm font-semibold border transition-opacity"
+                              style={{ color: "#EF4444", borderColor: "#FEE2E2", background: "#FFF5F5", opacity: isUpdating ? 0.5 : 1 }}>
+                              취소
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        )}
+
         {/* ════ 설정 탭 ════ */}
         {tab === "settings" && (
           <div className="px-4 pt-5 flex flex-col gap-5 pb-4">
@@ -597,11 +783,18 @@ export default function OwnerAppPage() {
         <div className="flex">
           {([
             { key: "home", label: "홈", Icon: IconHome },
+            { key: "orders", label: "주문", Icon: IconOrders },
             { key: "menu", label: "메뉴", Icon: IconMenu },
             { key: "settings", label: "설정", Icon: IconSettings },
           ] as const).map(({ key, label, Icon }) => (
-            <button key={key} onClick={() => setTab(key)} className="flex-1 flex flex-col items-center py-3 gap-1">
+            <button key={key} onClick={() => setTab(key)} className="flex-1 flex flex-col items-center py-3 gap-1 relative">
               <Icon active={tab === key} />
+              {key === "orders" && orders.filter(o => o.status === "PENDING").length > 0 && (
+                <span className="absolute top-2 right-[calc(50%-16px)] w-4 h-4 rounded-full text-[9px] font-black text-white flex items-center justify-center"
+                  style={{ background: "#EF4444" }}>
+                  {orders.filter(o => o.status === "PENDING").length}
+                </span>
+              )}
               <span className="text-[11px] font-semibold"
                 style={{ color: tab === key ? "#2C1A0E" : "#9CA3AF" }}>
                 {label}
