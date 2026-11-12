@@ -88,6 +88,10 @@ export default function CartPage() {
       if (!res.ok) throw new Error(data.error ?? "주문 실패");
 
       sessionStorage.removeItem("gbrick_cart");
+      // mock order: persist data so the status page can display items/amount
+      if (data.order?.mock) {
+        sessionStorage.setItem(`gbrick_order_${data.order.id}`, JSON.stringify(data.order));
+      }
       router.push(`/gbrick/orders/${data.order.id}`);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "주문 실패");

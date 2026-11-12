@@ -53,6 +53,8 @@ export async function POST(req: NextRequest) {
       : String((err as Record<string, unknown>)?.message ?? (err as Record<string, unknown>)?.details ?? "DB 오류");
 
     console.error("[POST /api/gbrick/orders] raw error:", JSON.stringify(err));
+    console.error("[POST /api/gbrick/orders] DIAGNOSIS — message:", message);
+    console.error("[POST /api/gbrick/orders] DIAGNOSIS — check Vercel env: NEXT_PUBLIC_GBRICK_SUPABASE_ANON_KEY or GBRICK_SUPABASE_SERVICE_ROLE_KEY must be set");
 
     // 테이블 미생성 / 키 미설정 / RLS 차단 / FK 오류 → mock 주문 반환 (흐름 테스트 가능)
     const useMock =

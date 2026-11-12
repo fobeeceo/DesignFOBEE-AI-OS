@@ -37,6 +37,33 @@ export default function OrderDetailPage() {
 
   const load = useCallback(async () => {
     try {
+      // mock orders (ord_* prefix): restore from sessionStorage so items/amount display correctly
+      if (orderId.startsWith("ord_")) {
+        try {
+          const cached = sessionStorage.getItem(`gbrick_order_${orderId}`);
+          if (cached) {
+            const parsed = JSON.parse(cached);
+            setOrder({
+              id: parsed.id,
+              orderNumber: parsed.orderNumber ?? `GB${parsed.id.replace("ord_", "")}`,
+              storeId: parsed.storeId ?? "",
+              status: parsed.status ?? "PENDING",
+              pickupName: parsed.pickupName ?? "손님",
+              finalAmount: parsed.finalAmount ?? 0,
+              pointsEarned: Math.floor((parsed.finalAmount ?? 0) * 0.02),
+              createdAt: parsed.createdAt ?? new Date().toISOString(),
+              items: (parsed.items ?? []).map((item: { menuName: string; quantity: number; unitPrice: number; options?: { optionName: string }[] }) => ({
+                menuName: item.menuName,
+                quantity: item.quantity,
+                unitPrice: item.unitPrice,
+                optionName: item.options?.map((o) => o.optionName).join(" · ") || undefined,
+              })),
+            });
+            setPolling(false);
+            return;
+          }
+        } catch {}
+      }
       const res = await fetch(`/api/gbrick/orders/${orderId}`);
       if (!res.ok) return;
       const data = await res.json();
