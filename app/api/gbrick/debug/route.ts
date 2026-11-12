@@ -57,6 +57,7 @@ export async function GET() {
 
   // 3) INSERT 권한 테스트 (즉시 rollback — 실제로는 삽입 안 됨)
   const testId = `debug_${Date.now()}`;
+  const now = new Date().toISOString();
   const { error: insertErr } = await sb.from("gb_orders").insert({
     id: testId,
     orderNumber: "DEBUG-TEST",
@@ -69,6 +70,7 @@ export async function GET() {
     pointUsed: 0,
     couponDiscount: 0,
     isGuest: true,
+    updatedAt: now,
   });
 
   // 삽입 성공하면 바로 삭제
