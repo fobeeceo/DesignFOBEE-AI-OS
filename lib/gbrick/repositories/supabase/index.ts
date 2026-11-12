@@ -226,7 +226,11 @@ export const sbOrderRepo: IOrderRepository = {
   async findByStore(storeId: string, status?: string) {
     const sb = getAdmin();
     let q = sb.from("gb_orders").select("*, items:gb_order_items(*, options:gb_order_item_options(*))").eq("storeId", storeId).order("createdAt", { ascending: false });
-    if (status) q = q.eq("status", status);
+    if (status) {
+      // status may be comma-separated (e.g. "PENDING,CONFIRMED,PREPARING,READY") — use .in() not .eq()
+      const statuses = status.split(",").map(s => s.trim()).filter(Boolean);
+      q = statuses.length > 1 ? q.in("status", statuses) : q.eq("status", statuses[0]);
+    }
     const { data, error } = await q;
     if (error) throw error;
     return (data ?? []) as unknown as OrderDto[];
