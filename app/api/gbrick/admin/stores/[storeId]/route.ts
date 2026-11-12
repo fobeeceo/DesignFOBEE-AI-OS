@@ -9,10 +9,11 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ sto
 
     const categoriesPromise = sbMenuRepo.findCategories(storeId);
 
-    // 매장 조회 — 없으면 가상 store 객체 사용 (카테고리/메뉴는 항상 로드)
+    // 매장 조회 — 없으면 첫 번째 실제 매장 사용 (URL storeId가 북마크/별칭일 때 대비)
     let store = await sbStoreRepo.findById(storeId);
     if (!store) {
-      store = {
+      const all = await sbStoreRepo.findMany();
+      store = all[0] ?? ({
         id: storeId,
         name: "지브릭커피",
         status: "ACTIVE",
@@ -20,7 +21,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ sto
         phone: "",
         imageUrl: null,
         operatingHours: null,
-      } as unknown as Awaited<ReturnType<typeof sbStoreRepo.findById>>;
+      } as unknown as Awaited<ReturnType<typeof sbStoreRepo.findById>>);
     }
 
     const categories = await categoriesPromise;
