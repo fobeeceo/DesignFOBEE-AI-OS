@@ -56,12 +56,16 @@ export async function GET() {
   }
 
   // 3) INSERT 권한 테스트 (즉시 rollback — 실제로는 삽입 안 됨)
+  // gb_stores FK 충족: 실제 존재하는 store ID 사용
+  const { data: firstStore, error: storeErr } = await sb.from("gb_stores").select("id").limit(1).single();
+  const realStoreId = firstStore?.id ?? "debug-store";
+
   const testId = `debug_${Date.now()}`;
   const now = new Date().toISOString();
   const { error: insertErr } = await sb.from("gb_orders").insert({
     id: testId,
     orderNumber: "DEBUG-TEST",
-    storeId: "debug-store",
+    storeId: realStoreId,
     status: "PENDING",
     totalAmount: 0,
     discountAmount: 0,
@@ -90,5 +94,7 @@ export async function GET() {
     env: { keyPresent, keyPrefix, keyFormat },
     storeCount: pingData?.length ?? 0,
     orderCount: orderCheck?.length ?? 0,
+    realStoreId,
+    storeQueryError: storeErr?.message ?? null,
   });
 }

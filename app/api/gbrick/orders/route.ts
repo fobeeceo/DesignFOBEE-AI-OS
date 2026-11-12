@@ -62,7 +62,6 @@ export async function POST(req: NextRequest) {
       message.includes("relation") ||
       message.includes("GBRICK Supabase") ||
       message.includes("security policy") ||
-      message.includes("violates") ||
       message.includes("DB 오류");
 
     if (useMock) {
