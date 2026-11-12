@@ -85,8 +85,8 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // 고객 앱: 주문·마이페이지·히스토리는 로그인 필요
-  const gbrickAuthRequired = ["/gbrick/cart", "/gbrick/history", "/gbrick/mypage"];
+  // 고객 앱: 마이페이지·히스토리는 로그인 필요 (장바구니·주문은 비회원 가능)
+  const gbrickAuthRequired = ["/gbrick/history", "/gbrick/mypage"];
   if (gbrickAuthRequired.some((p) => pathname.startsWith(p)) && !user) {
     const url = request.nextUrl.clone();
     url.pathname = "/gbrick/login";
