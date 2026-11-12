@@ -87,12 +87,45 @@ const ORDER_STATUS_LABEL: Record<string, { label: string; color: string }> = {
   CANCELLED: { label: "취소됨",   color: "#EF4444" },
 };
 
-const NEXT_STATUS: Record<string, { action: string; next: string }> = {
-  PENDING:   { action: "접수", next: "CONFIRMED" },
-  CONFIRMED: { action: "준비시작", next: "PREPARING" },
-  PREPARING: { action: "준비완료", next: "READY" },
-  READY:     { action: "픽업완료", next: "PICKED_UP" },
+// 배민/쿠팡 방식: 접수 → 조리완료 → 픽업완료 (3단계)
+const NEXT_STATUS: Record<string, { action: string; next: string; btnColor: string }> = {
+  PENDING:   { action: "🔔 접수",    next: "CONFIRMED",  btnColor: "#F59E0B" },
+  CONFIRMED: { action: "☕ 조리완료", next: "READY",      btnColor: "#8B5CF6" },
+  PREPARING: { action: "☕ 조리완료", next: "READY",      btnColor: "#8B5CF6" },
+  READY:     { action: "✅ 픽업완료", next: "PICKED_UP",  btnColor: "#10B981" },
 };
+
+// ─── Sound & Notification ────────────────────────────────────
+function playOrderBell() {
+  try {
+    type AudioCtxCtor = typeof AudioContext;
+    const Ctx: AudioCtxCtor = window.AudioContext ?? (window as unknown as { webkitAudioContext: AudioCtxCtor }).webkitAudioContext;
+    if (!Ctx) return;
+    const ctx = new Ctx();
+    [[660, 0], [880, 0.18], [660, 0.36]].forEach(([freq, when]) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = "sine"; osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.4, ctx.currentTime + when);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + when + 0.3);
+      osc.start(ctx.currentTime + when); osc.stop(ctx.currentTime + when + 0.35);
+    });
+    setTimeout(() => { try { ctx.close(); } catch {} }, 2000);
+  } catch { /* 소리 없음 */ }
+}
+
+function sendNewOrderNotif(storeName: string, count: number) {
+  playOrderBell();
+  if (typeof window === "undefined" || !("Notification" in window)) return;
+  if (Notification.permission !== "granted") return;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  new (Notification as any)(`🔔 새 주문 ${count}건`, {
+    body: `${storeName}에 새 주문이 들어왔습니다`,
+    tag: "gbrick-new-order",
+    renotify: true,
+  });
+}
 
 // ─── Kitchen Ticket Printer ───────────────────────────────────
 function printKitchenTicket(order: OrderRow, storeName: string) {
@@ -175,6 +208,7 @@ export default function OwnerAppPage() {
   const [orderUpdating, setOrderUpdating] = useState<string | null>(null);
   const [orderFilter, setOrderFilter] = useState<"active" | "all">("active");
   const [autoPrint, setAutoPrint] = useState(false);
+  const [notifPermission, setNotifPermission] = useState<NotificationPermission>("default");
   const orderRefreshRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const knownOrderIds = useRef<Set<string>>(new Set());
   const fetchOrders = useCallback(async (isFirstLoad = false) => {
@@ -187,11 +221,14 @@ export default function OwnerAppPage() {
       const fetched = d.orders ?? [];
       setOrders(fetched);
 
-      // 새 PENDING 주문 자동 출력 (최초 로드가 아닐 때만)
-      if (!isFirstLoad && autoPrint) {
+      // 새 PENDING 주문 감지 (최초 로드가 아닐 때만)
+      if (!isFirstLoad) {
         const storeName = store?.name ?? "GBRICK";
-        fetched.filter(o => o.status === "PENDING" && !knownOrderIds.current.has(o.id))
-          .forEach(o => printKitchenTicket(o, storeName));
+        const newOrders = fetched.filter(o => o.status === "PENDING" && !knownOrderIds.current.has(o.id));
+        if (newOrders.length > 0) {
+          sendNewOrderNotif(storeName, newOrders.length);
+          if (autoPrint) newOrders.forEach(o => printKitchenTicket(o, storeName));
+        }
       }
       // 알려진 주문 ID 갱신
       fetched.forEach(o => knownOrderIds.current.add(o.id));
@@ -249,6 +286,11 @@ export default function OwnerAppPage() {
     try {
       const res = await fetch(`/api/gbrick/admin/stores/${storeId}`, { cache: "no-store" });
       const d = await res.json() as { store: Store; categories: Category[]; error?: string };
+      if (res.status === 404 || d.error === "STORE_NOT_FOUND") {
+        // 잘못된 storeId → 매장 선택 화면으로 이동
+        router.replace("/gbrick/admin");
+        return;
+      }
       if (d.error) {
         setFetchError(`API 오류: ${d.error} (storeId: ${storeId})`);
         return;
@@ -273,6 +315,13 @@ export default function OwnerAppPage() {
   }, [storeId]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  // 브라우저 알림 권한 상태 초기화
+  useEffect(() => {
+    if (typeof window !== "undefined" && "Notification" in window) {
+      setNotifPermission(Notification.permission);
+    }
+  }, []);
 
   async function toggleSoldOut(menuId: string) {
     const next = !soldOuts[menuId];
@@ -688,6 +737,25 @@ export default function OwnerAppPage() {
                   </svg>
                 </button>
               </div>
+              {/* 알림 허용 배너 */}
+              {notifPermission !== "granted" && (
+                <div className="mx-4 mb-2 flex items-center justify-between bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
+                  <div>
+                    <p className="text-xs font-bold text-amber-800">🔔 알림을 허용해주세요</p>
+                    <p className="text-[10px] text-amber-600">새 주문 도착 시 알림을 받으려면 허용이 필요합니다</p>
+                  </div>
+                  <button
+                    onClick={async () => {
+                      if (!("Notification" in window)) return;
+                      const perm = await Notification.requestPermission();
+                      setNotifPermission(perm);
+                    }}
+                    className="px-3 py-1.5 rounded-lg text-xs font-bold text-white shrink-0 ml-2"
+                    style={{ background: "#C8873A" }}>
+                    허용
+                  </button>
+                </div>
+              )}
               {/* 자동출력 토글 */}
               <div className="flex items-center justify-between px-4 pb-3">
                 <div>
@@ -776,14 +844,14 @@ export default function OwnerAppPage() {
                         <div className="px-4 pb-3 flex gap-2">
                           {next && (
                             <button onClick={() => handleOrderStatus(order.id, next.next)} disabled={isUpdating}
-                              className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold transition-opacity"
-                              style={{ background: isUpdating ? "#9CA3AF" : "#2C1A0E", opacity: isUpdating ? 0.7 : 1 }}>
+                              className="flex-1 py-3 rounded-xl text-white text-sm font-bold transition-opacity active:scale-95"
+                              style={{ background: isUpdating ? "#9CA3AF" : next.btnColor, opacity: isUpdating ? 0.7 : 1, fontSize: 15 }}>
                               {isUpdating ? "처리 중..." : next.action}
                             </button>
                           )}
                           {canCancel && (
                             <button onClick={() => handleCancelOrder(order.id)} disabled={isUpdating}
-                              className="py-2.5 px-4 rounded-xl text-sm font-semibold border transition-opacity"
+                              className="py-3 px-4 rounded-xl text-sm font-semibold border transition-opacity"
                               style={{ color: "#EF4444", borderColor: "#FEE2E2", background: "#FFF5F5", opacity: isUpdating ? 0.5 : 1 }}>
                               취소
                             </button>

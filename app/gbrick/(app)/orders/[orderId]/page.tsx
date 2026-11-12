@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -28,12 +28,35 @@ const STATUS_INFO: Record<string, { label: string; desc: string; icon: string; c
 
 const STEPS = ["PENDING", "CONFIRMED", "PREPARING", "READY", "PICKED_UP"];
 
+function playCustomerAlert(status: string) {
+  try {
+    type AudioCtxCtor = typeof AudioContext;
+    const Ctx: AudioCtxCtor = window.AudioContext ?? (window as unknown as { webkitAudioContext: AudioCtxCtor }).webkitAudioContext;
+    if (!Ctx) return;
+    const ctx = new Ctx();
+    // READY(픽업준비완료)면 더 명랑한 톤, 나머지는 단음
+    const notes = status === "READY" ? [[523, 0], [659, 0.15], [784, 0.3]] : [[523, 0]];
+    notes.forEach(([freq, when]) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = "sine"; osc.frequency.value = freq as number;
+      gain.gain.setValueAtTime(0.35, ctx.currentTime + (when as number));
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + (when as number) + 0.4);
+      osc.start(ctx.currentTime + (when as number)); osc.stop(ctx.currentTime + (when as number) + 0.45);
+    });
+    setTimeout(() => { try { ctx.close(); } catch {} }, 2000);
+  } catch {}
+  if ("vibrate" in navigator) navigator.vibrate(status === "READY" ? [100, 50, 100, 50, 100] : [100]);
+}
+
 export default function OrderDetailPage() {
   const { orderId } = useParams<{ orderId: string }>();
   const router = useRouter();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [polling, setPolling] = useState(true);
+  const prevStatusRef = useRef<string>("");
 
   const load = useCallback(async () => {
     try {
@@ -67,8 +90,14 @@ export default function OrderDetailPage() {
       const res = await fetch(`/api/gbrick/orders/${orderId}`);
       if (!res.ok) return;
       const data = await res.json();
-      setOrder(data.order);
-      if (data.order?.status === "PICKED_UP" || data.order?.status === "CANCELLED") {
+      const newOrder: Order = data.order;
+      // 상태 변경 감지 → 소리 알림
+      if (newOrder && prevStatusRef.current && prevStatusRef.current !== newOrder.status) {
+        playCustomerAlert(newOrder.status);
+      }
+      prevStatusRef.current = newOrder?.status ?? "";
+      setOrder(newOrder);
+      if (newOrder?.status === "PICKED_UP" || newOrder?.status === "CANCELLED") {
         setPolling(false);
       }
     } finally {
@@ -80,10 +109,10 @@ export default function OrderDetailPage() {
     load();
   }, [load]);
 
-  // 30초마다 폴링 (PICKED_UP/CANCELLED 아닐 때)
+  // 10초마다 폴링 (PICKED_UP/CANCELLED 아닐 때)
   useEffect(() => {
     if (!polling) return;
-    const timer = setInterval(load, 30000);
+    const timer = setInterval(load, 10000);
     return () => clearInterval(timer);
   }, [polling, load]);
 
@@ -123,6 +152,15 @@ export default function OrderDetailPage() {
       </header>
 
       <div style={{ padding: "24px 20px" }}>
+        {/* READY 강조 배너 */}
+        {order.status === "READY" && (
+          <div style={{ background: "#10B981", borderRadius: 14, padding: "14px 20px", marginBottom: 12, textAlign: "center", color: "#fff" }}>
+            <div style={{ fontSize: 24, marginBottom: 4 }}>🎉</div>
+            <div style={{ fontWeight: 800, fontSize: 17 }}>음료가 준비됐습니다!</div>
+            <div style={{ fontSize: 13, opacity: 0.9, marginTop: 2 }}>카운터에서 픽업해 주세요</div>
+          </div>
+        )}
+
         {/* Status Hero */}
         <div style={{ background: "#fff", borderRadius: 16, padding: 28, textAlign: "center", marginBottom: 16, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
           <div style={{ fontSize: 48, marginBottom: 12 }}>{statusInfo.icon}</div>
