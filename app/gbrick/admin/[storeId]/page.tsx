@@ -491,8 +491,8 @@ export default function OwnerAppPage() {
 
   return (
     <>
-      {/* ═══════════════ DESKTOP KANBAN POS (lg+) ═══════════════ */}
-      <div className="hidden lg:flex h-screen overflow-hidden" style={{ background: "#F0EDE8" }}>
+      {/* ═══════════════ DESKTOP KANBAN POS (md+) ═══════════════ */}
+      <div className="hidden md:flex h-screen overflow-hidden" style={{ background: "#F0EDE8" }}>
         {/* Left Sidebar */}
         <aside style={{ width: 68, background: "#2C1A0E", flexShrink: 0 }} className="flex flex-col items-center pt-4 pb-4 gap-2">
           <div className="mb-3 mt-1">
@@ -516,6 +516,15 @@ export default function OwnerAppPage() {
               <span className="text-[9px] font-semibold mt-0.5" style={{ color: tab === key ? "#C8873A" : "#6B7280" }}>{label}</span>
             </button>
           ))}
+          {/* 매장 변경 */}
+          <div className="flex-1" />
+          <button onClick={() => router.push("/gbrick/admin")} title="매장 변경"
+            className="flex flex-col items-center w-full py-3 gap-1 transition-opacity hover:opacity-70">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/>
+            </svg>
+            <span className="text-[8px] font-semibold text-stone-500">매장변경</span>
+          </button>
         </aside>
 
         {/* Main Content */}
@@ -845,11 +854,19 @@ export default function OwnerAppPage() {
         </div>
       </div>
 
-      {/* ═══════════════ MOBILE LAYOUT (< lg) ═══════════════════ */}
-      <div className="lg:hidden min-h-screen flex flex-col" style={{ background: "#F9F7F5" }}>
+      {/* ═══════════════ MOBILE LAYOUT (< md) ═══════════════════ */}
+      <div className="md:hidden min-h-screen flex flex-col" style={{ background: "#F9F7F5" }}>
 
       {/* ─── Header ─── */}
       <header style={{ background: "#2C1A0E" }} className="px-5 pt-12 pb-5">
+        {/* 매장 변경 버튼 */}
+        <button onClick={() => router.push("/gbrick/admin")}
+          className="flex items-center gap-1.5 mb-3 opacity-70 hover:opacity-100 transition-opacity">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C8873A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+          <span className="text-[11px] font-semibold text-amber-400">매장 변경</span>
+        </button>
         <div className="flex items-center justify-between">
           <div>
             <div className="flex items-center gap-2 mb-0.5">
