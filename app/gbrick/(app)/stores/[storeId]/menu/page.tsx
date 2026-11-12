@@ -249,9 +249,12 @@ export default function MenuPage() {
           ))}
       </div>
 
-      {/* Cart bar */}
+      {/* Cart bar — z-index must exceed the layout nav (50) */}
       {cartCount > 0 && (
-        <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] px-4 pb-4 pt-2 bg-white border-t border-stone-100">
+        <div
+          className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] px-4 pt-3 bg-white border-t border-stone-100"
+          style={{ zIndex: 100, paddingBottom: "calc(env(safe-area-inset-bottom) + 12px)" }}
+        >
           <Link
             href="/gbrick/cart"
             onClick={() => {
