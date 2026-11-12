@@ -209,6 +209,8 @@ export default function OwnerAppPage() {
   const [orderFilter, setOrderFilter] = useState<"active" | "all">("active");
   const [autoPrint, setAutoPrint] = useState(false);
   const [notifPermission, setNotifPermission] = useState<NotificationPermission>("default");
+  const [soundType, setSoundType] = useState<"1"|"2"|"3">("1");
+  const [autoConfirm, setAutoConfirm] = useState(false);
   const orderRefreshRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const knownOrderIds = useRef<Set<string>>(new Set());
   const fetchOrders = useCallback(async (isFirstLoad = false) => {
@@ -322,6 +324,13 @@ export default function OwnerAppPage() {
       setNotifPermission(Notification.permission);
     }
   }, []);
+
+  useEffect(() => {
+    const count = orders.filter(o => o.status === "PENDING").length;
+    document.title = count > 0
+      ? `(${count}) 새 주문 | ${store?.name ?? "GBRICK POS"}`
+      : (store?.name ?? "GBRICK POS");
+  }, [orders, store?.name]);
 
   async function toggleSoldOut(menuId: string) {
     const next = !soldOuts[menuId];
@@ -471,9 +480,366 @@ export default function OwnerAppPage() {
   }
 
   const menus = categories.find(c => c.id === activeCat)?.menus ?? [];
+  const pendingCount = orders.filter(o => o.status === "PENDING").length;
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: "#F9F7F5" }}>
+    <>
+      {/* ═══════════════ DESKTOP KANBAN POS (lg+) ═══════════════ */}
+      <div className="hidden lg:flex h-screen overflow-hidden" style={{ background: "#F0EDE8" }}>
+        {/* Left Sidebar */}
+        <aside style={{ width: 68, background: "#2C1A0E", flexShrink: 0 }} className="flex flex-col items-center pt-4 pb-4 gap-2">
+          <div className="mb-3 mt-1">
+            <span className="text-amber-300 font-black text-xs tracking-tighter">GB</span>
+          </div>
+          {([
+            { key: "home", label: "홈", Icon: IconHome },
+            { key: "orders", label: "주문", Icon: IconOrders },
+            { key: "menu", label: "메뉴", Icon: IconMenu },
+            { key: "settings", label: "설정", Icon: IconSettings },
+          ] as const).map(({ key, label, Icon }) => (
+            <button key={key} onClick={() => setTab(key)} className="relative flex flex-col items-center w-full py-3 gap-1 transition-colors"
+              style={{ background: tab === key ? "rgba(200,135,58,0.15)" : "transparent" }}>
+              <Icon active={tab === key} />
+              {key === "orders" && pendingCount > 0 && (
+                <span className="absolute top-1.5 right-3 w-4 h-4 rounded-full text-[9px] font-black text-white flex items-center justify-center"
+                  style={{ background: "#EF4444" }}>
+                  {pendingCount}
+                </span>
+              )}
+              <span className="text-[9px] font-semibold mt-0.5" style={{ color: tab === key ? "#C8873A" : "#6B7280" }}>{label}</span>
+            </button>
+          ))}
+        </aside>
+
+        {/* Main Content */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Top Bar */}
+          <header style={{ background: "#2C1A0E", height: 52, flexShrink: 0 }} className="flex items-center px-5 gap-3">
+            <span className="text-amber-300 font-black text-sm tracking-tight">GBRICK</span>
+            <span className="text-xs text-amber-200 bg-amber-900 px-2 py-0.5 rounded-full font-semibold">사장님 POS</span>
+            <span className="text-white font-bold text-sm">{store?.name ?? "지브릭커피"}</span>
+            <div className="flex items-center gap-1.5 ml-1">
+              <span className="w-2 h-2 rounded-full" style={{ background: isOpenToday ? "#22C55E" : "#9CA3AF" }} />
+              <span className="text-xs" style={{ color: isOpenToday ? "#86EFAC" : "#9CA3AF" }}>
+                {isOpenToday ? "영업중" : "휴무"}
+              </span>
+            </div>
+            <div className="flex-1" />
+            {pendingCount > 0 && (
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg" style={{ background: "#F59E0B" }}>
+                <span className="text-xs font-black text-white">🔔 새 주문 {pendingCount}건</span>
+              </div>
+            )}
+            <button onClick={() => fetchOrders(false)} className="p-2 rounded-lg ml-1" style={{ background: "rgba(255,255,255,0.08)" }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C8873A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+              </svg>
+            </button>
+          </header>
+
+          {/* Kanban - Orders */}
+          {tab === "orders" && (
+            <div className="flex-1 overflow-hidden p-4 flex gap-3">
+              {([
+                { title: "접수 대기", color: "#F59E0B", statuses: ["PENDING"] },
+                { title: "조리중",   color: "#8B5CF6", statuses: ["CONFIRMED", "PREPARING"] },
+                { title: "완료",     color: "#10B981", statuses: ["READY", "PICKED_UP"] },
+              ] as const).map(col => {
+                const colOrders = orders.filter(o => (col.statuses as readonly string[]).includes(o.status));
+                const colCount = colOrders.length;
+                return (
+                  <div key={col.title} className="flex-1 flex flex-col overflow-hidden rounded-2xl" style={{ background: "#fff", border: "1px solid #E7E5E4" }}>
+                    <div className="px-4 py-3 flex items-center gap-2 border-b border-stone-100" style={{ flexShrink: 0 }}>
+                      <span className="w-3 h-3 rounded-full" style={{ background: col.color }} />
+                      <span className="font-bold text-sm text-stone-800">{col.title}</span>
+                      <span className="ml-auto text-xs font-black px-2.5 py-0.5 rounded-full text-white"
+                        style={{ background: colCount > 0 ? col.color : "#D1D5DB" }}>
+                        {colCount}
+                      </span>
+                    </div>
+                    <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-2">
+                      {colOrders.length === 0 ? (
+                        <div className="flex-1 flex flex-col items-center justify-center text-stone-300 py-10">
+                          <span className="text-4xl mb-2">📋</span>
+                          <span className="text-xs">없음</span>
+                        </div>
+                      ) : (
+                        colOrders.map(order => {
+                          const next = NEXT_STATUS[order.status];
+                          const isUpdating = orderUpdating === order.id;
+                          const canCancel = ["PENDING", "CONFIRMED", "PREPARING"].includes(order.status);
+                          const timeAgo = (() => {
+                            const diff = Math.floor((Date.now() - new Date(order.createdAt).getTime()) / 60000);
+                            if (diff < 1) return "방금";
+                            if (diff < 60) return `${diff}분 전`;
+                            return `${Math.floor(diff / 60)}시간 전`;
+                          })();
+                          return (
+                            <div key={order.id} className="rounded-xl border overflow-hidden"
+                              style={{ borderColor: order.status === "PENDING" ? "#F59E0B" : "#E7E5E4", background: order.status === "PENDING" ? "#FFFBF3" : "#fff" }}>
+                              <div className="px-3 pt-2.5 pb-1 flex items-center gap-2">
+                                <span className="text-xs font-mono text-stone-400 truncate flex-1">{order.orderNumber}</span>
+                                <span className="text-xs text-stone-400 shrink-0">{timeAgo}</span>
+                                <button onClick={() => printKitchenTicket(order, store?.name ?? "GBRICK")}
+                                  className="w-6 h-6 flex items-center justify-center rounded text-xs border border-stone-200 shrink-0"
+                                  style={{ background: "#F5F0EB" }}>🖨️</button>
+                              </div>
+                              <div className="px-3 pb-2">
+                                <div className="font-black text-stone-800" style={{ fontSize: 15 }}>{order.pickupName ?? "손님"}</div>
+                                {order.note && <p className="text-xs text-amber-600 mt-0.5">📝 {order.note}</p>}
+                                {order.items && order.items.length > 0 && (
+                                  <div className="mt-1.5 space-y-0.5">
+                                    {order.items.map((item, i) => (
+                                      <div key={i} className="flex items-center justify-between text-xs text-stone-600">
+                                        <span className="truncate">{item.menuName} ×{item.quantity}</span>
+                                        <span className="font-semibold ml-2 shrink-0" style={{ color: "#C8873A" }}>{(item.unitPrice * item.quantity).toLocaleString()}원</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                                <div className="mt-1.5 text-xs font-black text-right" style={{ color: "#2C1A0E" }}>{order.finalAmount.toLocaleString()}원</div>
+                              </div>
+                              {(next || canCancel) && (
+                                <div className="px-3 pb-3 flex gap-1.5">
+                                  {next && (
+                                    <button onClick={() => handleOrderStatus(order.id, next.next)} disabled={isUpdating}
+                                      className="flex-1 py-2 rounded-lg text-white text-xs font-bold"
+                                      style={{ background: isUpdating ? "#9CA3AF" : next.btnColor }}>
+                                      {isUpdating ? "처리 중..." : next.action}
+                                    </button>
+                                  )}
+                                  {canCancel && (
+                                    <button onClick={() => handleCancelOrder(order.id)} disabled={isUpdating}
+                                      className="py-2 px-3 rounded-lg text-xs font-semibold border"
+                                      style={{ color: "#EF4444", borderColor: "#FEE2E2", background: "#FFF5F5" }}>
+                                      취소
+                                    </button>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Desktop Home */}
+          {tab === "home" && (
+            <div className="flex-1 overflow-y-auto p-6">
+              <div className="max-w-2xl">
+                <h2 className="text-lg font-bold text-stone-800 mb-4">오늘 현황</h2>
+                <div className="grid grid-cols-3 gap-4 mb-6">
+                  {[
+                    { label: "전체 메뉴", value: totalMenuCount, unit: "개", icon: "🍵" },
+                    { label: "품절 처리", value: soldOutCount,   unit: "개", icon: "🚫" },
+                    { label: "대기 주문", value: pendingCount,   unit: "건", icon: "🔔" },
+                  ].map(stat => (
+                    <div key={stat.label} className="bg-white rounded-2xl p-5 shadow-sm border border-stone-100">
+                      <div className="text-2xl mb-2">{stat.icon}</div>
+                      <div className="text-2xl font-black text-stone-800">{stat.value}<span className="text-sm font-normal text-stone-400 ml-1">{stat.unit}</span></div>
+                      <div className="text-xs text-stone-400 mt-1">{stat.label}</div>
+                    </div>
+                  ))}
+                </div>
+                <div className="bg-white rounded-2xl p-5 shadow-sm border border-stone-100">
+                  <h3 className="text-sm font-bold text-stone-700 mb-3">이번 주 영업시간</h3>
+                  {(Object.keys(DAY_LABELS) as (keyof StoreOperatingHours)[]).map(day => {
+                    const h = hours[day];
+                    const isToday = day === todayKey;
+                    return (
+                      <div key={day} className="flex items-center justify-between py-2 border-b border-stone-50 last:border-0">
+                        <span className="text-sm w-6 font-semibold"
+                          style={{ color: day === "sun" ? "#EF4444" : day === "sat" ? "#3B82F6" : isToday ? "#C8873A" : "#6B7280" }}>
+                          {DAY_LABELS[day]}
+                        </span>
+                        <span className="text-sm" style={{ color: h.closed ? "#9CA3AF" : "#374151" }}>
+                          {h.closed ? "휴무" : `${h.open} ~ ${h.close}`}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Desktop Settings */}
+          {tab === "settings" && (
+            <div className="flex-1 overflow-y-auto p-6">
+              <div className="max-w-2xl flex flex-col gap-6">
+                <div>
+                  <h3 className="text-xs font-bold text-stone-500 uppercase tracking-widest mb-3">운영 설정</h3>
+                  <div className="bg-white rounded-2xl shadow-sm border border-stone-100 divide-y divide-stone-50">
+                    {[
+                      { label: "주문 접수 시 자동 조리 시작", sub: "접수 버튼 없이 바로 조리 시작됩니다", value: autoConfirm, setter: setAutoConfirm },
+                      { label: "조리 시작 시 자동 주문서 출력", sub: "주방 빌지를 자동으로 출력합니다", value: autoPrint, setter: setAutoPrint },
+                    ].map(item => (
+                      <div key={item.label} className="flex items-center justify-between px-5 py-4">
+                        <div>
+                          <p className="text-sm font-semibold text-stone-800">{item.label}</p>
+                          <p className="text-xs text-stone-400">{item.sub}</p>
+                        </div>
+                        <button onClick={() => item.setter((p: boolean) => !p)}
+                          className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors"
+                          style={{ background: item.value ? "#2C1A0E" : "#D1D5DB" }}>
+                          <span className="inline-block h-4 w-4 rounded-full bg-white shadow transition-transform"
+                            style={{ transform: item.value ? "translateX(24px)" : "translateX(2px)" }} />
+                        </button>
+                      </div>
+                    ))}
+                    <div className="flex items-center justify-between px-5 py-4">
+                      <div>
+                        <p className="text-sm font-semibold text-stone-800">주문 접수 알림음</p>
+                        <p className="text-xs text-stone-400">새 주문이 오면 소리로 알려줍니다</p>
+                      </div>
+                      <select value={soundType} onChange={e => setSoundType(e.target.value as "1"|"2"|"3")}
+                        className="text-sm border border-stone-200 rounded-xl px-3 py-2 bg-white">
+                        <option value="1">알림음 1</option>
+                        <option value="2">알림음 2</option>
+                        <option value="3">알림음 3</option>
+                      </select>
+                    </div>
+                    <div className="flex items-center justify-between px-5 py-4">
+                      <div>
+                        <p className="text-sm font-semibold text-stone-800">알림 권한</p>
+                        <p className="text-xs text-stone-400">브라우저 알림으로 새 주문을 받습니다</p>
+                      </div>
+                      {notifPermission === "granted" ? (
+                        <span className="text-xs font-bold text-green-600 bg-green-50 px-3 py-1.5 rounded-lg">허용됨</span>
+                      ) : (
+                        <button onClick={async () => {
+                          if (!("Notification" in window)) return;
+                          const perm = await Notification.requestPermission();
+                          setNotifPermission(perm);
+                        }} className="text-xs font-bold text-white px-3 py-1.5 rounded-lg" style={{ background: "#C8873A" }}>
+                          알림 허용
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold text-stone-500 uppercase tracking-widest mb-3">영업시간</h3>
+                  <div className="bg-white rounded-2xl shadow-sm border border-stone-100 overflow-hidden">
+                    {(Object.keys(DAY_LABELS) as (keyof StoreOperatingHours)[]).map((day, idx) => {
+                      const h = hours[day];
+                      const isToday = day === todayKey;
+                      return (
+                        <div key={day} className="px-5 py-3 flex items-center gap-3"
+                          style={{ borderTop: idx > 0 ? "1px solid #F3F4F6" : "none", background: isToday ? "#FFFBF7" : "transparent" }}>
+                          <span className="text-sm font-bold w-8 shrink-0"
+                            style={{ color: day === "sun" ? "#EF4444" : day === "sat" ? "#3B82F6" : isToday ? "#C8873A" : "#374151" }}>
+                            {DAY_LABELS[day]}
+                          </span>
+                          {h.closed ? (
+                            <span className="text-sm text-stone-400 flex-1">휴무일</span>
+                          ) : (
+                            <div className="flex items-center gap-2 flex-1">
+                              <input type="time" value={h.open}
+                                onChange={e => setHours(p => ({ ...p, [day]: { ...p[day], open: e.target.value } }))}
+                                className="text-sm border border-stone-200 rounded-lg px-2 py-1 w-28" />
+                              <span className="text-stone-400">~</span>
+                              <input type="time" value={h.close}
+                                onChange={e => setHours(p => ({ ...p, [day]: { ...p[day], close: e.target.value } }))}
+                                className="text-sm border border-stone-200 rounded-lg px-2 py-1 w-28" />
+                            </div>
+                          )}
+                          <button onClick={() => setHours(p => ({ ...p, [day]: { ...p[day], closed: !p[day].closed } }))}
+                            className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors shrink-0"
+                            style={{ background: h.closed ? "#2C1A0E" : "#D1D5DB" }}>
+                            <span className="inline-block h-3 w-3 rounded-full bg-white shadow transition-transform"
+                              style={{ transform: h.closed ? "translateX(18px)" : "translateX(2px)" }} />
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <button onClick={saveHours} disabled={saving}
+                    className="mt-3 px-6 py-3 rounded-xl text-white font-bold text-sm"
+                    style={{ background: saving ? "#9CA3AF" : "#2C1A0E" }}>
+                    {saving ? "저장 중..." : "영업시간 저장"}
+                  </button>
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold text-stone-500 uppercase tracking-widest mb-3">매장 정보</h3>
+                  <div className="bg-white rounded-2xl shadow-sm border border-stone-100 p-5 space-y-3">
+                    <div>
+                      <p className="text-xs text-stone-400">매장 ID</p>
+                      <p className="text-sm font-mono text-stone-600">{store?.id}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-stone-400">매장명</p>
+                      <p className="text-sm font-semibold text-stone-800">{store?.name}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-stone-400">전화번호</p>
+                      <p className="text-sm text-stone-700">{store?.phone ?? "미입력"}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Desktop Menu */}
+          {tab === "menu" && (
+            <div className="flex-1 overflow-hidden flex flex-col">
+              <div className="flex items-center gap-3 px-5 py-3 bg-white border-b border-stone-100">
+                <div className="flex overflow-x-auto gap-2">
+                  {categories.map(cat => (
+                    <button key={cat.id} onClick={() => { setActiveCat(cat.id); setSortMode(false); }}
+                      className="shrink-0 px-4 py-1.5 rounded-full text-sm font-medium"
+                      style={{ background: activeCat === cat.id ? "#2C1A0E" : "#F5F5F4", color: activeCat === cat.id ? "#fff" : "#6B7280" }}>
+                      {cat.name} <span className="opacity-60">({cat.menus.length})</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="flex-1 overflow-y-auto p-5">
+                <div className="grid grid-cols-2 xl:grid-cols-3 gap-3">
+                  {menus.map(menu => {
+                    const sold = soldOuts[menu.id] ?? false;
+                    return (
+                      <div key={menu.id} className="bg-white rounded-xl border border-stone-100 p-3 flex items-center gap-3 shadow-sm"
+                        style={{ opacity: sold ? 0.6 : 1 }}>
+                        <div className="w-14 h-14 rounded-xl flex items-center justify-center shrink-0 overflow-hidden" style={{ background: "#F5F0EB" }}>
+                          {menu.imageUrl ? <img src={menu.imageUrl} alt={menu.name} className="w-full h-full object-cover" /> : <span className="text-2xl">☕</span>}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-sm text-stone-800 truncate">{menu.name}</p>
+                          <p className="text-sm font-bold" style={{ color: "#2C1A0E" }}>{menu.basePrice.toLocaleString()}원</p>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button onClick={() => openEdit(menu)} className="p-2 rounded-lg" style={{ background: "#F5F0EB" }}>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                              <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                            </svg>
+                          </button>
+                          <button onClick={() => toggleSoldOut(menu.id)}
+                            className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors"
+                            style={{ background: sold ? "#EF4444" : "#D1D5DB" }}>
+                            <span className="inline-block h-4 w-4 rounded-full bg-white shadow transition-transform"
+                              style={{ transform: sold ? "translateX(24px)" : "translateX(2px)" }} />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ═══════════════ MOBILE LAYOUT (< lg) ═══════════════════ */}
+      <div className="lg:hidden min-h-screen flex flex-col" style={{ background: "#F9F7F5" }}>
 
       {/* ─── Header ─── */}
       <header style={{ background: "#2C1A0E" }} className="px-5 pt-12 pb-5">
@@ -1127,5 +1493,6 @@ export default function OwnerAppPage() {
         </div>
       )}
     </div>
+    </>
   );
 }
