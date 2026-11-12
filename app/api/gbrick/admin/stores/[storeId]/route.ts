@@ -9,19 +9,10 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ sto
 
     const categoriesPromise = sbMenuRepo.findCategories(storeId);
 
-    // 매장 조회 — 없으면 첫 번째 실제 매장 사용 (URL storeId가 북마크/별칭일 때 대비)
-    let store = await sbStoreRepo.findById(storeId);
+    // 매장 조회 — 없으면 null 반환 (POS가 매장 선택 화면으로 이동)
+    const store = await sbStoreRepo.findById(storeId);
     if (!store) {
-      const all = await sbStoreRepo.findMany();
-      store = all[0] ?? ({
-        id: storeId,
-        name: "지브릭커피",
-        status: "ACTIVE",
-        address: "",
-        phone: "",
-        imageUrl: null,
-        operatingHours: null,
-      } as unknown as Awaited<ReturnType<typeof sbStoreRepo.findById>>);
+      return NextResponse.json({ error: "STORE_NOT_FOUND", storeId }, { status: 404 });
     }
 
     const categories = await categoriesPromise;
