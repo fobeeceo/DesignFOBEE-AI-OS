@@ -94,6 +94,53 @@ const NEXT_STATUS: Record<string, { action: string; next: string }> = {
   READY:     { action: "픽업완료", next: "PICKED_UP" },
 };
 
+// ─── Kitchen Ticket Printer ───────────────────────────────────
+function printKitchenTicket(order: OrderRow, storeName: string) {
+  const time = new Date(order.createdAt).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
+  const shortNum = order.orderNumber.slice(-6).toUpperCase();
+  const rows = (order.items ?? []).map(i =>
+    `<tr>
+      <td class="name">${i.menuName}</td>
+      <td class="qty">×${i.quantity}</td>
+    </tr>`
+  ).join("");
+
+  const html = `<!DOCTYPE html><html lang="ko"><head>
+<meta charset="utf-8">
+<title>주방빌지 ${shortNum}</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Courier New',Courier,monospace;width:72mm;padding:3mm 4mm;font-size:13px;color:#000;}
+  .brand{text-align:center;font-size:17px;font-weight:900;letter-spacing:3px;margin-bottom:2px;}
+  .sub{text-align:center;font-size:11px;color:#444;margin-bottom:6px;}
+  .dash{border-top:2px dashed #000;margin:5px 0;}
+  .num{font-size:30px;font-weight:900;letter-spacing:1px;margin:4px 0 2px;}
+  .pickup{font-size:22px;font-weight:900;margin-bottom:4px;}
+  table{width:100%;border-collapse:collapse;margin:6px 0;}
+  td.name{font-size:17px;font-weight:700;padding:3px 0;}
+  td.qty{font-size:20px;font-weight:900;text-align:right;padding:3px 0;}
+  .note{font-size:14px;font-weight:700;padding:4px 0;background:#f0f0f0;}
+  .total{font-size:14px;font-weight:bold;text-align:right;padding-top:4px;}
+  @media print{body{width:auto;}}
+</style></head><body>
+<div class="brand">GBRICK COFFEE</div>
+<div class="sub">${storeName} · ${time}</div>
+<div class="dash"></div>
+<div class="num">#${shortNum}</div>
+<div class="pickup">👤 ${order.pickupName ?? "손님"}</div>
+<div class="dash"></div>
+<table>${rows}</table>
+<div class="dash"></div>
+${order.note ? `<div class="note">📝 메모: ${order.note}</div><div class="dash"></div>` : ""}
+<div class="total">${order.finalAmount.toLocaleString()}원</div>
+<script>window.onload=function(){window.print();setTimeout(function(){window.close();},800);}</script>
+</body></html>`;
+
+  const win = window.open("", "_blank", "width=380,height=550,left=50,top=50");
+  if (win) { win.document.write(html); win.document.close(); }
+  else { alert("팝업이 차단됐습니다.\n브라우저 주소창 옆 팝업 허용 버튼을 눌러주세요."); }
+}
+
 // ─── Main Page ───────────────────────────────────────────────
 
 export default function OwnerAppPage() {
@@ -127,21 +174,34 @@ export default function OwnerAppPage() {
   const [orders, setOrders] = useState<OrderRow[]>([]);
   const [orderUpdating, setOrderUpdating] = useState<string | null>(null);
   const [orderFilter, setOrderFilter] = useState<"active" | "all">("active");
+  const [autoPrint, setAutoPrint] = useState(false);
   const orderRefreshRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const knownOrderIds = useRef<Set<string>>(new Set());
 
-  const fetchOrders = useCallback(async () => {
+  const fetchOrders = useCallback(async (isFirstLoad = false) => {
     try {
       const status = orderFilter === "active" ? "&status=PENDING,CONFIRMED,PREPARING,READY" : "";
       const res = await fetch(`/api/gbrick/admin/orders?storeId=${storeId}${status}`, { cache: "no-store" });
       const d = await res.json() as { orders: OrderRow[]; _warn?: string };
-      setOrders(d.orders ?? []);
+      const fetched = d.orders ?? [];
+      setOrders(fetched);
+
+      // 새 PENDING 주문 자동 출력 (최초 로드가 아닐 때만)
+      if (!isFirstLoad && autoPrint) {
+        const storeName = store?.name ?? "GBRICK";
+        fetched.filter(o => o.status === "PENDING" && !knownOrderIds.current.has(o.id))
+          .forEach(o => printKitchenTicket(o, storeName));
+      }
+      // 알려진 주문 ID 갱신
+      fetched.forEach(o => knownOrderIds.current.add(o.id));
     } catch { /* 조용히 실패 */ }
-  }, [storeId, orderFilter]);
+  }, [storeId, orderFilter, autoPrint, store?.name]);
 
   useEffect(() => {
     if (tab !== "orders") return;
-    fetchOrders();
-    orderRefreshRef.current = setInterval(fetchOrders, 30_000);
+    knownOrderIds.current = new Set(); // 탭 진입 시 초기화
+    fetchOrders(true);                 // 첫 로드는 자동출력 안 함
+    orderRefreshRef.current = setInterval(() => fetchOrders(false), 30_000);
     return () => { if (orderRefreshRef.current) clearInterval(orderRefreshRef.current); };
   }, [tab, fetchOrders]);
 
@@ -152,7 +212,15 @@ export default function OwnerAppPage() {
         method: "PATCH", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: nextStatus }),
       });
-      if (res.ok) { showToast(`상태 변경: ${ORDER_STATUS_LABEL[nextStatus]?.label ?? nextStatus}`); await fetchOrders(); }
+      if (res.ok) {
+        showToast(`상태 변경: ${ORDER_STATUS_LABEL[nextStatus]?.label ?? nextStatus}`);
+        // 접수(CONFIRMED) 시 주방 빌지 자동 출력
+        if (nextStatus === "CONFIRMED") {
+          const target = orders.find(o => o.id === orderId);
+          if (target) printKitchenTicket(target, store?.name ?? "GBRICK");
+        }
+        await fetchOrders(false);
+      }
       else { const d = await res.json().catch(() => ({})); showToast(`오류: ${(d as { error?: string }).error ?? res.status}`); }
     } catch { showToast("서버 오류"); } finally { setOrderUpdating(null); }
   }
@@ -600,23 +668,38 @@ export default function OwnerAppPage() {
         {/* ════ 주문 탭 ════ */}
         {tab === "orders" && (
           <div className="flex flex-col h-full">
-            {/* 필터 + 새로고침 */}
-            <div className="flex items-center gap-2 px-4 py-3 bg-white border-b border-stone-100">
-              <div className="flex gap-2 flex-1">
-                {(["active", "all"] as const).map(f => (
-                  <button key={f} onClick={() => setOrderFilter(f)}
-                    className="px-4 py-1.5 rounded-full text-sm font-medium transition-colors"
-                    style={{ background: orderFilter === f ? "#2C1A0E" : "#F5F5F4", color: orderFilter === f ? "#fff" : "#6B7280" }}>
-                    {f === "active" ? "진행중" : "전체"}
-                  </button>
-                ))}
+            {/* 필터 + 자동출력 토글 + 새로고침 */}
+            <div className="flex flex-col bg-white border-b border-stone-100">
+              <div className="flex items-center gap-2 px-4 py-3">
+                <div className="flex gap-2 flex-1">
+                  {(["active", "all"] as const).map(f => (
+                    <button key={f} onClick={() => setOrderFilter(f)}
+                      className="px-4 py-1.5 rounded-full text-sm font-medium transition-colors"
+                      style={{ background: orderFilter === f ? "#2C1A0E" : "#F5F5F4", color: orderFilter === f ? "#fff" : "#6B7280" }}>
+                      {f === "active" ? "진행중" : "전체"}
+                    </button>
+                  ))}
+                </div>
+                <button onClick={() => fetchOrders(false)} className="p-2 rounded-lg" style={{ background: "#F5F5F4" }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
+                    <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+                  </svg>
+                </button>
               </div>
-              <button onClick={fetchOrders} className="p-2 rounded-lg" style={{ background: "#F5F5F4" }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
-                  <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
-                </svg>
-              </button>
+              {/* 자동출력 토글 */}
+              <div className="flex items-center justify-between px-4 pb-3">
+                <div>
+                  <span className="text-xs font-bold text-stone-700">🖨️ 주방 빌지 자동 출력</span>
+                  <p className="text-[11px] text-stone-400">새 주문 도착 시 자동으로 출력됩니다</p>
+                </div>
+                <button onClick={() => setAutoPrint(p => !p)}
+                  className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors"
+                  style={{ background: autoPrint ? "#2C1A0E" : "#D1D5DB" }}>
+                  <span className="inline-block h-4 w-4 rounded-full bg-white shadow transition-transform"
+                    style={{ transform: autoPrint ? "translateX(24px)" : "translateX(2px)" }} />
+                </button>
+              </div>
             </div>
 
             {/* 주문 목록 */}
@@ -651,7 +734,15 @@ export default function OwnerAppPage() {
                           <span className="px-2 py-0.5 rounded-full text-[11px] font-bold text-white"
                             style={{ background: st.color }}>{st.label}</span>
                         </div>
-                        <span className="text-xs text-stone-400">{timeAgo}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-stone-400">{timeAgo}</span>
+                          <button onClick={() => printKitchenTicket(order, store?.name ?? "GBRICK")}
+                            title="주방 빌지 출력"
+                            className="w-7 h-7 flex items-center justify-center rounded-lg text-sm border border-stone-200"
+                            style={{ background: "#F5F0EB" }}>
+                            🖨️
+                          </button>
+                        </div>
                       </div>
                       {/* 픽업명 + 금액 */}
                       <div className="px-4 pb-2 flex items-center justify-between">
