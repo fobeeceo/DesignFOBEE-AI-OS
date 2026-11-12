@@ -177,13 +177,12 @@ export default function OwnerAppPage() {
   const [autoPrint, setAutoPrint] = useState(false);
   const orderRefreshRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const knownOrderIds = useRef<Set<string>>(new Set());
-  // 실제 DB store ID (URL storeId가 북마크/별칭이면 store.id로 갱신됨)
-  const realStoreIdRef = useRef<string>(storeId);
-
   const fetchOrders = useCallback(async (isFirstLoad = false) => {
+    // store.id가 있으면 그것을 사용 (URL storeId가 북마크/별칭일 때 대비)
+    const queryStoreId = store?.id ?? storeId;
     try {
       const status = orderFilter === "active" ? "&status=PENDING,CONFIRMED,PREPARING,READY" : "";
-      const res = await fetch(`/api/gbrick/admin/orders?storeId=${realStoreIdRef.current}${status}`, { cache: "no-store" });
+      const res = await fetch(`/api/gbrick/admin/orders?storeId=${queryStoreId}${status}`, { cache: "no-store" });
       const d = await res.json() as { orders: OrderRow[]; _warn?: string };
       const fetched = d.orders ?? [];
       setOrders(fetched);
@@ -197,7 +196,7 @@ export default function OwnerAppPage() {
       // 알려진 주문 ID 갱신
       fetched.forEach(o => knownOrderIds.current.add(o.id));
     } catch { /* 조용히 실패 */ }
-  }, [storeId, orderFilter, autoPrint, store?.name]);
+  }, [storeId, store?.id, orderFilter, autoPrint, store?.name]);
 
   useEffect(() => {
     if (tab !== "orders") return;
@@ -258,7 +257,6 @@ export default function OwnerAppPage() {
         setFetchError(`매장을 찾을 수 없습니다 (storeId: ${storeId})`);
         return;
       }
-      realStoreIdRef.current = d.store.id; // URL storeId와 다를 수 있음 — 실제 DB ID로 갱신
       setStore(d.store);
       const cats = d.categories ?? [];
       setCategories(cats);
