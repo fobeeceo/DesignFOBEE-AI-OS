@@ -173,8 +173,8 @@ export default function CartPage() {
         )}
       </div>
 
-      {/* Order button */}
-      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] px-4 pb-4 pt-2 bg-white border-t border-stone-100">
+      {/* Order button — z-index must exceed the layout nav (50) */}
+      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] px-4 pt-2 bg-white border-t border-stone-100" style={{ zIndex: 100, paddingBottom: "calc(env(safe-area-inset-bottom) + 16px)" }}>
         <button
           onClick={handleOrder}
           disabled={loading}
