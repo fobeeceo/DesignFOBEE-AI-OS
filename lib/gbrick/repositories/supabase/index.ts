@@ -238,6 +238,7 @@ export const sbOrderRepo: IOrderRepository = {
   async create(input) {
     const sb = getAdmin();
     const orderId = nanoid();
+    const now = new Date().toISOString();
     const { data: order, error } = await sb.from("gb_orders").insert({
       id: orderId,
       orderNumber: input.orderNumber,
@@ -253,6 +254,7 @@ export const sbOrderRepo: IOrderRepository = {
       note: input.note ?? null,
       isGuest: input.isGuest ?? false,
       status: "PENDING",
+      updatedAt: now,
     }).select().single();
     if (error) throw error;
 
@@ -289,7 +291,7 @@ export const sbOrderRepo: IOrderRepository = {
   },
   async updateStatus(orderId: string, status: string, changedBy: string, note?: string) {
     const sb = getAdmin();
-    const { data: order, error } = await sb.from("gb_orders").update({ status }).eq("id", orderId).select().single();
+    const { data: order, error } = await sb.from("gb_orders").update({ status, updatedAt: new Date().toISOString() }).eq("id", orderId).select().single();
     if (error) throw error;
     await sb.from("gb_order_status_history").insert({ id: nanoid(), orderId, status, changedBy, note: note ?? null });
     const { data: items } = await sb.from("gb_order_items").select("*, options:gb_order_item_options(*)").eq("orderId", orderId);
