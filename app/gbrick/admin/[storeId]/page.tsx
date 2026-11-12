@@ -247,6 +247,8 @@ export default function OwnerAppPage() {
 
   async function handleOrderStatus(orderId: string, nextStatus: string) {
     setOrderUpdating(orderId);
+    // 옵티미스틱 업데이트 — UI가 즉시 반영돼 중복 클릭 방지
+    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: nextStatus } : o));
     try {
       const res = await fetch(`/api/gbrick/orders/${orderId}/status`, {
         method: "PATCH", headers: { "Content-Type": "application/json" },
@@ -254,27 +256,32 @@ export default function OwnerAppPage() {
       });
       if (res.ok) {
         showToast(`상태 변경: ${ORDER_STATUS_LABEL[nextStatus]?.label ?? nextStatus}`);
-        // 접수(CONFIRMED) 시 주방 빌지 자동 출력
         if (nextStatus === "CONFIRMED") {
           const target = orders.find(o => o.id === orderId);
           if (target) printKitchenTicket(target, store?.name ?? "GBRICK");
         }
         await fetchOrders(false);
+      } else {
+        const d = await res.json().catch(() => ({}));
+        showToast(`오류: ${(d as { error?: string }).error ?? res.status}`);
+        // 실패 시 DB 상태로 복원
+        await fetchOrders(false);
       }
-      else { const d = await res.json().catch(() => ({})); showToast(`오류: ${(d as { error?: string }).error ?? res.status}`); }
-    } catch { showToast("서버 오류"); } finally { setOrderUpdating(null); }
+    } catch { showToast("서버 오류"); await fetchOrders(false); } finally { setOrderUpdating(null); }
   }
 
   async function handleCancelOrder(orderId: string) {
     setOrderUpdating(orderId);
+    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: "CANCELLED" } : o));
     try {
       const res = await fetch(`/api/gbrick/orders/${orderId}/status`, {
         method: "PATCH", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: "CANCELLED", note: "사장님 취소" }),
       });
-      if (res.ok) { showToast("주문 취소됨"); await fetchOrders(); }
+      if (res.ok) { showToast("주문 취소됨"); }
       else { showToast("취소 실패"); }
-    } catch { showToast("서버 오류"); } finally { setOrderUpdating(null); }
+      await fetchOrders(false);
+    } catch { showToast("서버 오류"); await fetchOrders(false); } finally { setOrderUpdating(null); }
   }
 
   const showToast = (msg: string) => {
