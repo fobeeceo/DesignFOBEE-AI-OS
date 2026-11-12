@@ -274,7 +274,7 @@ export const sbOrderRepo: IOrderRepository = {
       (i.options ?? []).map((o) => ({
         id: nanoid(),
         orderItemId: items![idx].id,
-        menuOptionId: o.menuOptionId,
+        menuOptionId: null, // FK 제약 회피 — 옵션명·가격은 텍스트로 보존
         optionName: o.optionName,
         extraPrice: o.extraPrice,
       }))
