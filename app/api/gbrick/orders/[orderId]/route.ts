@@ -1,35 +1,58 @@
 import { NextRequest, NextResponse } from "next/server";
-import { IS_MOCK_MODE, MOCK_RECENT_ORDERS } from "@/lib/gbrick/mockData";
-import { orderRepo } from "@/lib/gbrick/repositories";
+import { sbOrderRepo } from "@/lib/gbrick/repositories/supabase";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(_req: NextRequest, { params }: { params: { orderId: string } }) {
-  try {
-    if (IS_MOCK_MODE) {
-      const mockOrder = MOCK_RECENT_ORDERS.find((o) => o.id === params.orderId);
-      if (!mockOrder) {
-        return NextResponse.json({ error: "주문 없음" }, { status: 404 });
-      }
-      return NextResponse.json({
-        order: {
-          ...mockOrder,
-          orderNumber: mockOrder.orderNumber,
-          pickupName: mockOrder.pickupName,
-          finalAmount: mockOrder.finalAmount,
-          pointsEarned: Math.floor(mockOrder.finalAmount * 0.03),
-          items: mockOrder.items.map((item) => ({ ...item, unitPrice: Math.floor(mockOrder.finalAmount / item.quantity) })),
-        },
-        mock: true,
-      });
-    }
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ orderId: string }> }) {
+  const { orderId } = await params;
 
-    const order = await orderRepo.findById(params.orderId);
-    if (!order) return NextResponse.json({ error: "주문 없음" }, { status: 404 });
+  // mock fallback: POST route returned ord_<timestamp> when Supabase was unavailable
+  if (orderId.startsWith("ord_")) {
+    return NextResponse.json({
+      order: {
+        id: orderId,
+        orderNumber: `GB${orderId.replace("ord_", "")}`,
+        storeId: "",
+        status: "PENDING",
+        pickupName: "손님",
+        finalAmount: 0,
+        pointsEarned: 0,
+        createdAt: new Date().toISOString(),
+        items: [],
+        mock: true,
+      },
+    });
+  }
+
+  try {
+    const raw = await sbOrderRepo.findById(orderId);
+    if (!raw) return NextResponse.json({ error: "주문 없음" }, { status: 404 });
+
+    const r = raw as unknown as Record<string, unknown>;
+    const rawItems = (r.items as Record<string, unknown>[] | undefined) ?? [];
+
+    const order = {
+      id: r.id,
+      orderNumber: r.orderNumber,
+      storeId: r.storeId,
+      status: r.status ?? "PENDING",
+      pickupName: r.pickupName ?? "",
+      finalAmount: r.finalAmount ?? 0,
+      pointsEarned: Math.floor(((r.finalAmount as number) ?? 0) * 0.02),
+      createdAt: r.createdAt,
+      items: rawItems.map((item) => ({
+        menuName: item.menuName,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        optionName: (item.options as { optionName: string }[] | undefined)
+          ?.map((o) => o.optionName)
+          .join(" · ") || undefined,
+      })),
+    };
 
     return NextResponse.json({ order });
   } catch (err) {
-    console.error(`[GET /api/gbrick/orders/${params.orderId}]`, err);
+    console.error(`[GET /api/gbrick/orders/${orderId}]`, err);
     return NextResponse.json({ error: "서버 오류" }, { status: 500 });
   }
 }
