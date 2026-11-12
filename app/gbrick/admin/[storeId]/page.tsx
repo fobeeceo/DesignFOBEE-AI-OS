@@ -3,6 +3,31 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 
+// ─── 대기 화면 (Standby Screen) ──────────────────────────────
+function StandbyScreen({ storeName, onWake }: { storeName: string; onWake: () => void }) {
+  const [time, setTime] = useState(() => new Date());
+  useEffect(() => {
+    const t = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(t);
+  }, []);
+  const hh = time.getHours().toString().padStart(2, "0");
+  const mm = time.getMinutes().toString().padStart(2, "0");
+  const days = ["일", "월", "화", "수", "목", "금", "토"];
+  const dateStr = `${time.getMonth() + 1}월 ${time.getDate()}일 (${days[time.getDay()]})`;
+  return (
+    <div onClick={onWake} className="fixed inset-0 z-50 flex flex-col items-center justify-center cursor-pointer select-none"
+      style={{ background: "#120A04" }}>
+      <p className="text-amber-300 font-black text-2xl tracking-tight mb-2">GBRICK Coffee</p>
+      <p className="text-stone-400 text-sm mb-8">{storeName}</p>
+      <p className="text-white font-black" style={{ fontSize: 80, lineHeight: 1, letterSpacing: "-2px" }}>
+        {hh}<span className="text-amber-400">:</span>{mm}
+      </p>
+      <p className="text-stone-500 text-sm mt-4">{dateStr}</p>
+      <p className="text-stone-600 text-xs mt-16">화면을 클릭하면 POS가 열립니다</p>
+    </div>
+  );
+}
+
 // ─── Types ───────────────────────────────────────────────────
 
 interface MenuOptionRow { id: string; name: string; extraPrice: number; isDefault: boolean; groupName: string; }
@@ -211,6 +236,7 @@ export default function OwnerAppPage() {
   const [notifPermission, setNotifPermission] = useState<NotificationPermission>("default");
   const [soundType, setSoundType] = useState<"1"|"2"|"3">("1");
   const [autoConfirm, setAutoConfirm] = useState(false);
+  const [standby, setStandby] = useState(false);
   const orderRefreshRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const knownOrderIds = useRef<Set<string>>(new Set());
   const fetchOrders = useCallback(async (isFirstLoad = false) => {
@@ -491,6 +517,9 @@ export default function OwnerAppPage() {
 
   return (
     <>
+      {/* ═══ 대기 화면 오버레이 ═══ */}
+      {standby && <StandbyScreen storeName={store?.name ?? "GBRICK Coffee"} onWake={() => setStandby(false)} />}
+
       {/* ═══════════════ DESKTOP KANBAN POS (md+) ═══════════════ */}
       <div className="hidden md:flex h-screen overflow-hidden" style={{ background: "#F0EDE8" }}>
         {/* Left Sidebar */}
@@ -546,10 +575,16 @@ export default function OwnerAppPage() {
                 <span className="text-xs font-black text-white">🔔 새 주문 {pendingCount}건</span>
               </div>
             )}
-            <button onClick={() => fetchOrders(false)} className="p-2 rounded-lg ml-1" style={{ background: "rgba(255,255,255,0.08)" }}>
+            <button onClick={() => fetchOrders(false)} title="새로고침" className="p-2 rounded-lg ml-1" style={{ background: "rgba(255,255,255,0.08)" }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C8873A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
               </svg>
+            </button>
+            {/* 대기화면 버튼 (─) */}
+            <button onClick={() => setStandby(true)} title="대기화면으로 전환"
+              className="flex items-center justify-center w-8 h-8 rounded-lg ml-1 font-bold text-lg leading-none"
+              style={{ background: "rgba(255,255,255,0.08)", color: "#9CA3AF" }}>
+              ─
             </button>
           </header>
 
@@ -876,6 +911,13 @@ export default function OwnerAppPage() {
             <h1 className="text-white font-bold text-xl">{store?.name ?? "지브릭커피"}</h1>
           </div>
           <div className="flex flex-col items-end gap-1.5">
+            {/* 대기화면 버튼 */}
+            <button onClick={() => setStandby(true)}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-full mb-1"
+              style={{ background: "rgba(255,255,255,0.1)" }}>
+              <span className="text-stone-300 text-xs font-bold leading-none">─</span>
+              <span className="text-stone-300 text-[10px] font-semibold">대기</span>
+            </button>
             <div className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full" style={{ background: isOpenToday ? "#22C55E" : "#9CA3AF" }} />
               <span className="text-xs font-semibold" style={{ color: isOpenToday ? "#86EFAC" : "#9CA3AF" }}>
