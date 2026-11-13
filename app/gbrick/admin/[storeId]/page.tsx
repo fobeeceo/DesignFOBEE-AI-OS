@@ -247,6 +247,24 @@ export default function OwnerAppPage() {
   const [soundType, setSoundType] = useState<"1"|"2"|"3">("1");
   const [autoConfirm, setAutoConfirm] = useState(false);
   const [standby, setStandby] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+      setIsFullscreen(true);
+    } else {
+      document.exitFullscreen().catch(() => {});
+      setIsFullscreen(false);
+    }
+  }
+
+  useEffect(() => {
+    function onFsChange() { setIsFullscreen(!!document.fullscreenElement); }
+    document.addEventListener("fullscreenchange", onFsChange);
+    return () => document.removeEventListener("fullscreenchange", onFsChange);
+  }, []);
+
   const orderRefreshRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const knownOrderIds = useRef<Set<string>>(new Set());
   const fetchOrders = useCallback(async (isFirstLoad = false) => {
@@ -589,6 +607,20 @@ export default function OwnerAppPage() {
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C8873A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
               </svg>
+            </button>
+            {/* 전체화면 버튼 */}
+            <button onClick={toggleFullscreen} title={isFullscreen ? "창 모드로 전환" : "전체화면으로 전환"}
+              className="flex items-center justify-center w-8 h-8 rounded-lg ml-1"
+              style={{ background: "rgba(255,255,255,0.08)" }}>
+              {isFullscreen ? (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M8 3v3a2 2 0 01-2 2H3m18 0h-3a2 2 0 01-2-2V3m0 18v-3a2 2 0 012-2h3M3 16h3a2 2 0 012 2v3"/>
+                </svg>
+              ) : (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/>
+                </svg>
+              )}
             </button>
             {/* 대기화면 버튼 (─) */}
             <button onClick={() => setStandby(true)} title="대기화면으로 전환"
