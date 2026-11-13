@@ -6,14 +6,33 @@ import { useParams, useRouter } from "next/navigation";
 // ─── 대기 화면 (Standby Screen) ──────────────────────────────
 function StandbyScreen({ storeName, onWake }: { storeName: string; onWake: () => void }) {
   const [time, setTime] = useState(() => new Date());
+  const [minimized, setMinimized] = useState(false);
+
   useEffect(() => {
     const t = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(t);
   }, []);
+
+  // 대기화면 진입 시 전체화면 자동 해제 → 창 최소화 버튼이 보임
+  useEffect(() => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(() => {});
+    }
+  }, []);
+
+  function handleMinimize(e: React.MouseEvent) {
+    e.stopPropagation();
+    setMinimized(true);
+    // 브라우저 창 포커스 제거 → 사용자가 작업표시줄 클릭해 최소화 가능
+    window.blur();
+    setTimeout(() => setMinimized(false), 3000);
+  }
+
   const hh = time.getHours().toString().padStart(2, "0");
   const mm = time.getMinutes().toString().padStart(2, "0");
   const days = ["일", "월", "화", "수", "목", "금", "토"];
   const dateStr = `${time.getMonth() + 1}월 ${time.getDate()}일 (${days[time.getDay()]})`;
+
   return (
     <div onClick={onWake} className="fixed inset-0 z-50 flex flex-col items-center justify-center cursor-pointer select-none"
       style={{ background: "#120A04" }}>
@@ -24,6 +43,24 @@ function StandbyScreen({ storeName, onWake }: { storeName: string; onWake: () =>
       </p>
       <p className="text-stone-500 text-sm mt-4">{dateStr}</p>
       <p className="text-stone-600 text-xs mt-16">화면을 클릭하면 POS가 열립니다</p>
+
+      {/* 창 최소화 버튼 */}
+      <div className="absolute bottom-8 right-8 flex flex-col items-end gap-2">
+        <button
+          onClick={handleMinimize}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all"
+          style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)" }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2.5" strokeLinecap="round">
+            <line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          <span className="text-stone-400 text-sm font-semibold">창 최소화</span>
+        </button>
+        {minimized && (
+          <p className="text-amber-400 text-xs font-semibold animate-pulse">
+            키보드 Alt + Space → N 을 누르세요
+          </p>
+        )}
+      </div>
     </div>
   );
 }
