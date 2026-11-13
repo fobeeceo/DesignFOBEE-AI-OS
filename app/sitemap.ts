@@ -24,6 +24,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${SITE_URL}/consult`, lastModified, changeFrequency: "monthly", priority: 0.9 },
     { url: `${SITE_URL}/franchise`, lastModified, changeFrequency: "monthly", priority: 0.9 },
     { url: `${SITE_URL}/franchise/diagnosis`, lastModified, changeFrequency: "monthly", priority: 0.8 },
+    // /gbrick/info: 방문객 전용 카페 소개 페이지 (AI 검색 소스, FoodEstablishment + FAQPage JSON-LD)
+    // /gbrick (매장 조회 앱, use client)는 별도로 색인 제외됨
+    { url: `${SITE_URL}/gbrick/info`, lastModified, changeFrequency: "monthly", priority: 0.9 },
     { url: `${SITE_URL}/memoir`, lastModified, changeFrequency: "monthly", priority: 0.8 },
     { url: `${SITE_URL}/memoir/write`, lastModified, changeFrequency: "monthly", priority: 0.6 },
     { url: `${SITE_URL}/privacy`, lastModified, changeFrequency: "yearly", priority: 0.3 },

@@ -11,17 +11,17 @@ describe("calcPointEarn", () => {
   it("0 amount = 0 (below minimum)", () => {
     expect(calcPointEarn(0, 0.03)).toBe(0);
   });
-  it("default rate is 3%", () => {
-    expect(calcPointEarn(10000)).toBe(300);
+  it("default rate is 2%", () => {
+    expect(calcPointEarn(10000)).toBe(200);
   });
 });
 
 describe("calcPointExpiry", () => {
-  it("returns date ~1 year from now", () => {
+  it("returns date ~10 years from now", () => {
     const expiry = calcPointExpiry();
     const diff = expiry.getTime() - Date.now();
-    expect(diff).toBeGreaterThan(364 * 24 * 60 * 60 * 1000);
-    expect(diff).toBeLessThan(366 * 24 * 60 * 60 * 1000);
+    expect(diff).toBeGreaterThan(3649 * 24 * 60 * 60 * 1000);
+    expect(diff).toBeLessThan(3651 * 24 * 60 * 60 * 1000);
   });
 });
 

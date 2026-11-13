@@ -144,7 +144,6 @@ function sendNewOrderNotif(storeName: string, count: number) {
   playOrderBell();
   if (typeof window === "undefined" || !("Notification" in window)) return;
   if (Notification.permission !== "granted") return;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   new (Notification as any)(`🔔 새 주문 ${count}건`, {
     body: `${storeName}에 새 주문이 들어왔습니다`,
     tag: "gbrick-new-order",
