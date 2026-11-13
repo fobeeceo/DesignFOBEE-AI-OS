@@ -209,6 +209,17 @@ export default function OwnerAppPage() {
     ? "gbrick-esp-001"
     : rawStoreId;
 
+  // PIN 인증 체크 — 브라우저가 직접 storeId URL로 열리면 /gbrick/admin(PIN 화면)으로 돌려보냄
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem("gbrick_pos_unlocked") !== "1") {
+        router.replace("/gbrick/admin");
+      }
+    } catch {
+      router.replace("/gbrick/admin");
+    }
+  }, [router]);
+
   const [tab, setTab] = useState<"home" | "orders" | "menu" | "settings">("home");
   const [store, setStore] = useState<Store | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -520,7 +531,7 @@ export default function OwnerAppPage() {
       {standby && <StandbyScreen storeName={store?.name ?? "GBRICK Coffee"} onWake={() => setStandby(false)} />}
 
       {/* ═══════════════ DESKTOP KANBAN POS (md+) ═══════════════ */}
-      <div className="hidden md:flex h-screen overflow-hidden" style={{ background: "#F0EDE8" }}>
+      <div className="hidden sm:flex h-screen overflow-hidden" style={{ background: "#F0EDE8" }}>
         {/* Left Sidebar */}
         <aside style={{ width: 68, background: "#2C1A0E", flexShrink: 0 }} className="flex flex-col items-center pt-4 pb-4 gap-2">
           <div className="mb-3 mt-1">
@@ -889,7 +900,7 @@ export default function OwnerAppPage() {
       </div>
 
       {/* ═══════════════ MOBILE LAYOUT (< md) ═══════════════════ */}
-      <div className="md:hidden min-h-screen flex flex-col" style={{ background: "#F9F7F5" }}>
+      <div className="sm:hidden min-h-screen flex flex-col" style={{ background: "#F9F7F5" }}>
 
       {/* ─── Header ─── */}
       <header style={{ background: "#2C1A0E" }} className="px-5 pt-12 pb-5">
