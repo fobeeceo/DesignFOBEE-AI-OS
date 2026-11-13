@@ -873,22 +873,14 @@ export default function OwnerAppPage() {
                   </p>
                   <div className="flex flex-col gap-3">
                     <div>
-                      <p className="text-xs font-black text-amber-900 mb-1">① EPSON 드라이버 설치 (처음 1회)</p>
-                      <ol className="text-xs text-amber-800 flex flex-col gap-1 list-decimal list-inside ml-1">
-                        <li>구글에서 <b>EPSON TM-T83II 드라이버</b> 검색 → Epson 공식사이트에서 다운로드</li>
-                        <li>설치 후 USB 케이블로 프린터 연결</li>
-                        <li>장치 및 프린터에 <b>EPSON TM-T83II</b>가 나타나면 완료</li>
-                      </ol>
-                    </div>
-                    <div>
-                      <p className="text-xs font-black text-amber-900 mb-1">② 기본 프린터로 설정</p>
+                      <p className="text-xs font-black text-amber-900 mb-1">① 기본 프린터로 설정</p>
                       <ol className="text-xs text-amber-800 flex flex-col gap-1 list-decimal list-inside ml-1">
                         <li>제어판 → 장치 및 프린터</li>
                         <li>EPSON TM-T83II 우클릭 → <b>기본 프린터로 설정</b></li>
                       </ol>
                     </div>
                     <div>
-                      <p className="text-xs font-black text-amber-900 mb-1">③ Chrome 자동출력 설정</p>
+                      <p className="text-xs font-black text-amber-900 mb-1">② Chrome 자동출력 설정</p>
                       <ol className="text-xs text-amber-800 flex flex-col gap-1 list-decimal list-inside ml-1">
                         <li>바탕화면 Chrome 아이콘 우클릭 → <b>속성</b></li>
                         <li>대상(T) 끝에 추가: <code className="bg-amber-100 px-1 rounded">--kiosk-printing</code></li>
