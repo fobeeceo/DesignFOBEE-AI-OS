@@ -204,7 +204,7 @@ function printKitchenTicket(order: OrderRow, storeName: string) {
 <title>주방빌지 ${shortNum}</title>
 <style>
   *{margin:0;padding:0;box-sizing:border-box;}
-  body{font-family:'Courier New',Courier,monospace;width:72mm;padding:3mm 4mm;font-size:13px;color:#000;}
+  body{font-family:'Courier New',Courier,monospace;width:80mm;padding:3mm 4mm;font-size:13px;color:#000;}
   .brand{text-align:center;font-size:17px;font-weight:900;letter-spacing:3px;margin-bottom:2px;}
   .sub{text-align:center;font-size:11px;color:#444;margin-bottom:6px;}
   .dash{border-top:2px dashed #000;margin:5px 0;}
@@ -867,17 +867,36 @@ export default function OwnerAppPage() {
                 </div>
                 {/* 프린터 자동출력 설정 안내 */}
                 <div className="rounded-2xl p-4 border" style={{ background: "#FEF9EF", borderColor: "#F59E0B" }}>
-                  <p className="text-sm font-black text-amber-800 mb-1">🖨️ 프린터 자동출력 (대화창 없애기)</p>
+                  <p className="text-sm font-black text-amber-800 mb-1">🖨️ EPSON TM-T83II 자동출력 설정</p>
                   <p className="text-xs text-amber-700 mb-3">
-                    Chrome에서 프린터 선택창 없이 자동 출력하려면 아래 설정이 필요합니다.
+                    주문 도착 시 대화창 없이 자동 출력하려면 아래 순서대로 설정하세요.
                   </p>
-                  <ol className="text-xs text-amber-800 flex flex-col gap-1.5 list-decimal list-inside">
-                    <li>Windows 설정 → 프린터 → <b>Samsung SL-T1670W</b> 를 기본 프린터로 설정</li>
-                    <li>바탕화면 Chrome 아이콘 우클릭 → <b>속성</b></li>
-                    <li>대상(T) 맨 끝에 추가: <code className="bg-amber-100 px-1 rounded">--kiosk-printing</code></li>
-                    <li>예: <code className="bg-amber-100 px-1 rounded text-[10px]">chrome.exe" --kiosk-printing</code></li>
-                    <li>적용 후 Chrome 재시작 → 이후 자동 출력됨</li>
-                  </ol>
+                  <div className="flex flex-col gap-3">
+                    <div>
+                      <p className="text-xs font-black text-amber-900 mb-1">① EPSON 드라이버 설치 (처음 1회)</p>
+                      <ol className="text-xs text-amber-800 flex flex-col gap-1 list-decimal list-inside ml-1">
+                        <li>구글에서 <b>EPSON TM-T83II 드라이버</b> 검색 → Epson 공식사이트에서 다운로드</li>
+                        <li>설치 후 USB 케이블로 프린터 연결</li>
+                        <li>장치 및 프린터에 <b>EPSON TM-T83II</b>가 나타나면 완료</li>
+                      </ol>
+                    </div>
+                    <div>
+                      <p className="text-xs font-black text-amber-900 mb-1">② 기본 프린터로 설정</p>
+                      <ol className="text-xs text-amber-800 flex flex-col gap-1 list-decimal list-inside ml-1">
+                        <li>제어판 → 장치 및 프린터</li>
+                        <li>EPSON TM-T83II 우클릭 → <b>기본 프린터로 설정</b></li>
+                      </ol>
+                    </div>
+                    <div>
+                      <p className="text-xs font-black text-amber-900 mb-1">③ Chrome 자동출력 설정</p>
+                      <ol className="text-xs text-amber-800 flex flex-col gap-1 list-decimal list-inside ml-1">
+                        <li>바탕화면 Chrome 아이콘 우클릭 → <b>속성</b></li>
+                        <li>대상(T) 끝에 추가: <code className="bg-amber-100 px-1 rounded">--kiosk-printing</code></li>
+                        <li>예: <code className="bg-amber-100 px-1 rounded text-[10px] break-all">"...chrome.exe" --kiosk-printing</code></li>
+                        <li>Chrome 완전히 종료 후 재시작 → 이후 자동 출력됨</li>
+                      </ol>
+                    </div>
+                  </div>
                 </div>
 
                 <div>
