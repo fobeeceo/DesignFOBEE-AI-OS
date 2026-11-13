@@ -279,10 +279,17 @@ export default function OwnerAppPage() {
   const [orders, setOrders] = useState<OrderRow[]>([]);
   const [orderUpdating, setOrderUpdating] = useState<string | null>(null);
   const [orderFilter, setOrderFilter] = useState<"active" | "all">("active");
-  const [autoPrint, setAutoPrint] = useState(false);
+  // localStorage로 설정 유지 (새로고침/재시작 후에도 설정 복원)
+  const [autoPrint, setAutoPrint] = useState(() => {
+    try { return localStorage.getItem("gbrick_autoPrint") !== "0"; } catch { return true; }
+  });
+  const [autoConfirm, setAutoConfirm] = useState(() => {
+    try { return localStorage.getItem("gbrick_autoConfirm") === "1"; } catch { return false; }
+  });
+  const [soundType, setSoundType] = useState<"1"|"2"|"3">(() => {
+    try { return (localStorage.getItem("gbrick_soundType") as "1"|"2"|"3") ?? "1"; } catch { return "1"; }
+  });
   const [notifPermission, setNotifPermission] = useState<NotificationPermission>("default");
-  const [soundType, setSoundType] = useState<"1"|"2"|"3">("1");
-  const [autoConfirm, setAutoConfirm] = useState(false);
   const [standby, setStandby] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
@@ -328,13 +335,13 @@ export default function OwnerAppPage() {
     } catch { /* 조용히 실패 */ }
   }, [storeId, store?.id, orderFilter, autoPrint, store?.name]);
 
+  // 탭과 무관하게 항상 10초마다 주문 감지 (알림음·자동출력)
   useEffect(() => {
-    if (tab !== "orders") return;
-    knownOrderIds.current = new Set(); // 탭 진입 시 초기화
-    fetchOrders(true);                 // 첫 로드는 자동출력 안 함
-    orderRefreshRef.current = setInterval(() => fetchOrders(false), 30_000);
+    knownOrderIds.current = new Set();
+    fetchOrders(true); // 첫 로드는 알림 없이
+    orderRefreshRef.current = setInterval(() => fetchOrders(false), 10_000);
     return () => { if (orderRefreshRef.current) clearInterval(orderRefreshRef.current); };
-  }, [tab, fetchOrders]);
+  }, [fetchOrders]);
 
   async function handleOrderStatus(orderId: string, nextStatus: string) {
     setOrderUpdating(orderId);
@@ -415,6 +422,11 @@ export default function OwnerAppPage() {
   }, [storeId]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  // 설정 변경 시 localStorage 저장
+  useEffect(() => { try { localStorage.setItem("gbrick_autoPrint",  autoPrint  ? "1" : "0"); } catch {} }, [autoPrint]);
+  useEffect(() => { try { localStorage.setItem("gbrick_autoConfirm", autoConfirm ? "1" : "0"); } catch {} }, [autoConfirm]);
+  useEffect(() => { try { localStorage.setItem("gbrick_soundType",  soundType); } catch {} }, [soundType]);
 
   // 브라우저 알림 권한 상태 초기화
   useEffect(() => {
@@ -807,7 +819,7 @@ export default function OwnerAppPage() {
                   <div className="bg-white rounded-2xl shadow-sm border border-stone-100 divide-y divide-stone-50">
                     {[
                       { label: "주문 접수 시 자동 조리 시작", sub: "접수 버튼 없이 바로 조리 시작됩니다", value: autoConfirm, setter: setAutoConfirm },
-                      { label: "조리 시작 시 자동 주문서 출력", sub: "주방 빌지를 자동으로 출력합니다", value: autoPrint, setter: setAutoPrint },
+                      { label: "새 주문 도착 시 자동 주방빌지 출력", sub: "주문이 오면 프린터에 자동 출력됩니다", value: autoPrint, setter: setAutoPrint },
                     ].map(item => (
                       <div key={item.label} className="flex items-center justify-between px-5 py-4">
                         <div>
@@ -853,6 +865,21 @@ export default function OwnerAppPage() {
                     </div>
                   </div>
                 </div>
+                {/* 프린터 자동출력 설정 안내 */}
+                <div className="rounded-2xl p-4 border" style={{ background: "#FEF9EF", borderColor: "#F59E0B" }}>
+                  <p className="text-sm font-black text-amber-800 mb-1">🖨️ 프린터 자동출력 (대화창 없애기)</p>
+                  <p className="text-xs text-amber-700 mb-3">
+                    Chrome에서 프린터 선택창 없이 자동 출력하려면 아래 설정이 필요합니다.
+                  </p>
+                  <ol className="text-xs text-amber-800 flex flex-col gap-1.5 list-decimal list-inside">
+                    <li>Windows 설정 → 프린터 → <b>Samsung SL-T1670W</b> 를 기본 프린터로 설정</li>
+                    <li>바탕화면 Chrome 아이콘 우클릭 → <b>속성</b></li>
+                    <li>대상(T) 맨 끝에 추가: <code className="bg-amber-100 px-1 rounded">--kiosk-printing</code></li>
+                    <li>예: <code className="bg-amber-100 px-1 rounded text-[10px]">chrome.exe" --kiosk-printing</code></li>
+                    <li>적용 후 Chrome 재시작 → 이후 자동 출력됨</li>
+                  </ol>
+                </div>
+
                 <div>
                   <h3 className="text-xs font-bold text-stone-500 uppercase tracking-widest mb-3">영업시간</h3>
                   <div className="bg-white rounded-2xl shadow-sm border border-stone-100 overflow-hidden">
