@@ -2,6 +2,15 @@ export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { sbStoreRepo } from "@/lib/gbrick/repositories/supabase";
 
+// lat/lng 없는 매장 자동 시딩 (백그라운드, 블로킹 없음)
+async function autoSeedCoords(stores: Array<{ id: string; name?: string | null; address?: string | null; lat?: number | null; lng?: number | null }>) {
+  const missing = stores.filter(s => !s.lat || !s.lng);
+  if (missing.length === 0) return;
+  try {
+    await fetch(`${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/api/gbrick/admin/geocode`, { method: "POST" });
+  } catch { /* 조용히 실패 */ }
+}
+
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const status = searchParams.get("status") ?? "ACTIVE";
@@ -14,6 +23,8 @@ export async function GET(req: NextRequest) {
       const mockStores = await mockStoreRepo.findMany(status);
       return NextResponse.json({ stores: mockStores, mock: true, reason: "empty_gb_stores" });
     }
+    // 좌표 없는 매장이 있으면 백그라운드에서 자동 시딩
+    autoSeedCoords(stores).catch(() => {});
     return NextResponse.json({ stores });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);

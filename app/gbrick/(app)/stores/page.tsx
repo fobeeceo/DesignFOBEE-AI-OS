@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { haversineKm, formatDistance } from "@/lib/gbrick/utils/distance";
 
@@ -11,8 +11,8 @@ interface Store {
   address: string;
   phone?: string;
   status: string;
-  lat?: number;
-  lng?: number;
+  lat?: number | null;
+  lng?: number | null;
   operatingHours?: Record<string, { open: string; close: string }>;
 }
 
@@ -22,6 +22,7 @@ export default function StoreListPage() {
   const [stores, setStores] = useState<Store[]>([]);
   const [loading, setLoading] = useState(true);
   const [userPos, setUserPos] = useState<{ lat: number; lng: number } | null>(null);
+  const [gpsState, setGpsState] = useState<"idle" | "requesting" | "granted" | "denied" | "unavailable">("idle");
 
   useEffect(() => {
     fetch("/api/gbrick/stores")
@@ -29,15 +30,29 @@ export default function StoreListPage() {
       .then((d) => setStores(d.stores ?? []))
       .catch(console.error)
       .finally(() => setLoading(false));
-
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => setUserPos({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-        () => {},
-        { timeout: 5000 }
-      );
-    }
   }, []);
+
+  const requestGps = useCallback(() => {
+    if (!navigator.geolocation) {
+      setGpsState("unavailable");
+      return;
+    }
+    setGpsState("requesting");
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setUserPos({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setGpsState("granted");
+      },
+      (err) => {
+        console.warn("GPS 오류:", err.message);
+        setGpsState(err.code === 1 ? "denied" : "unavailable");
+      },
+      { timeout: 8000, maximumAge: 60000, enableHighAccuracy: false }
+    );
+  }, []);
+
+  // 페이지 진입 시 GPS 자동 요청
+  useEffect(() => { requestGps(); }, [requestGps]);
 
   const storesWithDist = stores
     .map((s) => ({
@@ -64,9 +79,9 @@ export default function StoreListPage() {
           </svg>
         </Link>
         <span className="font-bold text-base" style={{ color: "#2C1A0E" }}>매장 선택</span>
-        {userPos && (
-          <span className="ml-auto text-xs text-stone-400 flex items-center gap-1">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        {gpsState === "granted" && userPos && (
+          <span className="ml-auto text-xs text-green-600 flex items-center gap-1">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
             </svg>
             가까운 순
@@ -74,13 +89,57 @@ export default function StoreListPage() {
         )}
       </header>
 
-      {/* GPS notice */}
-      {userPos && (
+      {/* GPS 상태 배너 */}
+      {gpsState === "granted" && userPos && (
         <div className="mx-4 mt-3 px-4 py-2.5 rounded-xl flex items-center gap-2" style={{ background: "#EFF9F0" }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
           </svg>
-          <span className="text-xs font-semibold" style={{ color: "#16a34a" }}>현재 위치 기준으로 가까운 매장부터 보여드려요</span>
+          <span className="text-xs font-semibold" style={{ color: "#16a34a" }}>현재 위치 기준 · 가까운 매장부터 보여드려요</span>
+        </div>
+      )}
+
+      {gpsState === "requesting" && (
+        <div className="mx-4 mt-3 px-4 py-2.5 rounded-xl flex items-center gap-2" style={{ background: "#FEF9EF", border: "1px solid #F59E0B" }}>
+          <div className="w-3 h-3 border-2 border-amber-400 border-t-transparent rounded-full animate-spin shrink-0"/>
+          <span className="text-xs font-semibold text-amber-700">위치 확인 중...</span>
+        </div>
+      )}
+
+      {(gpsState === "denied" || gpsState === "unavailable") && (
+        <div className="mx-4 mt-3 px-4 py-3 rounded-xl" style={{ background: "#FFF7ED", border: "1px solid #FED7AA" }}>
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-xs font-bold text-amber-800">
+                {gpsState === "denied" ? "📍 위치 접근이 거부됐어요" : "📍 위치를 가져올 수 없어요"}
+              </p>
+              <p className="text-xs text-amber-600 mt-0.5">
+                {gpsState === "denied"
+                  ? "설정 → Safari/Chrome → 위치 → 허용으로 바꿔주세요"
+                  : "이름순으로 표시됩니다"}
+              </p>
+            </div>
+            {gpsState === "unavailable" && (
+              <button
+                onClick={requestGps}
+                className="shrink-0 text-xs font-bold px-3 py-1.5 rounded-lg text-white"
+                style={{ background: "#C8873A" }}>
+                다시 시도
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {gpsState === "idle" && (
+        <div className="mx-4 mt-3 px-4 py-2.5 rounded-xl flex items-center justify-between gap-2" style={{ background: "#F5F5F4" }}>
+          <span className="text-xs text-stone-500">위치를 허용하면 가까운 매장이 먼저 보여요</span>
+          <button
+            onClick={requestGps}
+            className="shrink-0 text-xs font-bold px-3 py-1.5 rounded-lg text-white"
+            style={{ background: "#2C1A0E" }}>
+            📍 위치 허용
+          </button>
         </div>
       )}
 
@@ -109,13 +168,21 @@ export default function StoreListPage() {
                   style={{ background: "linear-gradient(135deg, #2C1A0E, #4A2F14)" }}
                 >
                   <span className="text-4xl font-black tracking-widest text-white opacity-20 select-none">G</span>
-                  {store.dist != null && (
+
+                  {/* 거리 뱃지 */}
+                  {store.dist != null ? (
                     <span
                       className="absolute top-2.5 right-3 text-xs font-bold px-2.5 py-1 rounded-full"
                       style={{ background: "#C8873A", color: "#fff" }}
                     >
-                      {formatDistance(store.dist)}
+                      📍 {formatDistance(store.dist)}
                     </span>
+                  ) : (
+                    store.lat && store.lng ? (
+                      <span className="absolute top-2.5 right-3 text-[10px] text-white opacity-50 px-2 py-0.5 rounded-full" style={{ background: "rgba(0,0,0,0.3)" }}>
+                        위치 허용 필요
+                      </span>
+                    ) : null
                   )}
                 </div>
 
@@ -142,7 +209,10 @@ export default function StoreListPage() {
                   <Link
                     href={`/gbrick/stores/${store.id}/menu`}
                     className="flex items-center justify-center w-full mt-3 py-2.5 rounded-xl text-sm font-bold text-white"
-                    style={{ background: isOpen ? "#2C1A0E" : "#9CA3AF", pointerEvents: isOpen ? "auto" : "none" }}
+                    style={{
+                      background: isOpen ? "#2C1A0E" : "#9CA3AF",
+                      pointerEvents: isOpen ? "auto" : "none",
+                    }}
                   >
                     {isOpen ? "테이크 아웃" : "영업 준비중"}
                   </Link>
