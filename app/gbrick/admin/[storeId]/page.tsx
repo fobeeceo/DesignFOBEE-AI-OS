@@ -681,29 +681,28 @@ export default function OwnerAppPage() {
 
           {/* Kanban - Orders */}
           {tab === "orders" && (
-            <div className="flex-1 overflow-hidden p-4 flex gap-3">
+            <div className="flex-1 overflow-hidden p-3 flex gap-2">
               {([
-                { title: "접수 대기", color: "#F59E0B", statuses: ["PENDING"] },
-                { title: "조리중",   color: "#8B5CF6", statuses: ["CONFIRMED", "PREPARING"] },
-                { title: "완료",     color: "#10B981", statuses: ["READY", "PICKED_UP"] },
+                { title: "접수",   color: "#F59E0B", statuses: ["PENDING"] },
+                { title: "조리중", color: "#8B5CF6", statuses: ["CONFIRMED", "PREPARING"] },
+                { title: "완료",   color: "#10B981", statuses: ["READY", "PICKED_UP"] },
               ] as const).map(col => {
                 const colOrders = orders.filter(o => (col.statuses as readonly string[]).includes(o.status));
                 const colCount = colOrders.length;
                 return (
-                  <div key={col.title} className="flex-1 flex flex-col overflow-hidden rounded-2xl" style={{ background: "#fff", border: "1px solid #E7E5E4" }}>
-                    <div className="px-4 py-3 flex items-center gap-2 border-b border-stone-100" style={{ flexShrink: 0 }}>
-                      <span className="w-3 h-3 rounded-full" style={{ background: col.color }} />
-                      <span className="font-bold text-sm text-stone-800">{col.title}</span>
-                      <span className="ml-auto text-xs font-black px-2.5 py-0.5 rounded-full text-white"
-                        style={{ background: colCount > 0 ? col.color : "#D1D5DB" }}>
+                  <div key={col.title} className="flex-1 flex flex-col overflow-hidden rounded-xl" style={{ background: "#fff", border: "1px solid #E7E5E4" }}>
+                    <div className="px-5 py-5 flex items-center gap-3 border-b-2 border-stone-100" style={{ flexShrink: 0, borderBottomColor: col.color }}>
+                      <span className="font-black text-stone-800" style={{ fontSize: 20 }}>{col.title}</span>
+                      <span className="ml-auto text-base font-black px-3 py-1 rounded-full text-white"
+                        style={{ background: colCount > 0 ? col.color : "#D1D5DB", minWidth: 32, textAlign: "center" }}>
                         {colCount}
                       </span>
                     </div>
-                    <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-2">
+                    <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-3">
                       {colOrders.length === 0 ? (
                         <div className="flex-1 flex flex-col items-center justify-center text-stone-300 py-10">
-                          <span className="text-4xl mb-2">📋</span>
-                          <span className="text-xs">없음</span>
+                          <span className="text-5xl mb-3">📋</span>
+                          <span className="text-sm">접수된 주문이 없습니다</span>
                         </div>
                       ) : (
                         colOrders.map(order => {
@@ -719,41 +718,53 @@ export default function OwnerAppPage() {
                           return (
                             <div key={order.id} className="rounded-xl border overflow-hidden"
                               style={{ borderColor: order.status === "PENDING" ? "#F59E0B" : "#E7E5E4", background: order.status === "PENDING" ? "#FFFBF3" : "#fff" }}>
-                              <div className="px-3 pt-2.5 pb-1 flex items-center gap-2">
+                              <div className="px-4 pt-3 pb-2 flex items-center gap-2">
                                 <span className="text-xs font-mono text-stone-400 truncate flex-1">{order.orderNumber}</span>
                                 <span className="text-xs text-stone-400 shrink-0">{timeAgo}</span>
                                 <button onClick={() => printKitchenTicket(order, store?.name ?? "GBRICK")}
-                                  className="w-6 h-6 flex items-center justify-center rounded text-xs border border-stone-200 shrink-0"
+                                  className="w-7 h-7 flex items-center justify-center rounded-lg text-sm border border-stone-200 shrink-0"
                                   style={{ background: "#F5F0EB" }}>🖨️</button>
+                                <button
+                                  title="고객 링크 복사"
+                                  onClick={() => {
+                                    const url = `${window.location.origin}/gbrick/order/${order.id}`;
+                                    navigator.clipboard.writeText(url).then(() => {
+                                      alert("복사됨!");
+                                    }).catch(() => {
+                                      prompt("링크:", url);
+                                    });
+                                  }}
+                                  className="w-6 h-6 flex items-center justify-center rounded text-xs border border-stone-200 shrink-0"
+                                  style={{ background: "#EFF6FF" }}>🔗</button>
                               </div>
-                              <div className="px-3 pb-2">
-                                <div className="font-black text-stone-800" style={{ fontSize: 15 }}>{order.pickupName ?? "손님"}</div>
-                                {order.note && <p className="text-xs text-amber-600 mt-0.5">📝 {order.note}</p>}
+                              <div className="px-4 pb-3">
+                                <div className="font-black text-stone-900" style={{ fontSize: 18 }}>{order.pickupName ?? "손님"}</div>
+                                {order.note && <p className="text-sm text-amber-600 mt-0.5">📝 {order.note}</p>}
                                 {order.items && order.items.length > 0 && (
-                                  <div className="mt-1.5 space-y-0.5">
+                                  <div className="mt-2 space-y-1">
                                     {order.items.map((item, i) => (
-                                      <div key={i} className="flex items-center justify-between text-xs text-stone-600">
-                                        <span className="truncate">{item.menuName} ×{item.quantity}</span>
-                                        <span className="font-semibold ml-2 shrink-0" style={{ color: "#C8873A" }}>{(item.unitPrice * item.quantity).toLocaleString()}원</span>
+                                      <div key={i} className="flex items-center justify-between text-sm text-stone-600">
+                                        <span className="truncate font-medium">{item.menuName} ×{item.quantity}</span>
+                                        <span className="font-bold ml-2 shrink-0" style={{ color: "#C8873A" }}>{(item.unitPrice * item.quantity).toLocaleString()}원</span>
                                       </div>
                                     ))}
                                   </div>
                                 )}
-                                <div className="mt-1.5 text-xs font-black text-right" style={{ color: "#2C1A0E" }}>{order.finalAmount.toLocaleString()}원</div>
+                                <div className="mt-2 text-sm font-black text-right" style={{ color: "#2C1A0E" }}>{order.finalAmount.toLocaleString()}원</div>
                               </div>
                               {(next || canCancel) && (
-                                <div className="px-3 pb-3 flex gap-1.5">
+                                <div className="px-4 pb-4 flex gap-2">
                                   {next && (
                                     <button onClick={() => handleOrderStatus(order.id, next.next)} disabled={isUpdating}
-                                      className="flex-1 py-2 rounded-lg text-white text-xs font-bold"
-                                      style={{ background: isUpdating ? "#9CA3AF" : next.btnColor }}>
+                                      className="flex-1 py-3 rounded-xl text-white font-bold"
+                                      style={{ background: isUpdating ? "#9CA3AF" : next.btnColor, fontSize: 15 }}>
                                       {isUpdating ? "처리 중..." : next.action}
                                     </button>
                                   )}
                                   {canCancel && (
                                     <button onClick={() => handleCancelOrder(order.id)} disabled={isUpdating}
-                                      className="py-2 px-3 rounded-lg text-xs font-semibold border"
-                                      style={{ color: "#EF4444", borderColor: "#FEE2E2", background: "#FFF5F5" }}>
+                                      className="py-3 px-4 rounded-xl font-semibold border"
+                                      style={{ color: "#EF4444", borderColor: "#FEE2E2", background: "#FFF5F5", fontSize: 14 }}>
                                       취소
                                     </button>
                                   )}
@@ -1359,6 +1370,20 @@ export default function OwnerAppPage() {
                             className="w-7 h-7 flex items-center justify-center rounded-lg text-sm border border-stone-200"
                             style={{ background: "#F5F0EB" }}>
                             🖨️
+                          </button>
+                          <button
+                            title="고객 주문현황 링크 복사"
+                            onClick={() => {
+                              const url = `${window.location.origin}/gbrick/order/${order.id}`;
+                              navigator.clipboard.writeText(url).then(() => {
+                                alert("고객 링크 복사됨!\n" + url);
+                              }).catch(() => {
+                                prompt("링크 직접 복사:", url);
+                              });
+                            }}
+                            className="w-7 h-7 flex items-center justify-center rounded-lg text-sm border border-stone-200"
+                            style={{ background: "#EFF6FF" }}>
+                            🔗
                           </button>
                         </div>
                       </div>
