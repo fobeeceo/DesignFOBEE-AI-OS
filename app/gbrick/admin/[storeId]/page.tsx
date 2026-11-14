@@ -13,7 +13,6 @@ function StandbyScreen({ storeName, onWake }: { storeName: string; onWake: () =>
     return () => clearInterval(t);
   }, []);
 
-  // 대기화면 진입 시 전체화면 자동 해제 → 창 최소화 버튼이 보임
   useEffect(() => {
     if (document.fullscreenElement) {
       document.exitFullscreen().catch(() => {});
@@ -23,7 +22,6 @@ function StandbyScreen({ storeName, onWake }: { storeName: string; onWake: () =>
   function handleMinimize(e: React.MouseEvent) {
     e.stopPropagation();
     setMinimized(true);
-    // 브라우저 창 포커스 제거 → 사용자가 작업표시줄 클릭해 최소화 가능
     window.blur();
     setTimeout(() => setMinimized(false), 3000);
   }
@@ -44,7 +42,6 @@ function StandbyScreen({ storeName, onWake }: { storeName: string; onWake: () =>
       <p className="text-stone-500 text-sm mt-4">{dateStr}</p>
       <p className="text-stone-600 text-xs mt-16">화면을 클릭하면 POS가 열립니다</p>
 
-      {/* 창 최소화 버튼 */}
       <div className="absolute bottom-8 right-8 flex flex-col items-end gap-2">
         <button
           onClick={handleMinimize}
@@ -102,14 +99,14 @@ interface Store {
 
 function IconHome({ active }: { active: boolean }) {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill={active ? "#2C1A0E" : "none"} stroke={active ? "#2C1A0E" : "#9CA3AF"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill={active ? "#2C1A0E" : "none"} stroke={active ? "#2C1A0E" : "#9CA3AF"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/>
     </svg>
   );
 }
 function IconMenu({ active }: { active: boolean }) {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? "#2C1A0E" : "#9CA3AF"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={active ? "#2C1A0E" : "#9CA3AF"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
       <circle cx="17.5" cy="17.5" r="3.5" fill={active ? "#C8873A" : "none"} stroke={active ? "#C8873A" : "#9CA3AF"}/>
     </svg>
@@ -117,14 +114,14 @@ function IconMenu({ active }: { active: boolean }) {
 }
 function IconSettings({ active }: { active: boolean }) {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? "#2C1A0E" : "#9CA3AF"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={active ? "#2C1A0E" : "#9CA3AF"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
     </svg>
   );
 }
 function IconOrders({ active }: { active: boolean }) {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? "#2C1A0E" : "#9CA3AF"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={active ? "#2C1A0E" : "#9CA3AF"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
       <rect x="9" y="3" width="6" height="4" rx="2"/>
       <line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/>
@@ -149,7 +146,6 @@ const ORDER_STATUS_LABEL: Record<string, { label: string; color: string }> = {
   CANCELLED: { label: "취소됨",   color: "#EF4444" },
 };
 
-// 배민/쿠팡 방식: 접수 → 조리완료 → 픽업완료 (3단계)
 const NEXT_STATUS: Record<string, { action: string; next: string; btnColor: string }> = {
   PENDING:   { action: "🔔 접수",    next: "CONFIRMED",  btnColor: "#F59E0B" },
   CONFIRMED: { action: "☕ 조리완료", next: "READY",      btnColor: "#8B5CF6" },
@@ -241,12 +237,10 @@ export default function OwnerAppPage() {
   const params = useParams();
   const router = useRouter();
   const rawStoreId = params.storeId as string;
-  // "[storeId]"가 URL에 그대로 들어오면 (북마크/직접접근) 인덱스 페이지로 이동
   const storeId = (rawStoreId === "%5BstoreId%5D" || rawStoreId?.startsWith("["))
     ? "gbrick-esp-001"
     : rawStoreId;
 
-  // PIN 인증 체크 — 브라우저가 직접 storeId URL로 열리면 /gbrick/admin(PIN 화면)으로 돌려보냄
   useEffect(() => {
     try {
       if (sessionStorage.getItem("gbrick_pos_unlocked") !== "1") {
@@ -279,7 +273,6 @@ export default function OwnerAppPage() {
   const [orders, setOrders] = useState<OrderRow[]>([]);
   const [orderUpdating, setOrderUpdating] = useState<string | null>(null);
   const [orderFilter, setOrderFilter] = useState<"active" | "all">("active");
-  // localStorage로 설정 유지 (새로고침/재시작 후에도 설정 복원)
   const [autoPrint, setAutoPrint] = useState(() => {
     try { return localStorage.getItem("gbrick_autoPrint") !== "0"; } catch { return true; }
   });
@@ -312,7 +305,6 @@ export default function OwnerAppPage() {
   const orderRefreshRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const knownOrderIds = useRef<Set<string>>(new Set());
   const fetchOrders = useCallback(async (isFirstLoad = false) => {
-    // store.id가 있으면 그것을 사용 (URL storeId가 북마크/별칭일 때 대비)
     const queryStoreId = store?.id ?? storeId;
     try {
       const status = orderFilter === "active" ? "&status=PENDING,CONFIRMED,PREPARING,READY" : "";
@@ -321,7 +313,6 @@ export default function OwnerAppPage() {
       const fetched = d.orders ?? [];
       setOrders(fetched);
 
-      // 새 PENDING 주문 감지 (최초 로드가 아닐 때만)
       if (!isFirstLoad) {
         const storeName = store?.name ?? "GBRICK";
         const newOrders = fetched.filter(o => o.status === "PENDING" && !knownOrderIds.current.has(o.id));
@@ -330,22 +321,19 @@ export default function OwnerAppPage() {
           if (autoPrint) newOrders.forEach(o => printKitchenTicket(o, storeName));
         }
       }
-      // 알려진 주문 ID 갱신
       fetched.forEach(o => knownOrderIds.current.add(o.id));
     } catch { /* 조용히 실패 */ }
   }, [storeId, store?.id, orderFilter, autoPrint, store?.name]);
 
-  // 탭과 무관하게 항상 10초마다 주문 감지 (알림음·자동출력)
   useEffect(() => {
     knownOrderIds.current = new Set();
-    fetchOrders(true); // 첫 로드는 알림 없이
+    fetchOrders(true);
     orderRefreshRef.current = setInterval(() => fetchOrders(false), 10_000);
     return () => { if (orderRefreshRef.current) clearInterval(orderRefreshRef.current); };
   }, [fetchOrders]);
 
   async function handleOrderStatus(orderId: string, nextStatus: string) {
     setOrderUpdating(orderId);
-    // 옵티미스틱 업데이트 — UI가 즉시 반영돼 중복 클릭 방지
     setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: nextStatus } : o));
     try {
       const res = await fetch(`/api/gbrick/orders/${orderId}/status`, {
@@ -362,7 +350,6 @@ export default function OwnerAppPage() {
       } else {
         const d = await res.json().catch(() => ({}));
         showToast(`오류: ${(d as { error?: string }).error ?? res.status}`);
-        // 실패 시 DB 상태로 복원
         await fetchOrders(false);
       }
     } catch { showToast("서버 오류"); await fetchOrders(false); } finally { setOrderUpdating(null); }
@@ -394,7 +381,6 @@ export default function OwnerAppPage() {
       const res = await fetch(`/api/gbrick/admin/stores/${storeId}`, { cache: "no-store" });
       const d = await res.json() as { store: Store; categories: Category[]; error?: string };
       if (res.status === 404 || d.error === "STORE_NOT_FOUND") {
-        // 잘못된 storeId → 매장 선택 화면으로 이동
         router.replace("/gbrick/admin");
         return;
       }
@@ -423,12 +409,10 @@ export default function OwnerAppPage() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  // 설정 변경 시 localStorage 저장
   useEffect(() => { try { localStorage.setItem("gbrick_autoPrint",  autoPrint  ? "1" : "0"); } catch {} }, [autoPrint]);
   useEffect(() => { try { localStorage.setItem("gbrick_autoConfirm", autoConfirm ? "1" : "0"); } catch {} }, [autoConfirm]);
   useEffect(() => { try { localStorage.setItem("gbrick_soundType",  soundType); } catch {} }, [soundType]);
 
-  // 브라우저 알림 권한 상태 초기화
   useEffect(() => {
     if (typeof window !== "undefined" && "Notification" in window) {
       setNotifPermission(Notification.permission);
@@ -570,7 +554,6 @@ export default function OwnerAppPage() {
     } catch { showToast("저장 실패"); } finally { setSaving(false); }
   }
 
-  // 오늘 영업 여부 (요일 기반)
   const todayKey = ["sun","mon","tue","wed","thu","fri","sat"][new Date().getDay()] as keyof StoreOperatingHours;
   const todayHour = hours[todayKey];
   const isOpenToday = !todayHour.closed;
@@ -599,10 +582,10 @@ export default function OwnerAppPage() {
 
       {/* ═══════════════ DESKTOP KANBAN POS (md+) ═══════════════ */}
       <div className="hidden sm:flex h-screen overflow-hidden" style={{ background: "#F0EDE8" }}>
-        {/* Left Sidebar */}
-        <aside style={{ width: 68, background: "#2C1A0E", flexShrink: 0 }} className="flex flex-col items-center pt-4 pb-4 gap-2">
+        {/* Left Sidebar — 넓게 */}
+        <aside style={{ width: 84, background: "#2C1A0E", flexShrink: 0 }} className="flex flex-col items-center pt-4 pb-4 gap-1">
           <div className="mb-3 mt-1">
-            <span className="text-amber-300 font-black text-xs tracking-tighter">GB</span>
+            <span className="text-amber-300 font-black text-sm tracking-tighter">GB</span>
           </div>
           {([
             { key: "home", label: "홈", Icon: IconHome },
@@ -610,36 +593,36 @@ export default function OwnerAppPage() {
             { key: "menu", label: "메뉴", Icon: IconMenu },
             { key: "settings", label: "설정", Icon: IconSettings },
           ] as const).map(({ key, label, Icon }) => (
-            <button key={key} onClick={() => setTab(key)} className="relative flex flex-col items-center w-full py-3 gap-1 transition-colors"
+            <button key={key} onClick={() => setTab(key)} className="relative flex flex-col items-center w-full py-4 gap-1.5 transition-colors"
               style={{ background: tab === key ? "rgba(200,135,58,0.15)" : "transparent" }}>
               <Icon active={tab === key} />
               {key === "orders" && pendingCount > 0 && (
-                <span className="absolute top-1.5 right-3 w-4 h-4 rounded-full text-[9px] font-black text-white flex items-center justify-center"
+                <span className="absolute top-2 right-3 w-5 h-5 rounded-full text-[10px] font-black text-white flex items-center justify-center"
                   style={{ background: "#EF4444" }}>
                   {pendingCount}
                 </span>
               )}
-              <span className="text-[9px] font-semibold mt-0.5" style={{ color: tab === key ? "#C8873A" : "#6B7280" }}>{label}</span>
+              <span className="text-[11px] font-bold mt-0.5" style={{ color: tab === key ? "#C8873A" : "#6B7280" }}>{label}</span>
             </button>
           ))}
           {/* 매장 변경 */}
           <div className="flex-1" />
           <button onClick={() => router.push("/gbrick/admin")} title="매장 변경"
             className="flex flex-col items-center w-full py-3 gap-1 transition-opacity hover:opacity-70">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/>
             </svg>
-            <span className="text-[8px] font-semibold text-stone-500">매장변경</span>
+            <span className="text-[10px] font-semibold text-stone-500">매장변경</span>
           </button>
         </aside>
 
         {/* Main Content */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Top Bar */}
-          <header style={{ background: "#2C1A0E", height: 52, flexShrink: 0 }} className="flex items-center px-5 gap-3">
-            <span className="text-amber-300 font-black text-sm tracking-tight">GBRICK</span>
+          <header style={{ background: "#2C1A0E", height: 60, flexShrink: 0 }} className="flex items-center px-5 gap-3">
+            <span className="text-amber-300 font-black text-base tracking-tight">GBRICK</span>
             <span className="text-xs text-amber-200 bg-amber-900 px-2 py-0.5 rounded-full font-semibold">사장님 POS</span>
-            <span className="text-white font-bold text-sm">{store?.name ?? "지브릭커피"}</span>
+            <span className="text-white font-bold text-base">{store?.name ?? "지브릭커피"}</span>
             <div className="flex items-center gap-1.5 ml-1">
               <span className="w-2 h-2 rounded-full" style={{ background: isOpenToday ? "#22C55E" : "#9CA3AF" }} />
               <span className="text-xs" style={{ color: isOpenToday ? "#86EFAC" : "#9CA3AF" }}>
@@ -781,21 +764,21 @@ export default function OwnerAppPage() {
             </div>
           )}
 
-          {/* Desktop Home */}
+          {/* Desktop Home — 대형 통계 카드 */}
           {tab === "home" && (
             <div className="flex-1 overflow-y-auto p-6">
-              <div className="max-w-2xl">
-                <h2 className="text-lg font-bold text-stone-800 mb-4">오늘 현황</h2>
-                <div className="grid grid-cols-3 gap-4 mb-6">
+              <div className="max-w-4xl">
+                <h2 className="text-2xl font-black text-stone-800 mb-5">오늘 현황</h2>
+                <div className="grid grid-cols-3 gap-5 mb-6">
                   {[
                     { label: "전체 메뉴", value: totalMenuCount, unit: "개", icon: "🍵" },
                     { label: "품절 처리", value: soldOutCount,   unit: "개", icon: "🚫" },
                     { label: "대기 주문", value: pendingCount,   unit: "건", icon: "🔔" },
                   ].map(stat => (
-                    <div key={stat.label} className="bg-white rounded-2xl p-5 shadow-sm border border-stone-100">
-                      <div className="text-2xl mb-2">{stat.icon}</div>
-                      <div className="text-2xl font-black text-stone-800">{stat.value}<span className="text-sm font-normal text-stone-400 ml-1">{stat.unit}</span></div>
-                      <div className="text-xs text-stone-400 mt-1">{stat.label}</div>
+                    <div key={stat.label} className="bg-white rounded-2xl p-7 shadow-sm border border-stone-100">
+                      <div className="mb-3" style={{ fontSize: 44 }}>{stat.icon}</div>
+                      <div className="font-black text-stone-800" style={{ fontSize: 52 }}>{stat.value}<span className="font-normal text-stone-400 ml-2" style={{ fontSize: 20 }}>{stat.unit}</span></div>
+                      <div className="text-sm font-semibold text-stone-400 mt-2">{stat.label}</div>
                     </div>
                   ))}
                 </div>
@@ -1022,7 +1005,6 @@ export default function OwnerAppPage() {
 
       {/* ─── Header ─── */}
       <header style={{ background: "#2C1A0E" }} className="px-5 pt-12 pb-5">
-        {/* 매장 변경 버튼 */}
         <button onClick={() => router.push("/gbrick/admin")}
           className="flex items-center gap-1.5 mb-3 opacity-70 hover:opacity-100 transition-opacity">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C8873A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -1039,7 +1021,6 @@ export default function OwnerAppPage() {
             <h1 className="text-white font-bold text-xl">{store?.name ?? "지브릭커피"}</h1>
           </div>
           <div className="flex flex-col items-end gap-1.5">
-            {/* 대기화면 버튼 */}
             <button onClick={() => setStandby(true)}
               className="flex items-center gap-1 px-2.5 py-1 rounded-full mb-1"
               style={{ background: "rgba(255,255,255,0.1)" }}>
@@ -1073,7 +1054,6 @@ export default function OwnerAppPage() {
               </div>
             )}
 
-            {/* 오늘 현황 카드 */}
             <div className="rounded-2xl overflow-hidden shadow-sm" style={{ background: "#2C1A0E" }}>
               <div className="px-5 pt-4 pb-3">
                 <p className="text-amber-300 text-xs font-semibold mb-3">📊 오늘 현황</p>
@@ -1090,7 +1070,6 @@ export default function OwnerAppPage() {
               </div>
             </div>
 
-            {/* 빠른 실행 */}
             <div>
               <p className="text-xs font-bold text-stone-500 uppercase tracking-widest mb-2">빠른 실행</p>
               <div className="grid grid-cols-2 gap-2">
@@ -1110,7 +1089,6 @@ export default function OwnerAppPage() {
               </div>
             </div>
 
-            {/* 영업시간 요약 */}
             <div className="bg-white rounded-2xl shadow-sm border border-stone-100 overflow-hidden">
               <div className="px-4 py-3 border-b border-stone-50">
                 <p className="text-xs font-bold text-stone-700">이번 주 영업시간</p>
@@ -1135,7 +1113,6 @@ export default function OwnerAppPage() {
               </div>
             </div>
 
-            {/* 매장 정보 */}
             <div className="bg-white rounded-2xl shadow-sm border border-stone-100 p-4 mb-2">
               <p className="text-xs font-bold text-stone-500 mb-3">매장 정보</p>
               <div className="space-y-2">
@@ -1160,7 +1137,6 @@ export default function OwnerAppPage() {
         {/* ════ 메뉴 탭 ════ */}
         {tab === "menu" && (
           <div className="pb-4">
-            {/* 카테고리 탭 + 순서 편집 토글 */}
             <div className="flex items-center gap-2 px-4 py-3 bg-white border-b border-stone-100">
               <div className="flex overflow-x-auto gap-2 flex-1 min-w-0">
                 {categories.map(cat => (
@@ -1171,7 +1147,6 @@ export default function OwnerAppPage() {
                   </button>
                 ))}
               </div>
-              {/* 순서 편집 토글 */}
               {!sortMode ? (
                 <button onClick={() => setSortMode(true)}
                   className="shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold border"
@@ -1194,7 +1169,6 @@ export default function OwnerAppPage() {
               )}
             </div>
 
-            {/* 메뉴 리스트 */}
             <div className="px-4 pt-4 flex flex-col gap-2">
               {categories.length === 0 && (
                 <div className="text-center py-10 text-sm text-stone-400">
@@ -1214,7 +1188,6 @@ export default function OwnerAppPage() {
                 return (
                   <div key={menu.id} className="bg-white rounded-xl shadow-sm border border-stone-100 p-3 flex items-center gap-3"
                     style={{ opacity: sold && !sortMode ? 0.6 : 1 }}>
-                    {/* 순서 편집 모드: ↑↓ 버튼 */}
                     {sortMode && (
                       <div className="flex flex-col gap-1 shrink-0">
                         <button
@@ -1278,7 +1251,6 @@ export default function OwnerAppPage() {
         {/* ════ 주문 탭 ════ */}
         {tab === "orders" && (
           <div className="flex flex-col h-full">
-            {/* 필터 + 자동출력 토글 + 새로고침 */}
             <div className="flex flex-col bg-white border-b border-stone-100">
               <div className="flex items-center gap-2 px-4 py-3">
                 <div className="flex gap-2 flex-1">
@@ -1297,7 +1269,6 @@ export default function OwnerAppPage() {
                   </svg>
                 </button>
               </div>
-              {/* 알림 허용 배너 */}
               {notifPermission !== "granted" && (
                 <div className="mx-4 mb-2 flex items-center justify-between bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
                   <div>
@@ -1316,7 +1287,6 @@ export default function OwnerAppPage() {
                   </button>
                 </div>
               )}
-              {/* 자동출력 토글 */}
               <div className="flex items-center justify-between px-4 pb-3">
                 <div>
                   <span className="text-xs font-bold text-stone-700">🖨️ 주방 빌지 자동 출력</span>
@@ -1331,7 +1301,6 @@ export default function OwnerAppPage() {
               </div>
             </div>
 
-            {/* 주문 목록 */}
             <div className="px-4 pt-4 flex flex-col gap-3 overflow-y-auto pb-4">
               {orders.length === 0 ? (
                 <div className="text-center py-16">
@@ -1356,7 +1325,6 @@ export default function OwnerAppPage() {
                   return (
                     <div key={order.id} className="bg-white rounded-2xl shadow-sm border overflow-hidden"
                       style={{ borderColor: order.status === "PENDING" ? "#F59E0B" : "#E7E5E4" }}>
-                      {/* 주문 헤더 */}
                       <div className="px-4 pt-3 pb-2 flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <span className="text-xs font-mono text-stone-400">{order.orderNumber}</span>
@@ -1387,7 +1355,6 @@ export default function OwnerAppPage() {
                           </button>
                         </div>
                       </div>
-                      {/* 픽업명 + 금액 */}
                       <div className="px-4 pb-2 flex items-center justify-between">
                         <div>
                           <span className="text-base font-black text-stone-800">{order.pickupName ?? "손님"}</span>
@@ -1397,7 +1364,6 @@ export default function OwnerAppPage() {
                           {order.finalAmount.toLocaleString()}원
                         </span>
                       </div>
-                      {/* 메뉴 목록 */}
                       {order.items && order.items.length > 0 && (
                         <div className="mx-4 mb-3 bg-stone-50 rounded-xl px-3 py-2.5 space-y-1">
                           {order.items.map((item, i) => (
@@ -1413,7 +1379,6 @@ export default function OwnerAppPage() {
                           ))}
                         </div>
                       )}
-                      {/* 액션 버튼 */}
                       {(next || canCancel) && (
                         <div className="px-4 pb-3 flex gap-2">
                           {next && (
@@ -1444,7 +1409,6 @@ export default function OwnerAppPage() {
         {tab === "settings" && (
           <div className="px-4 pt-5 flex flex-col gap-5 pb-4">
 
-            {/* 영업시간 */}
             <div>
               <p className="text-xs font-bold text-stone-500 uppercase tracking-widest mb-2">영업시간</p>
               <div className="bg-white rounded-2xl shadow-sm border border-stone-100 overflow-hidden">
@@ -1489,7 +1453,6 @@ export default function OwnerAppPage() {
               </button>
             </div>
 
-            {/* 매장 정보 */}
             <div>
               <p className="text-xs font-bold text-stone-500 uppercase tracking-widest mb-2">매장 정보</p>
               <div className="bg-white rounded-2xl shadow-sm border border-stone-100 p-4 space-y-3">
@@ -1558,7 +1521,6 @@ export default function OwnerAppPage() {
             <div className="overflow-y-auto px-5" style={{ maxHeight: "calc(90vh - 160px)", paddingBottom: "calc(1.5rem + env(safe-area-inset-bottom))" }}>
               {modalTab === "info" && (
                 <div className="space-y-3">
-                  {/* 메뉴 사진 */}
                   <div>
                     <label className="text-xs font-semibold text-stone-600">메뉴 사진</label>
                     <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
