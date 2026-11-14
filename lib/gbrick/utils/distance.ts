@@ -14,3 +14,8 @@ export function formatDistance(km: number): string {
   if (km < 1) return `${Math.round(km * 1000)}m`;
   return `${km.toFixed(1)}km`;
 }
+
+// 도보 속도 5km/h 기준 분 계산
+export function walkingMinutes(km: number): number {
+  return Math.ceil(km * 60 / 5);
+}

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import { haversineKm, formatDistance } from "@/lib/gbrick/utils/distance";
+import { haversineKm, formatDistance, walkingMinutes } from "@/lib/gbrick/utils/distance";
 
 interface Store {
   id: string;
@@ -40,8 +40,10 @@ export default function StoreListPage() {
     setGpsState("requesting");
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        setUserPos({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        const position = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        setUserPos(position);
         setGpsState("granted");
+        try { sessionStorage.setItem("gbrick_userPos", JSON.stringify(position)); } catch {}
       },
       (err) => {
         console.warn("GPS 오류:", err.message);
@@ -175,7 +177,7 @@ export default function StoreListPage() {
                       className="absolute top-2.5 right-3 text-xs font-bold px-2.5 py-1 rounded-full"
                       style={{ background: "#C8873A", color: "#fff" }}
                     >
-                      📍 {formatDistance(store.dist)}
+                      📍 {formatDistance(store.dist)} · {walkingMinutes(store.dist)}분
                     </span>
                   ) : (
                     store.lat && store.lng ? (
