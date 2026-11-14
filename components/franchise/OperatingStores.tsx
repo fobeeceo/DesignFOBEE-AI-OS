@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { OPERATING_STORE_STORIES } from "@/lib/franchise/content";
 import { yearsSince } from "@/lib/company/profile";
@@ -37,6 +38,16 @@ export function OperatingStores() {
               </p>
             </article>
           ))}
+        </div>
+
+        <div className="mt-10 text-center">
+          <Link
+            href="/gbrick/info"
+            className="inline-flex items-center gap-1.5 rounded-full border border-border px-5 py-2.5 text-[15px] text-muted-foreground transition-colors hover:border-foreground/40 hover:text-foreground"
+          >
+            지브릭커피 은평본점 매장 안내 보기
+            <span aria-hidden="true">→</span>
+          </Link>
         </div>
       </div>
     </section>

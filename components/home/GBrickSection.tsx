@@ -55,6 +55,12 @@ export function GBrickSection() {
                 무료 가맹상담 신청
               </a>
             </div>
+            <p className="text-sm text-muted-foreground">
+              방문 전 확인하세요 —{" "}
+              <a href="/gbrick/info" className="underline underline-offset-4 hover:text-foreground">
+                지브릭커피 은평본점 매장 안내
+              </a>
+            </p>
           </div>
         </div>
       </div>

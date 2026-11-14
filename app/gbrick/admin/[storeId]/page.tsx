@@ -878,7 +878,7 @@ export default function OwnerAppPage() {
                       <ol className="text-xs text-amber-800 flex flex-col gap-1 list-decimal list-inside ml-1">
                         <li>바탕화면 Chrome 아이콘 우클릭 → <b>속성</b></li>
                         <li>대상(T) 끝에 추가: <code className="bg-amber-100 px-1 rounded">--kiosk-printing</code></li>
-                        <li>예: <code className="bg-amber-100 px-1 rounded text-[10px] break-all">"...chrome.exe" --kiosk-printing</code></li>
+                        <li>예: <code className="bg-amber-100 px-1 rounded text-[10px] break-all">&quot;...chrome.exe&quot; --kiosk-printing</code></li>
                         <li>Chrome 완전히 종료 후 재시작 → 이후 자동 출력됨</li>
                       </ol>
                     </div>
