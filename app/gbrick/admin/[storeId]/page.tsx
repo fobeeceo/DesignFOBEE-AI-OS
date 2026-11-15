@@ -581,7 +581,8 @@ export default function OwnerAppPage() {
       {standby && <StandbyScreen storeName={store?.name ?? "GBRICK Coffee"} onWake={() => setStandby(false)} />}
 
       {/* ═══════════════ DESKTOP KANBAN POS (md+) ═══════════════ */}
-      <div className="hidden sm:flex h-screen overflow-hidden" style={{ background: "#F0EDE8" }}>
+      {/* fixed inset-0: 상위 gbrick 레이아웃의 480px 모바일 폭 제한을 벗어나 화면 전체를 쓴다 */}
+      <div className="hidden sm:flex fixed inset-0 overflow-hidden" style={{ background: "#F0EDE8" }}>
         {/* Left Sidebar — 넓게 */}
         <aside style={{ width: 84, background: "#2C1A0E", flexShrink: 0 }} className="flex flex-col items-center pt-4 pb-4 gap-1">
           <div className="mb-3 mt-1">
