@@ -674,10 +674,10 @@ export default function OwnerAppPage() {
                 const colCount = colOrders.length;
                 return (
                   <div key={col.title} className="flex-1 flex flex-col overflow-hidden rounded-xl" style={{ background: "#fff", border: "1px solid #E7E5E4" }}>
-                    <div className="px-5 py-5 flex items-center gap-3 border-b-2 border-stone-100" style={{ flexShrink: 0, borderBottomColor: col.color }}>
-                      <span className="font-black text-stone-800" style={{ fontSize: 20 }}>{col.title}</span>
-                      <span className="ml-auto text-base font-black px-3 py-1 rounded-full text-white"
-                        style={{ background: colCount > 0 ? col.color : "#D1D5DB", minWidth: 32, textAlign: "center" }}>
+                    <div className="px-4 py-3 flex items-center gap-3 border-b-2 border-stone-100" style={{ flexShrink: 0, borderBottomColor: col.color }}>
+                      <span className="font-black text-stone-800 text-sm">{col.title}</span>
+                      <span className="ml-auto text-sm font-black px-2.5 py-0.5 rounded-full text-white"
+                        style={{ background: colCount > 0 ? col.color : "#D1D5DB", minWidth: 28, textAlign: "center" }}>
                         {colCount}
                       </span>
                     </div>
@@ -721,7 +721,7 @@ export default function OwnerAppPage() {
                                   style={{ background: "#EFF6FF" }}>🔗</button>
                               </div>
                               <div className="px-4 pb-3">
-                                <div className="font-black text-stone-900" style={{ fontSize: 18 }}>{order.pickupName ?? "손님"}</div>
+                                <div className="font-black text-stone-900 text-sm">{order.pickupName ?? "손님"}</div>
                                 {order.note && <p className="text-sm text-amber-600 mt-0.5">📝 {order.note}</p>}
                                 {order.items && order.items.length > 0 && (
                                   <div className="mt-2 space-y-1">
@@ -766,19 +766,19 @@ export default function OwnerAppPage() {
 
           {/* Desktop Home — 대형 통계 카드 */}
           {tab === "home" && (
-            <div className="flex-1 overflow-y-auto p-6">
+            <div className="flex-1 overflow-y-auto p-4">
               <div className="max-w-4xl">
-                <h2 className="text-2xl font-black text-stone-800 mb-5">오늘 현황</h2>
-                <div className="grid grid-cols-3 gap-5 mb-6">
+                <h2 className="text-sm font-bold text-stone-500 uppercase tracking-widest mb-3">오늘 현황</h2>
+                <div className="grid grid-cols-3 gap-3 mb-4">
                   {[
                     { label: "전체 메뉴", value: totalMenuCount, unit: "개", icon: "🍵" },
                     { label: "품절 처리", value: soldOutCount,   unit: "개", icon: "🚫" },
                     { label: "대기 주문", value: pendingCount,   unit: "건", icon: "🔔" },
                   ].map(stat => (
-                    <div key={stat.label} className="bg-white rounded-2xl p-7 shadow-sm border border-stone-100">
-                      <div className="mb-3" style={{ fontSize: 44 }}>{stat.icon}</div>
-                      <div className="font-black text-stone-800" style={{ fontSize: 52 }}>{stat.value}<span className="font-normal text-stone-400 ml-2" style={{ fontSize: 20 }}>{stat.unit}</span></div>
-                      <div className="text-sm font-semibold text-stone-400 mt-2">{stat.label}</div>
+                    <div key={stat.label} className="bg-white rounded-xl p-4 shadow-sm border border-stone-100">
+                      <div className="mb-2" style={{ fontSize: 22 }}>{stat.icon}</div>
+                      <div className="font-black text-stone-800" style={{ fontSize: 28 }}>{stat.value}<span className="font-normal text-stone-400 ml-1" style={{ fontSize: 13 }}>{stat.unit}</span></div>
+                      <div className="text-xs font-semibold text-stone-400 mt-1">{stat.label}</div>
                     </div>
                   ))}
                 </div>
