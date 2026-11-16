@@ -204,7 +204,7 @@ function printKitchenTicket(order: OrderRow, storeName: string) {
     `<tr>
       <td class="name">${i.menuName}</td>
       <td class="qty">×${i.quantity}</td>
-    </tr>`
+    </tr>` + (i.options ?? []).map(o => `<tr><td class="opt" colspan="2">- ${o.optionName}</td></tr>`).join("")
   ).join("");
 
   const html = `<!DOCTYPE html><html lang="ko"><head>
@@ -221,6 +221,7 @@ function printKitchenTicket(order: OrderRow, storeName: string) {
   table{width:100%;border-collapse:collapse;margin:6px 0;}
   td.name{font-size:17px;font-weight:700;padding:3px 0;}
   td.qty{font-size:20px;font-weight:900;text-align:right;padding:3px 0;}
+  td.opt{font-size:14px;padding:0 0 2px 10px;}
   .note{font-size:14px;font-weight:700;padding:4px 0;background:#f0f0f0;}
   .total{font-size:14px;font-weight:bold;text-align:right;padding-top:4px;}
   @media print{body{width:auto;}}
@@ -229,7 +230,7 @@ function printKitchenTicket(order: OrderRow, storeName: string) {
 <div class="sub">${storeName} · ${time}</div>
 <div class="dash"></div>
 <div class="num">#${shortNum}</div>
-<div class="pickup">👤 ${order.pickupName ?? "손님"}</div>
+<div class="pickup">👤 ${order.pickupName || "손님"}</div>
 <div class="dash"></div>
 <table>${rows}</table>
 <div class="dash"></div>
@@ -782,14 +783,19 @@ export default function OwnerAppPage() {
                                   style={{ background: "#EFF6FF" }}>🔗</button>
                               </div>
                               <div className="px-4 pb-3">
-                                <div className="font-black text-stone-900 text-sm">{order.pickupName ?? "손님"}</div>
+                                <div className="font-black text-stone-900 text-sm">{order.pickupName || "손님"}</div>
                                 {order.note && <p className="text-sm text-amber-600 mt-0.5">📝 {order.note}</p>}
                                 {order.items && order.items.length > 0 && (
                                   <div className="mt-2 space-y-1">
                                     {order.items.map((item, i) => (
-                                      <div key={i} className="flex items-center justify-between text-sm text-stone-600">
-                                        <span className="truncate font-medium">{item.menuName} ×{item.quantity}</span>
-                                        <span className="font-bold ml-2 shrink-0" style={{ color: "#C8873A" }}>{(item.unitPrice * item.quantity).toLocaleString()}원</span>
+                                      <div key={i}>
+                                        <div className="flex items-center justify-between text-sm text-stone-600">
+                                          <span className="truncate font-medium">{item.menuName} ×{item.quantity}</span>
+                                          <span className="font-bold ml-2 shrink-0" style={{ color: "#C8873A" }}>{(item.unitPrice * item.quantity).toLocaleString()}원</span>
+                                        </div>
+                                        {item.options && item.options.length > 0 && (
+                                          <p className="text-xs text-stone-500 pl-2">{item.options.map(o => o.optionName).join(" · ")}</p>
+                                        )}
                                       </div>
                                     ))}
                                   </div>
@@ -1428,7 +1434,7 @@ export default function OwnerAppPage() {
                       </div>
                       <div className="px-4 pb-2 flex items-center justify-between">
                         <div>
-                          <span className="text-base font-black text-stone-800">{order.pickupName ?? "손님"}</span>
+                          <span className="text-base font-black text-stone-800">{order.pickupName || "손님"}</span>
                           {order.note && <p className="text-xs text-amber-600 mt-0.5">📝 {order.note}</p>}
                         </div>
                         <span className="text-sm font-bold" style={{ color: "#2C1A0E" }}>
@@ -1438,14 +1444,19 @@ export default function OwnerAppPage() {
                       {order.items && order.items.length > 0 && (
                         <div className="mx-4 mb-3 bg-stone-50 rounded-xl px-3 py-2.5 space-y-1">
                           {order.items.map((item, i) => (
-                            <div key={i} className="flex items-center justify-between text-sm">
-                              <span className="text-stone-700">{item.menuName}</span>
-                              <div className="flex items-center gap-2">
-                                <span className="text-xs text-stone-400">×{item.quantity}</span>
-                                <span className="text-xs font-semibold" style={{ color: "#C8873A" }}>
-                                  {(item.unitPrice * item.quantity).toLocaleString()}원
-                                </span>
+                            <div key={i}>
+                              <div className="flex items-center justify-between text-sm">
+                                <span className="text-stone-700">{item.menuName}</span>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs text-stone-400">×{item.quantity}</span>
+                                  <span className="text-xs font-semibold" style={{ color: "#C8873A" }}>
+                                    {(item.unitPrice * item.quantity).toLocaleString()}원
+                                  </span>
+                                </div>
                               </div>
+                              {item.options && item.options.length > 0 && (
+                                <p className="text-xs text-stone-500 pl-2">{item.options.map(o => o.optionName).join(" · ")}</p>
+                              )}
                             </div>
                           ))}
                         </div>

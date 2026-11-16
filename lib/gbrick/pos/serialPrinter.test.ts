@@ -1,4 +1,7 @@
 import { describe, it, expect } from "vitest";
+
+// 주문서 시각은 매장 PC의 현지 시각으로 찍힌다 — 시험은 한국 시각으로 고정
+process.env.TZ = "Asia/Seoul";
 import { buildKitchenTicket, buildTestTicket } from "./serialPrinter";
 
 const decode = (bytes: Uint8Array) => new TextDecoder("euc-kr").decode(bytes);
@@ -24,7 +27,7 @@ describe("buildKitchenTicket", () => {
   });
 
   it("encodes Korean as KS X 1001 so the printer can read it", () => {
-    for (const expected of ["#ABC123", "이대성", "지브릭 라떼 x2", "  - 아이스", "  - 바닐라시럽", "말차 x1", "메모: 얼음 적게", "8,900원", "은평뉴타운 본점"]) {
+    for (const expected of ["#ABC123", "이대성", "지브릭 라떼 x2", "  - 아이스", "  - 바닐라시럽", "말차 x1", "메모: 얼음 적게", "수량 3개", "합계 8,900원", "은평뉴타운 본점"]) {
       expect(text).toContain(expected);
     }
   });
@@ -34,8 +37,15 @@ describe("buildKitchenTicket", () => {
     expect(out).toContain("??");
   });
 
-  it("falls back to 손님 when no pickup name is given", () => {
-    expect(decode(buildKitchenTicket({ ...order, pickupName: null }, "매장"))).toContain("손님");
+  it("prints the order time in the shop's local time, with the date", () => {
+    // 00:34 UTC = 09:34 KST
+    expect(text).toContain("주문 11/16 오전 09:34");
+  });
+
+  it("leaves no blank line when the customer gave no pickup name", () => {
+    const out = decode(buildKitchenTicket({ ...order, pickupName: "" }, "매장"));
+    expect(out).not.toContain("손님");
+    expect(out).toMatch(/#ABC123\n[^\n]*주문 11\/16/);
   });
 });
 

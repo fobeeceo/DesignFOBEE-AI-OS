@@ -6,7 +6,7 @@ import { sendOrderStatusPush } from "@/lib/gbrick/push";
 
 const VALID_TRANSITIONS: Record<string, string[]> = {
   PENDING:   ["CONFIRMED", "CANCELLED"],
-  CONFIRMED: ["PREPARING", "CANCELLED"],
+  CONFIRMED: ["PREPARING", "READY", "CANCELLED"], // POS는 접수 다음에 바로 "조리완료"를 누른다
   PREPARING: ["READY", "CANCELLED"],
   READY:     ["PICKED_UP"],
   PICKED_UP: [],

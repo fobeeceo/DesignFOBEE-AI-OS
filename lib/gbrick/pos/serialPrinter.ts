@@ -109,18 +109,24 @@ class Ticket {
 }
 
 export function buildKitchenTicket(order: TicketOrder, storeName: string): Uint8Array {
-  const time = new Date(order.createdAt).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
+  const ordered = new Date(order.createdAt);
+  const when = `${ordered.getMonth() + 1}/${ordered.getDate()} `
+    + ordered.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
+  const items = order.items ?? [];
+  const totalQty = items.reduce((sum, item) => sum + item.quantity, 0);
+
   const t = new Ticket();
-  t.align(1).bold(true).line("GBRICK COFFEE").bold(false).line(`${storeName} ${time}`).line(RULE);
+  t.align(1).bold(true).line("GBRICK COFFEE").bold(false).line(storeName).line(RULE);
   t.align(0).bold(true).size(SIZE_BIG).line(`#${order.orderNumber.slice(-6).toUpperCase()}`);
-  t.line(order.pickupName ?? "손님").size(SIZE_NORMAL).bold(false).line(RULE);
-  for (const item of order.items ?? []) {
+  if (order.pickupName) t.line(order.pickupName);
+  t.size(SIZE_NORMAL).bold(false).line(`주문 ${when}`).line(RULE);
+  for (const item of items) {
     t.bold(true).size(SIZE_TALL).line(`${item.menuName} x${item.quantity}`).size(SIZE_NORMAL).bold(false);
     for (const opt of item.options ?? []) t.line(`  - ${opt.optionName}`);
   }
   t.line(RULE);
   if (order.note) t.bold(true).line(`메모: ${order.note}`).bold(false).line(RULE);
-  t.align(2).line(`${order.finalAmount.toLocaleString("ko-KR")}원`);
+  t.line(`수량 ${totalQty}개`).align(2).line(`합계 ${order.finalAmount.toLocaleString("ko-KR")}원`);
   return t.cut();
 }
 

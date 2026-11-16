@@ -59,7 +59,6 @@ export async function POST(req: NextRequest) {
     // 테이블 미생성 / 키 미설정 / RLS 차단 / FK 오류 → mock 주문 반환 (흐름 테스트 가능)
     const useMock =
       message.includes("does not exist") ||
-      message.includes("relation") ||
       message.includes("GBRICK Supabase") ||
       message.includes("security policy") ||
       message.includes("DB 오류");

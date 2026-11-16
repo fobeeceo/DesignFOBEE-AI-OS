@@ -198,20 +198,31 @@ export const sbMenuRepo: IMenuRepository = {
 
 // ─── Order Repository ─────────────────────────────────────────
 
+// gb_orders 의 시각 컬럼은 시간대 없는 TIMESTAMP 에 UTC 값으로 저장된다.
+// "Z" 없이 내려가면 브라우저가 현지 시각으로 읽어 9시간 어긋나므로 UTC 임을 표기해 준다.
+function utcTimes<T>(row: T): T {
+  const r = row as Record<string, unknown>;
+  for (const key of ["createdAt", "updatedAt"]) {
+    const v = r[key];
+    if (typeof v === "string" && !/(Z|[+-]\d\d:?\d\d)$/i.test(v)) r[key] = `${v}Z`;
+  }
+  return row;
+}
+
 export const sbOrderRepo: IOrderRepository = {
   async findById(id: string) {
     const sb = getAdmin();
     const { data: order, error } = await sb.from("gb_orders").select("*, store:gb_stores(name)").eq("id", id).single();
     if (error) return null;
     const { data: items } = await sb.from("gb_order_items").select("*, options:gb_order_item_options(*)").eq("orderId", id);
-    return { ...order, items: items ?? [] } as unknown as OrderDto;
+    return utcTimes({ ...order, items: items ?? [] }) as unknown as OrderDto;
   },
   async findByOrderNumber(orderNumber: string) {
     const sb = getAdmin();
     const { data: order, error } = await sb.from("gb_orders").select("*, store:gb_stores(name)").eq("orderNumber", orderNumber).single();
     if (error) return null;
     const { data: items } = await sb.from("gb_order_items").select("*, options:gb_order_item_options(*)").eq("orderId", order.id);
-    return { ...order, items: items ?? [] } as unknown as OrderDto;
+    return utcTimes({ ...order, items: items ?? [] }) as unknown as OrderDto;
   },
   async findByCustomer(customerId: string, limit = 20) {
     const sb = getAdmin();
@@ -226,7 +237,7 @@ export const sbOrderRepo: IOrderRepository = {
     const ids = orders.map((o: { id: string }) => o.id);
     const { data: items } = await sb.from("gb_order_items").select("*, options:gb_order_item_options(*)").in("orderId", ids);
     const itemsByOrder = groupBy(items ?? [], "orderId");
-    return orders.map((o: Record<string, unknown> & { id: string }) => ({ ...o, items: itemsByOrder[o.id] ?? [] })) as unknown as OrderDto[];
+    return orders.map((o: Record<string, unknown> & { id: string }) => utcTimes({ ...o, items: itemsByOrder[o.id] ?? [] })) as unknown as OrderDto[];
   },
   async findByStore(storeId: string, status?: string, since?: string) {
     const sb = getAdmin();
@@ -239,7 +250,7 @@ export const sbOrderRepo: IOrderRepository = {
     if (since) q = q.gte("createdAt", since);
     const { data, error } = await q;
     if (error) throw error;
-    return (data ?? []) as unknown as OrderDto[];
+    return (data ?? []).map(utcTimes) as unknown as OrderDto[];
   },
   async create(input) {
     const sb = getAdmin();
@@ -287,13 +298,25 @@ export const sbOrderRepo: IOrderRepository = {
     );
     if (optionInserts.length > 0) {
       const { error: optErr } = await sb.from("gb_order_item_options").insert(optionInserts);
-      if (optErr) throw optErr;
+      if (optErr) {
+        // 옵션 표에 저장하지 못해도 주문 자체는 이미 들어갔다. 주방이 옵션을 놓치지 않도록 메모에 남긴다.
+        console.error("[orders.create] option insert failed — options kept in note:", optErr.message);
+        const summary = input.items
+          .filter(i => (i.options ?? []).length > 0)
+          .map(i => `${i.menuName}: ${i.options!.map(o => o.optionName).join(", ")}`)
+          .join(" / ");
+        // 영수증 프린터가 찍을 수 있는 글자만 쓴다 (긴 줄표 등은 ? 로 나온다)
+        const note = [input.note, `[옵션] ${summary}`].filter(Boolean).join(" | ");
+        const { error: noteErr } = await sb.from("gb_orders").update({ note }).eq("id", orderId);
+        if (noteErr) throw noteErr;
+        order.note = note;
+      }
     }
 
     await sb.from("gb_order_status_history").insert({ id: nanoid(), orderId, status: "PENDING", changedBy: input.customerId ?? "guest" });
 
     const { data: storeRow } = await sb.from("gb_stores").select("name").eq("id", input.storeId).single();
-    return { ...order, items: items ?? [], store: storeRow } as unknown as OrderDto;
+    return utcTimes({ ...order, items: items ?? [], store: storeRow }) as unknown as OrderDto;
   },
   async updateStatus(orderId: string, status: string, changedBy: string, note?: string) {
     const sb = getAdmin();
@@ -301,7 +324,7 @@ export const sbOrderRepo: IOrderRepository = {
     if (error) throw error;
     await sb.from("gb_order_status_history").insert({ id: nanoid(), orderId, status, changedBy, note: note ?? null });
     const { data: items } = await sb.from("gb_order_items").select("*, options:gb_order_item_options(*)").eq("orderId", orderId);
-    return { ...order, items: items ?? [] } as unknown as OrderDto;
+    return utcTimes({ ...order, items: items ?? [] }) as unknown as OrderDto;
   },
 };
 
