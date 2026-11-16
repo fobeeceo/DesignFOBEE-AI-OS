@@ -2,6 +2,10 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
+import {
+  isSerialSupported, hasPrinter, loadSavedPrinter, connectPrinter,
+  printBytes, buildKitchenTicket, buildTestTicket,
+} from "@/lib/gbrick/pos/serialPrinter";
 
 // ─── 대기 화면 (Standby Screen) ──────────────────────────────
 function StandbyScreen({ storeName, onWake }: { storeName: string; onWake: () => void }) {
@@ -130,7 +134,7 @@ function IconOrders({ active }: { active: boolean }) {
 }
 
 // ─── Order Types ─────────────────────────────────────────────
-interface OrderItem { menuName: string; quantity: number; unitPrice: number; }
+interface OrderItem { menuName: string; quantity: number; unitPrice: number; options?: { optionName: string }[]; }
 interface OrderRow {
   id: string; orderNumber: string; status: string;
   finalAmount: number; pickupName?: string | null; note?: string | null;
@@ -185,7 +189,15 @@ function sendNewOrderNotif(storeName: string, count: number) {
 }
 
 // ─── Kitchen Ticket Printer ───────────────────────────────────
+const PRINT_ERROR_EVENT = "gbrick-print-error";
+
 function printKitchenTicket(order: OrderRow, storeName: string) {
+  // 영수증 프린터가 직접 연결돼 있으면 대화창 없이 바로 찍는다
+  if (hasPrinter()) {
+    printBytes(buildKitchenTicket(order, storeName))
+      .catch(() => window.dispatchEvent(new Event(PRINT_ERROR_EVENT)));
+    return;
+  }
   const time = new Date(order.createdAt).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
   const shortNum = order.orderNumber.slice(-6).toUpperCase();
   const rows = (order.items ?? []).map(i =>
@@ -311,6 +323,35 @@ export default function OwnerAppPage() {
     mq.addEventListener("change", update);
     return () => mq.removeEventListener("change", update);
   }, []);
+
+  // 영수증 프린터 직접 연결 상태
+  const [serialSupported, setSerialSupported] = useState(false);
+  const [printerReady, setPrinterReady] = useState(false);
+  useEffect(() => {
+    setSerialSupported(isSerialSupported());
+    loadSavedPrinter().then(setPrinterReady).catch(() => {});
+    const onPrintError = () => {
+      setToast("출력 실패 — 프린터 전원과 다른 프로그램의 출력 여부를 확인하세요");
+      setTimeout(() => setToast(""), 5000);
+    };
+    window.addEventListener(PRINT_ERROR_EVENT, onPrintError);
+    return () => window.removeEventListener(PRINT_ERROR_EVENT, onPrintError);
+  }, []);
+
+  async function handleConnectPrinter() {
+    try {
+      if (await connectPrinter()) {
+        setPrinterReady(true);
+        showToast("프린터 연결됨 — 테스트 출력으로 확인하세요");
+      }
+    } catch { /* 포트 선택 창을 그냥 닫은 경우 */ }
+  }
+
+  function handleTestPrint() {
+    printBytes(buildTestTicket(store?.name ?? "GBRICK"))
+      .then(() => showToast("테스트 출력을 보냈습니다"))
+      .catch(() => window.dispatchEvent(new Event(PRINT_ERROR_EVENT)));
+  }
 
   // 웹 페이지는 창을 직접 최소화할 수 없다 — 전체화면만 풀어 윈도우의 ─ 버튼을 드러낸다
   function showWindowControls() {
@@ -879,30 +920,40 @@ export default function OwnerAppPage() {
                     </div>
                   </div>
                 </div>
-                {/* 프린터 자동출력 설정 안내 */}
+                {/* 영수증 프린터 직접 연결 */}
                 <div className="rounded-2xl p-4 border" style={{ background: "#FEF9EF", borderColor: "#F59E0B" }}>
-                  <p className="text-sm font-black text-amber-800 mb-1">🖨️ EPSON TM-T83II 자동출력 설정</p>
-                  <p className="text-xs text-amber-700 mb-3">
-                    주문 도착 시 대화창 없이 자동 출력하려면 아래 순서대로 설정하세요.
-                  </p>
-                  <div className="flex flex-col gap-3">
-                    <div>
-                      <p className="text-xs font-black text-amber-900 mb-1">① 기본 프린터로 설정</p>
-                      <ol className="text-xs text-amber-800 flex flex-col gap-1 list-decimal list-inside ml-1">
-                        <li>제어판 → 장치 및 프린터</li>
-                        <li>EPSON TM-T83II 우클릭 → <b>기본 프린터로 설정</b></li>
-                      </ol>
-                    </div>
-                    <div>
-                      <p className="text-xs font-black text-amber-900 mb-1">② Chrome 자동출력 설정</p>
-                      <ol className="text-xs text-amber-800 flex flex-col gap-1 list-decimal list-inside ml-1">
-                        <li>바탕화면 Chrome 아이콘 우클릭 → <b>속성</b></li>
-                        <li>대상(T) 끝에 추가: <code className="bg-amber-100 px-1 rounded">--kiosk-printing</code></li>
-                        <li>예: <code className="bg-amber-100 px-1 rounded text-[10px] break-all">&quot;...chrome.exe&quot; --kiosk-printing</code></li>
-                        <li>Chrome 완전히 종료 후 재시작 → 이후 자동 출력됨</li>
-                      </ol>
-                    </div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <p className="text-sm font-black text-amber-800">🖨️ 영수증 프린터 연결</p>
+                    <span className="text-xs font-bold px-2 py-0.5 rounded-full"
+                      style={printerReady ? { background: "#DCFCE7", color: "#15803D" } : { background: "#F5F5F4", color: "#78716C" }}>
+                      {printerReady ? "연결됨" : "연결 안 됨"}
+                    </span>
                   </div>
+                  {serialSupported ? (
+                    <>
+                      <p className="text-xs text-amber-700 mb-3">
+                        프린터 연결을 누르고, 네이버 주문 프린터 설정과 같은 포트(예: COM1)를 선택하세요.
+                        연결하면 주문서가 대화창 없이 바로 출력됩니다.
+                      </p>
+                      <div className="flex gap-2">
+                        <button onClick={handleConnectPrinter}
+                          className="px-4 py-2.5 rounded-xl text-white font-bold text-sm" style={{ background: "#C8873A" }}>
+                          {printerReady ? "프린터 다시 선택" : "프린터 연결"}
+                        </button>
+                        {printerReady && (
+                          <button onClick={handleTestPrint}
+                            className="px-4 py-2.5 rounded-xl font-bold text-sm border bg-white"
+                            style={{ borderColor: "#C8873A", color: "#C8873A" }}>
+                            테스트 출력
+                          </button>
+                        )}
+                      </div>
+                    </>
+                  ) : (
+                    <p className="text-xs text-amber-700">
+                      이 브라우저에서는 프린터 직접 연결을 쓸 수 없습니다. 매장 PC의 크롬 또는 엣지에서 열어주세요.
+                    </p>
+                  )}
                 </div>
 
                 <div>
