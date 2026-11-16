@@ -2,19 +2,20 @@
 docId: gbrick-google-menu-copy-v2
 version: 2.0
 createdAt: 2026-11-04
-updatedAt: 2026-11-04
+updatedAt: 2026-11-16
 updatedBy: AI CTO
 purpose: Google Business Profile 메뉴 등록용 최종 문구
-status: 가격 현재 유효 여부 대표 확인 후 즉시 등록 가능 (6개 메뉴 모두)
+status: 가격 6개 대표 확인 완료 (2026-11-16). 계절 한정 2개는 현재 판매 여부 확인 후 등록.
 changelog:
   - v1.0 (2026-11-04): Phase 9. WARN 항목 2건 포함 (아메리카노·자몽티).
   - v2.0 (2026-11-04): Phase 10 대표 결정 반영. 6개 메뉴 전체 최종 문구 완성.
+  - v2.1 (2026-11-16): 대표가 6개 메뉴 가격이 현재 유효함을 확인 (WARN C 해소).
 ---
 
-# GBRICK Coffee — Google Business Profile 메뉴 등록용 문구 (v2.0)
+# GBRICK Coffee — Google Business Profile 메뉴 등록용 문구 (v2.1)
 
-> **등록 조건**: 가격 현재 유효 여부 대표 확인 후 등록. (§WARN C — 1건 잔여)
-> 가격 확인 완료 시 6개 메뉴 모두 즉시 등록 가능.
+> **등록 조건**: 가격 6개는 대표 확인 완료 (2026-11-16, WARN C 해소).
+> 계절 한정 메뉴(뱅쇼·팥빙수)는 현재 판매 여부를 확인한 뒤 등록한다.
 
 ---
 
@@ -93,7 +94,7 @@ Google Business Profile → 메뉴 편집 → 섹션별 항목 추가.
 
 ## 등록 전 체크리스트
 
-- [ ] 가격 현재 유효 여부 대표 확인 (WARN C)
+- [x] 가격 현재 유효 여부 대표 확인 (WARN C) — 2026-11-16 대표 확인 완료
 - [ ] 각 메뉴 사진 준비 (Google 메뉴에 이미지 첨부 권장)
 - [ ] 계절 한정 메뉴(뱅쇼·팥빙수) 현재 판매 여부 확인 후 등록
 
