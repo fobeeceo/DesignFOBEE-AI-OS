@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { sbOrderRepo, savePushSubscription } from "@/lib/gbrick/repositories/supabase";
-import { isAllowedPushEndpoint } from "@/lib/gbrick/push";
+import { isAllowedPushEndpoint, sendOrderPlacedPush } from "@/lib/gbrick/push";
 
 // POST /api/gbrick/orders/:orderId/push — 이 주문의 상태 알림을 받을 폰을 등록한다
 export async function POST(req: NextRequest, { params }: { params: Promise<{ orderId: string }> }) {
@@ -22,7 +22,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ ord
     const order = await sbOrderRepo.findById(orderId);
     if (!order) return NextResponse.json({ error: "주문 없음" }, { status: 404 });
 
-    await savePushSubscription(orderId, { endpoint, p256dh, auth });
+    const subscription = { endpoint, p256dh, auth };
+    const isNew = await savePushSubscription(orderId, subscription);
+    // 주문 직후 처음 등록된 폰에는 접수 확인을 바로 보낸다 (화면을 다시 열 때마다 보내지 않는다)
+    if (isNew && order.status === "PENDING") {
+      await sendOrderPlacedPush({ id: order.id, orderNumber: order.orderNumber, storeId: order.storeId }, subscription);
+    }
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("[POST /api/gbrick/orders/push]", err);

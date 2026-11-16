@@ -204,7 +204,7 @@ function printKitchenTicket(order: OrderRow, storeName: string) {
     `<tr>
       <td class="name">${i.menuName}</td>
       <td class="qty">×${i.quantity}</td>
-    </tr>` + (i.options ?? []).map(o => `<tr><td class="opt" colspan="2">- ${o.optionName}</td></tr>`).join("")
+    </tr>` + (i.options ?? []).map(o => `<tr><td class="opt" colspan="2">+ ${o.optionName}</td></tr>`).join("")
   ).join("");
 
   const html = `<!DOCTYPE html><html lang="ko"><head>

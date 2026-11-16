@@ -122,7 +122,7 @@ export function buildKitchenTicket(order: TicketOrder, storeName: string): Uint8
   t.size(SIZE_NORMAL).bold(false).line(`주문 ${when}`).line(RULE);
   for (const item of items) {
     t.bold(true).size(SIZE_TALL).line(`${item.menuName} x${item.quantity}`).size(SIZE_NORMAL).bold(false);
-    for (const opt of item.options ?? []) t.line(`  - ${opt.optionName}`);
+    for (const opt of item.options ?? []) t.line(`   + ${opt.optionName}`);
   }
   t.line(RULE);
   if (order.note) t.bold(true).line(`메모: ${order.note}`).bold(false).line(RULE);

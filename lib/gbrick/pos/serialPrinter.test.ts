@@ -27,7 +27,7 @@ describe("buildKitchenTicket", () => {
   });
 
   it("encodes Korean as KS X 1001 so the printer can read it", () => {
-    for (const expected of ["#ABC123", "이대성", "지브릭 라떼 x2", "  - 아이스", "  - 바닐라시럽", "말차 x1", "메모: 얼음 적게", "수량 3개", "합계 8,900원", "은평뉴타운 본점"]) {
+    for (const expected of ["#ABC123", "이대성", "지브릭 라떼 x2", "   + 아이스", "   + 바닐라시럽", "말차 x1", "메모: 얼음 적게", "수량 3개", "합계 8,900원", "은평뉴타운 본점"]) {
       expect(text).toContain(expected);
     }
   });

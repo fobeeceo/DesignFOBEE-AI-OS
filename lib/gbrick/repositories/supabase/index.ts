@@ -198,6 +198,40 @@ export const sbMenuRepo: IMenuRepository = {
 
 // ─── Order Repository ─────────────────────────────────────────
 
+const optionKey = (menuId: string, optionName: string) => `${menuId}\u0000${optionName}`;
+
+// 주문 옵션(gb_order_item_options.menuOptionId)은 gb_menu_options 의 실제 행을 가리켜야 한다(필수 + FK).
+// 메뉴에 등록되지 않은 기본 옵션(따뜻하게·시럽 등)은 고객 화면에 나오지 않는 비활성 행을 만들어 연결한다.
+async function resolveMenuOptionIds(
+  sb: ReturnType<typeof getAdmin>,
+  items: { menuId: string; options?: { menuOptionId: string; optionName: string; extraPrice: number }[] }[],
+): Promise<Map<string, string>> {
+  const ids = new Map<string, string>();
+  const chosen = items.flatMap(i => (i.options ?? []).map(o => ({ menuId: i.menuId, ...o })));
+  const menuIds = [...new Set(chosen.map(c => c.menuId))];
+  const { data, error } = await sb.from("gb_menu_options").select("id, menuId, name").in("menuId", menuIds);
+  if (error) throw error;
+  const rows = (data ?? []) as { id: string; menuId: string; name: string }[];
+
+  const now = new Date().toISOString();
+  const toCreate: Record<string, unknown>[] = [];
+  for (const c of chosen) {
+    const key = optionKey(c.menuId, c.optionName);
+    if (ids.has(key)) continue;
+    const match = rows.find(r => r.id === c.menuOptionId && r.menuId === c.menuId)
+      ?? rows.find(r => r.menuId === c.menuId && r.name === c.optionName);
+    if (match) { ids.set(key, match.id); continue; }
+    const id = `opt-${nanoid()}`;
+    toCreate.push({ id, menuId: c.menuId, name: c.optionName, extraPrice: c.extraPrice, sortOrder: 999, isActive: false, updatedAt: now });
+    ids.set(key, id);
+  }
+  if (toCreate.length > 0) {
+    const { error: createErr } = await sb.from("gb_menu_options").insert(toCreate);
+    if (createErr) throw createErr;
+  }
+  return ids;
+}
+
 // gb_orders 의 시각 컬럼은 시간대 없는 TIMESTAMP 에 UTC 값으로 저장된다.
 // "Z" 없이 내려가면 브라우저가 현지 시각으로 읽어 9시간 어긋나므로 UTC 임을 표기해 준다.
 function utcTimes<T>(row: T): T {
@@ -287,20 +321,23 @@ export const sbOrderRepo: IOrderRepository = {
     const { data: items, error: itemErr } = await sb.from("gb_order_items").insert(itemInserts).select();
     if (itemErr) throw itemErr;
 
-    const optionInserts = input.items.flatMap((i, idx) =>
-      (i.options ?? []).map((o) => ({
-        id: nanoid(),
-        orderItemId: items![idx].id,
-        menuOptionId: null, // FK 제약 회피 — 옵션명·가격은 텍스트로 보존
-        optionName: o.optionName,
-        extraPrice: o.extraPrice,
-      }))
-    );
-    if (optionInserts.length > 0) {
-      const { error: optErr } = await sb.from("gb_order_item_options").insert(optionInserts);
-      if (optErr) {
+    if (input.items.some(i => (i.options ?? []).length > 0)) {
+      try {
+        const optionIds = await resolveMenuOptionIds(sb, input.items);
+        const optionInserts = input.items.flatMap((i, idx) =>
+          (i.options ?? []).map((o) => ({
+            id: nanoid(),
+            orderItemId: items![idx].id,
+            menuOptionId: optionIds.get(optionKey(i.menuId, o.optionName))!,
+            optionName: o.optionName,
+            extraPrice: o.extraPrice,
+          }))
+        );
+        const { error: optErr } = await sb.from("gb_order_item_options").insert(optionInserts);
+        if (optErr) throw optErr;
+      } catch (optErr) {
         // 옵션 표에 저장하지 못해도 주문 자체는 이미 들어갔다. 주방이 옵션을 놓치지 않도록 메모에 남긴다.
-        console.error("[orders.create] option insert failed — options kept in note:", optErr.message);
+        console.error("[orders.create] option insert failed — options kept in note:", (optErr as { message?: string })?.message ?? optErr);
         const summary = input.items
           .filter(i => (i.options ?? []).length > 0)
           .map(i => `${i.menuName}: ${i.options!.map(o => o.optionName).join(", ")}`)
@@ -347,25 +384,46 @@ export async function cancelUnfinishedOrdersBefore(before: string, note: string)
 }
 
 // ─── 주문 알림(웹 푸시) 구독 ───────────────────────────────────
+// 새 표를 만들지 않고, 만료 시각이 있는 기존 키-값 표(gb_idempotency_keys)에 주문별로 저장한다.
+//   key = push:<orderId>:<폰 주소 해시>, resource = "push_subscription", resourceId = orderId
 export interface PushSubscriptionRow { endpoint: string; p256dh: string; auth: string; }
+const PUSH_RESOURCE = "push_subscription";
 
-export async function savePushSubscription(orderId: string, sub: PushSubscriptionRow): Promise<void> {
+async function endpointHash(endpoint: string): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(endpoint));
+  return Array.from(new Uint8Array(digest).slice(0, 16), b => b.toString(16).padStart(2, "0")).join("");
+}
+
+/** 이 주문에 처음 등록되는 폰이면 true */
+export async function savePushSubscription(orderId: string, sub: PushSubscriptionRow): Promise<boolean> {
   const sb = getAdmin();
-  const { error } = await sb.from("gb_push_subscriptions")
-    .upsert({ id: nanoid(), orderId, ...sub }, { onConflict: "orderId,endpoint", ignoreDuplicates: true });
+  const key = `push:${orderId}:${await endpointHash(sub.endpoint)}`;
+  const { data: existing } = await sb.from("gb_idempotency_keys").select("id").eq("key", key).maybeSingle();
+  if (existing) return false;
+  const { error } = await sb.from("gb_idempotency_keys").insert({
+    id: nanoid(), key, resource: PUSH_RESOURCE, resourceId: orderId, response: sub,
+    expiresAt: new Date(Date.now() + 86400_000).toISOString(),
+  });
   if (error) throw error;
+  return true;
 }
 
 export async function findPushSubscriptions(orderId: string): Promise<PushSubscriptionRow[]> {
   const sb = getAdmin();
-  const { data, error } = await sb.from("gb_push_subscriptions").select("endpoint, p256dh, auth").eq("orderId", orderId);
+  const { data, error } = await sb.from("gb_idempotency_keys").select("response").eq("resource", PUSH_RESOURCE).eq("resourceId", orderId);
   if (error) throw error;
-  return (data ?? []) as PushSubscriptionRow[];
+  return (data ?? []).map((r: { response: unknown }) => r.response as PushSubscriptionRow);
 }
 
 export async function deletePushSubscription(endpoint: string): Promise<void> {
   const sb = getAdmin();
-  const { error } = await sb.from("gb_push_subscriptions").delete().eq("endpoint", endpoint);
+  const { error } = await sb.from("gb_idempotency_keys").delete().eq("resource", PUSH_RESOURCE).like("key", `push:%:${await endpointHash(endpoint)}`);
+  if (error) throw error;
+}
+
+export async function deleteExpiredPushSubscriptions(): Promise<void> {
+  const sb = getAdmin();
+  const { error } = await sb.from("gb_idempotency_keys").delete().eq("resource", PUSH_RESOURCE).lt("expiresAt", new Date().toISOString());
   if (error) throw error;
 }
 
