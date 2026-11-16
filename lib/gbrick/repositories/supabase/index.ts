@@ -23,7 +23,12 @@ function getAdmin() {
     null;
 
   if (!key) throw new Error("GBRICK Supabase 키 미설정 — Vercel에 NEXT_PUBLIC_GBRICK_SUPABASE_ANON_KEY 추가 필요");
-  return createClient(url, key, { auth: { autoRefreshToken: false, persistSession: false } });
+  return createClient(url, key, {
+    auth: { autoRefreshToken: false, persistSession: false },
+    // Next.js 는 서버의 GET fetch 결과를 기본으로 저장해 재사용한다.
+    // 주문·품절 같은 실시간 데이터가 옛 결과로 굳지 않도록 항상 DB에서 새로 읽는다.
+    global: { fetch: (input, init) => fetch(input, { ...init, cache: "no-store" }) },
+  });
 }
 
 function nanoid() {
