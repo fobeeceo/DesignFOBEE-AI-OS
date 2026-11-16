@@ -302,6 +302,22 @@ export default function OwnerAppPage() {
     return () => document.removeEventListener("fullscreenchange", onFsChange);
   }, []);
 
+  // F11·전체화면 버튼 등으로 윈도우 창 버튼(─ ✕)이 가려진 상태인지
+  const [windowControlsHidden, setWindowControlsHidden] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(display-mode: fullscreen)");
+    const update = () => setWindowControlsHidden(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+
+  // 웹 페이지는 창을 직접 최소화할 수 없다 — 전체화면만 풀어 윈도우의 ─ 버튼을 드러낸다
+  function showWindowControls() {
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+    else showToast("키보드 F11을 누르면 오른쪽 위에 창 버튼(─ ✕)이 나타납니다");
+  }
+
   const orderRefreshRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const knownOrderIds = useRef<Set<string>>(new Set());
   const fetchOrders = useCallback(async (isFirstLoad = false) => {
@@ -656,12 +672,14 @@ export default function OwnerAppPage() {
                 </svg>
               )}
             </button>
-            {/* 대기화면 버튼 (─) */}
-            <button onClick={() => setStandby(true)} title="대기화면으로 전환"
-              className="flex items-center justify-center w-8 h-8 rounded-lg ml-1 font-bold text-lg leading-none"
-              style={{ background: "rgba(255,255,255,0.08)", color: "#9CA3AF" }}>
-              ─
-            </button>
+            {/* 전체화면일 때만: 창 모드로 돌아가 윈도우의 ─ 버튼을 쓰게 한다 */}
+            {(isFullscreen || windowControlsHidden) && (
+              <button onClick={showWindowControls} title="창 모드로 전환 (윈도우 ─ 버튼 표시)"
+                className="flex items-center justify-center w-8 h-8 rounded-lg ml-1 font-bold text-lg leading-none"
+                style={{ background: "rgba(255,255,255,0.08)", color: "#9CA3AF" }}>
+                ─
+              </button>
+            )}
           </header>
 
           {/* Kanban - Orders */}
@@ -1657,14 +1675,15 @@ export default function OwnerAppPage() {
         </div>
       )}
 
-      {/* Toast */}
+    </div>
+
+      {/* Toast — 모바일·데스크톱 공통 */}
       {toast && (
         <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[400] px-5 py-3 rounded-xl text-white text-sm font-semibold shadow-lg"
           style={{ background: "#2C1A0E", whiteSpace: "nowrap" }}>
           {toast}
         </div>
       )}
-    </div>
     </>
   );
 }
