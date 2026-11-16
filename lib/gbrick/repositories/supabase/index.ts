@@ -323,6 +323,29 @@ export async function cancelUnfinishedOrdersBefore(before: string, note: string)
   return ids.length;
 }
 
+// ─── 주문 알림(웹 푸시) 구독 ───────────────────────────────────
+export interface PushSubscriptionRow { endpoint: string; p256dh: string; auth: string; }
+
+export async function savePushSubscription(orderId: string, sub: PushSubscriptionRow): Promise<void> {
+  const sb = getAdmin();
+  const { error } = await sb.from("gb_push_subscriptions")
+    .upsert({ id: nanoid(), orderId, ...sub }, { onConflict: "orderId,endpoint", ignoreDuplicates: true });
+  if (error) throw error;
+}
+
+export async function findPushSubscriptions(orderId: string): Promise<PushSubscriptionRow[]> {
+  const sb = getAdmin();
+  const { data, error } = await sb.from("gb_push_subscriptions").select("endpoint, p256dh, auth").eq("orderId", orderId);
+  if (error) throw error;
+  return (data ?? []) as PushSubscriptionRow[];
+}
+
+export async function deletePushSubscription(endpoint: string): Promise<void> {
+  const sb = getAdmin();
+  const { error } = await sb.from("gb_push_subscriptions").delete().eq("endpoint", endpoint);
+  if (error) throw error;
+}
+
 // ─── Payment Repository ───────────────────────────────────────
 
 export const sbPaymentRepo: IPaymentRepository = {

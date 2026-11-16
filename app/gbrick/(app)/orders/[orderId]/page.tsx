@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import OrderPushButton from "@/components/gbrick/OrderPushButton";
 
 type OrderItem = { menuName: string; quantity: number; unitPrice: number; optionName?: string };
 type Order = {
@@ -174,6 +175,11 @@ export default function OrderDetailPage() {
             </div>
           )}
         </div>
+
+        {/* 픽업 알림 등록 — 진행 중인 실제 주문에서만 */}
+        {!["PICKED_UP", "CANCELLED"].includes(order.status) && !order.id.startsWith("ord_") && (
+          <OrderPushButton orderId={order.id} />
+        )}
 
         {/* Progress Steps */}
         {order.status !== "CANCELLED" && (

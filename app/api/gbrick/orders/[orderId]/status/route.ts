@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { GbOrderStatus } from "@prisma/client";
 import { sbOrderRepo } from "@/lib/gbrick/repositories/supabase";
+import { sendOrderStatusPush } from "@/lib/gbrick/push";
 
 const VALID_TRANSITIONS: Record<string, string[]> = {
   PENDING:   ["CONFIRMED", "CANCELLED"],
@@ -29,6 +30,7 @@ export async function PATCH(
     }
 
     const updated = await sbOrderRepo.updateStatus(orderId, status as GbOrderStatus, "store_staff", note);
+    await sendOrderStatusPush({ id: order.id, orderNumber: order.orderNumber, storeId: order.storeId }, status);
     return NextResponse.json({ ok: true, order: updated });
   } catch (err) {
     console.error("[PATCH /api/gbrick/orders/status]", err);
