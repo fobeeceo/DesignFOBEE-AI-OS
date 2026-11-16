@@ -3,5 +3,11 @@
     "app/api/hq/ai-search/run/route.ts": {
       "maxDuration": 300
     }
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/gbrick/cron/close-day",
+      "schedule": "5 15 * * *"
+    }
+  ]
 }

@@ -300,6 +300,24 @@ export const sbOrderRepo: IOrderRepository = {
   },
 };
 
+// 기준 시각 이전에 들어와 아직 끝나지 않은(대기·접수·조리중) 주문을 취소 처리하고 건수를 반환
+export async function cancelUnfinishedOrdersBefore(before: string, note: string): Promise<number> {
+  const sb = getAdmin();
+  const { data, error } = await sb.from("gb_orders")
+    .update({ status: "CANCELLED", updatedAt: new Date().toISOString() })
+    .in("status", ["PENDING", "CONFIRMED", "PREPARING"])
+    .lt("createdAt", before)
+    .select("id");
+  if (error) throw error;
+  const ids = (data ?? []).map((o: { id: string }) => o.id);
+  if (ids.length > 0) {
+    const { error: historyError } = await sb.from("gb_order_status_history")
+      .insert(ids.map(orderId => ({ id: nanoid(), orderId, status: "CANCELLED", changedBy: "system", note })));
+    if (historyError) throw historyError;
+  }
+  return ids.length;
+}
+
 // ─── Payment Repository ───────────────────────────────────────
 
 export const sbPaymentRepo: IPaymentRepository = {
