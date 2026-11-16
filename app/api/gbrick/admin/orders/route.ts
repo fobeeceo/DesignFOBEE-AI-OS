@@ -3,7 +3,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { GbOrderStatus } from "@prisma/client";
 import { sbOrderRepo } from "@/lib/gbrick/repositories/supabase";
 
-// GET /api/gbrick/admin/orders?storeId=xxx&status=PENDING
+// 한국 시간(KST) 기준 오늘 0시를 UTC ISO 문자열로 반환
+function kstDayStartIso(now = new Date()): string {
+  const KST = 9 * 60 * 60 * 1000;
+  const k = new Date(now.getTime() + KST);
+  return new Date(Date.UTC(k.getUTCFullYear(), k.getUTCMonth(), k.getUTCDate()) - KST).toISOString();
+}
+
+// GET /api/gbrick/admin/orders?storeId=xxx&status=PENDING&today=1
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const storeId = searchParams.get("storeId");
@@ -15,7 +22,8 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const orders = await sbOrderRepo.findByStore(storeId, status);
+    const since = searchParams.get("today") === "1" ? kstDayStartIso() : undefined;
+    const orders = await sbOrderRepo.findByStore(storeId, status, since);
     return NextResponse.json({ orders }, { headers: { "Cache-Control": "no-store" } });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);

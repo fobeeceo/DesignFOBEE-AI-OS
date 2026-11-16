@@ -223,7 +223,7 @@ export const sbOrderRepo: IOrderRepository = {
     const itemsByOrder = groupBy(items ?? [], "orderId");
     return orders.map((o: Record<string, unknown> & { id: string }) => ({ ...o, items: itemsByOrder[o.id] ?? [] })) as unknown as OrderDto[];
   },
-  async findByStore(storeId: string, status?: string) {
+  async findByStore(storeId: string, status?: string, since?: string) {
     const sb = getAdmin();
     let q = sb.from("gb_orders").select("*, items:gb_order_items(*, options:gb_order_item_options(*))").eq("storeId", storeId).order("createdAt", { ascending: false });
     if (status) {
@@ -231,6 +231,7 @@ export const sbOrderRepo: IOrderRepository = {
       const statuses = status.split(",").map(s => s.trim()).filter(Boolean);
       q = statuses.length > 1 ? q.in("status", statuses) : q.eq("status", statuses[0]);
     }
+    if (since) q = q.gte("createdAt", since);
     const { data, error } = await q;
     if (error) throw error;
     return (data ?? []) as unknown as OrderDto[];

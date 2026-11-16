@@ -307,7 +307,8 @@ export default function OwnerAppPage() {
   const fetchOrders = useCallback(async (isFirstLoad = false) => {
     const queryStoreId = store?.id ?? storeId;
     try {
-      const status = orderFilter === "active" ? "&status=PENDING,CONFIRMED,PREPARING,READY" : "";
+      // 진행 중 보드는 오늘(KST) 주문만 — 지난 날 주문은 "전체" 내역에서만 보인다
+      const status = orderFilter === "active" ? "&status=PENDING,CONFIRMED,PREPARING,READY&today=1" : "";
       const res = await fetch(`/api/gbrick/admin/orders?storeId=${queryStoreId}${status}`, { cache: "no-store" });
       const d = await res.json() as { orders: OrderRow[]; _warn?: string };
       const fetched = d.orders ?? [];
@@ -700,7 +701,7 @@ export default function OwnerAppPage() {
                             return `${Math.floor(diff / 60)}시간 전`;
                           })();
                           return (
-                            <div key={order.id} className="rounded-xl border overflow-hidden"
+                            <div key={order.id} className="shrink-0 rounded-xl border overflow-hidden"
                               style={{ borderColor: order.status === "PENDING" ? "#F59E0B" : "#E7E5E4", background: order.status === "PENDING" ? "#FFFBF3" : "#fff" }}>
                               <div className="px-4 pt-3 pb-2 flex items-center gap-2">
                                 <span className="text-xs font-mono text-stone-400 truncate flex-1">{order.orderNumber}</span>

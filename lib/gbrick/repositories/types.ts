@@ -251,7 +251,7 @@ export interface IOrderRepository {
   findById(id: string): Promise<OrderDto | null>;
   findByOrderNumber(orderNumber: string): Promise<OrderDto | null>;
   findByCustomer(customerId: string, limit?: number): Promise<OrderDto[]>;
-  findByStore(storeId: string, status?: GbOrderStatus): Promise<OrderDto[]>;
+  findByStore(storeId: string, status?: GbOrderStatus, since?: string): Promise<OrderDto[]>;
   create(input: CreateOrderInput & { orderNumber: string; totalAmount: number; finalAmount: number; pointEarned: number; couponDiscount?: number }): Promise<OrderDto>;
   updateStatus(orderId: string, status: GbOrderStatus, changedBy: string, note?: string): Promise<OrderDto>;
 }
