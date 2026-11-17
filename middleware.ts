@@ -1,6 +1,9 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { isBrandHost, brandRoute } from "@/lib/franchise/brandDomain";
+import { POS_AUTH_ERROR, POS_COOKIE, posGateFor, verifyPosSession } from "@/lib/gbrick/posAuth";
+
+const posUnauthorized = () => NextResponse.json({ error: POS_AUTH_ERROR }, { status: 401 });
 
 /**
  * 모든 요청에서 Supabase 세션 쿠키를 갱신한다 (Supabase SSR 표준 패턴).
@@ -26,12 +29,19 @@ export async function middleware(request: NextRequest) {
   }
 
 
+  // ── GBRICK 사장님 앱(POS) 서버 인증 ─────────────────────────────
+  // 메뉴·카테고리·옵션 수정과 주문 상태 변경은 PIN을 통과한 브라우저만 할 수 있다.
+  const posGate = posGateFor(request.method, request.nextUrl.pathname);
+  const hasPosSession = posGate !== "none" && await verifyPosSession(request.cookies.get(POS_COOKIE)?.value);
+  if (posGate === "pin" && !hasPosSession) return posUnauthorized();
+
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   // 환경변수 미설정 시(예: env 입력 전 초기 배포) 인증을 건너뛰어
   // 공개 페이지(홈·/design 등)가 정상적으로 렌더되도록 한다.
   if (!supabaseUrl || !supabaseAnonKey) {
+    if (posGate === "pin-or-login" && !hasPosSession) return posUnauthorized();
     return NextResponse.next({ request: { headers: request.headers } });
   }
 
@@ -61,6 +71,8 @@ export async function middleware(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser();
   const { pathname } = request.nextUrl;
+
+  if (posGate === "pin-or-login" && !hasPosSession && !user) return posUnauthorized();
 
   // ── GBRICK 인증 게이트 ───────────────────────────────────────────
   // /gbrick-hq : HQ 관리자 (HQ_ADMIN 이상 필요 — 미구현 시 로그인만 확인)

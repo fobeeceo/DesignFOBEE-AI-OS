@@ -9,6 +9,16 @@ import {
 import { DEFAULT_OPTIONS_MENU_ID } from "@/lib/gbrick/defaultOptions";
 import { OPTION_GROUPS, isSingleSelectGroup, orderGroups } from "@/lib/gbrick/optionGroups";
 
+// 서버가 PIN 인증을 요구하면(401) 화면 잠금을 다시 걸고 PIN 화면으로 보낸다
+async function posFetch(input: string, init?: RequestInit): Promise<Response> {
+  const res = await fetch(input, init);
+  if (res.status === 401) {
+    try { sessionStorage.removeItem("gbrick_pos_unlocked"); } catch { /* ignore */ }
+    window.location.href = "/gbrick/admin";
+  }
+  return res;
+}
+
 // ─── 대기 화면 (Standby Screen) ──────────────────────────────
 function StandbyScreen({ storeName, onWake }: { storeName: string; onWake: () => void }) {
   const [time, setTime] = useState(() => new Date());
@@ -273,10 +283,21 @@ export default function OwnerAppPage() {
     try {
       if (sessionStorage.getItem("gbrick_pos_unlocked") !== "1") {
         router.replace("/gbrick/admin");
+        return;
       }
     } catch {
       router.replace("/gbrick/admin");
+      return;
     }
+    // 서버 인증 쿠키가 없으면(기한 만료 등) 주문을 받기 전에 PIN부터 다시 받는다
+    fetch("/api/gbrick/admin/pin", { cache: "no-store" })
+      .then(r => r.json())
+      .then((d: { ok?: boolean }) => {
+        if (d.ok) return;
+        try { sessionStorage.removeItem("gbrick_pos_unlocked"); } catch { /* ignore */ }
+        router.replace("/gbrick/admin");
+      })
+      .catch(() => { /* 확인 실패는 막지 않는다 — 수정 요청에서 서버가 다시 확인한다 */ });
   }, [router]);
 
   const [tab, setTab] = useState<"home" | "orders" | "menu" | "settings">("home");
@@ -389,7 +410,7 @@ export default function OwnerAppPage() {
     try {
       // 진행 중 보드는 오늘(KST) 주문만 — 지난 날 주문은 "전체" 내역에서만 보인다
       const status = orderFilter === "active" ? "&status=PENDING,CONFIRMED,PREPARING,READY&today=1" : "";
-      const res = await fetch(`/api/gbrick/admin/orders?storeId=${queryStoreId}${status}`, { cache: "no-store" });
+      const res = await posFetch(`/api/gbrick/admin/orders?storeId=${queryStoreId}${status}`, { cache: "no-store" });
       const d = await res.json() as { orders: OrderRow[]; _warn?: string };
       const fetched = d.orders ?? [];
       setOrders(fetched);
@@ -417,7 +438,7 @@ export default function OwnerAppPage() {
     setOrderUpdating(orderId);
     setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: nextStatus } : o));
     try {
-      const res = await fetch(`/api/gbrick/orders/${orderId}/status`, {
+      const res = await posFetch(`/api/gbrick/orders/${orderId}/status`, {
         method: "PATCH", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: nextStatus }),
       });
@@ -440,7 +461,7 @@ export default function OwnerAppPage() {
     setOrderUpdating(orderId);
     setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: "CANCELLED" } : o));
     try {
-      const res = await fetch(`/api/gbrick/orders/${orderId}/status`, {
+      const res = await posFetch(`/api/gbrick/orders/${orderId}/status`, {
         method: "PATCH", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: "CANCELLED", note: "사장님 취소" }),
       });
@@ -462,7 +483,7 @@ export default function OwnerAppPage() {
     setLoading(true);
     setFetchError("");
     try {
-      const res = await fetch(`/api/gbrick/admin/stores/${storeId}`, { cache: "no-store" });
+      const res = await posFetch(`/api/gbrick/admin/stores/${storeId}`, { cache: "no-store" });
       const d = await res.json() as { store: Store; categories: Category[]; error?: string };
       if (res.status === 404 || d.error === "STORE_NOT_FOUND") {
         router.replace("/gbrick/admin");
@@ -514,7 +535,7 @@ export default function OwnerAppPage() {
     const next = !soldOuts[menuId];
     setSoldOuts(p => ({ ...p, [menuId]: next }));
     try {
-      await fetch(`/api/gbrick/admin/menus/${menuId}`, {
+      await posFetch(`/api/gbrick/admin/menus/${menuId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ isSoldOut: next, storeId }),
@@ -534,7 +555,7 @@ export default function OwnerAppPage() {
     setModalTab("info");
     setNewOpt({ groupName: "추가옵션", name: "", extraPrice: "0" });
     setOptLoading(true);
-    fetch(`/api/gbrick/admin/menus/${menu.id}/options`, { cache: "no-store" })
+    posFetch(`/api/gbrick/admin/menus/${menu.id}/options`, { cache: "no-store" })
       .then(r => r.json()).then(d => setMenuOptions(d.options ?? [])).catch(() => setMenuOptions([]))
       .finally(() => setOptLoading(false));
   }
@@ -543,7 +564,7 @@ export default function OwnerAppPage() {
     if (!editMenu) return;
     setSaving(true);
     try {
-      const res = await fetch(`/api/gbrick/admin/menus/${editMenu.id}`, {
+      const res = await posFetch(`/api/gbrick/admin/menus/${editMenu.id}`, {
         method: "PATCH", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: editForm.name, nameEn: editForm.nameEn || null, description: editForm.description || null, basePrice: Number(editForm.basePrice), imageUrl: editForm.imageUrl || null, isActive: editActive }),
       });
@@ -558,7 +579,7 @@ export default function OwnerAppPage() {
     setSaving(true);
     try {
       await Promise.all(cat.menus.map((menu, idx) =>
-        fetch(`/api/gbrick/admin/menus/${menu.id}`, {
+        posFetch(`/api/gbrick/admin/menus/${menu.id}`, {
           method: "PATCH", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ sortOrder: idx }),
         })
@@ -585,7 +606,7 @@ export default function OwnerAppPage() {
     try {
       const fd = new FormData();
       fd.append("file", file);
-      const res = await fetch("/api/gbrick/admin/upload", { method: "POST", body: fd });
+      const res = await posFetch("/api/gbrick/admin/upload", { method: "POST", body: fd });
       const d = await res.json() as { url?: string; error?: string };
       if (d.url) {
         setEditForm(p => ({ ...p, imageUrl: d.url! }));
@@ -610,7 +631,7 @@ export default function OwnerAppPage() {
     if (!editMenu || !newOpt.name.trim()) return;
     setSaving(true);
     try {
-      const res = await fetch(`/api/gbrick/admin/menus/${editMenu.id}/options`, {
+      const res = await posFetch(`/api/gbrick/admin/menus/${editMenu.id}/options`, {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ groupName: newOpt.groupName, name: newOpt.name.trim(), extraPrice: Number(newOpt.extraPrice) }),
       });
@@ -626,7 +647,7 @@ export default function OwnerAppPage() {
     if (!editMenu || !window.confirm("이 옵션을 삭제할까요?")) return;
     setSaving(true);
     try {
-      const res = await fetch(`/api/gbrick/admin/menus/${editMenu.id}/options`, {
+      const res = await posFetch(`/api/gbrick/admin/menus/${editMenu.id}/options`, {
         method: "DELETE", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ optionId }),
       });
@@ -661,7 +682,7 @@ export default function OwnerAppPage() {
     if (menuOptions.some(o => !o.name.trim())) { showToast("옵션명을 입력해 주세요"); return; }
     setSaving(true);
     try {
-      const res = await fetch(`/api/gbrick/admin/menus/${editMenu.id}/options`, {
+      const res = await posFetch(`/api/gbrick/admin/menus/${editMenu.id}/options`, {
         method: "PATCH", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ options: menuOptions.map((o, idx) => ({
           id: o.id, name: o.name.trim(), extraPrice: o.extraPrice, sortOrder: idx + 1, isActive: o.isActive !== false,
@@ -678,7 +699,7 @@ export default function OwnerAppPage() {
     if (!editMenu) return;
     setSaving(true);
     try {
-      const res = await fetch(`/api/gbrick/admin/menus/${editMenu.id}/options`, {
+      const res = await posFetch(`/api/gbrick/admin/menus/${editMenu.id}/options`, {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ importDefaults: true }),
       });
@@ -695,7 +716,7 @@ export default function OwnerAppPage() {
   async function openDefaultOptions() {
     setSaving(true);
     try {
-      const res = await fetch("/api/gbrick/admin/default-options", { method: "POST" });
+      const res = await posFetch("/api/gbrick/admin/default-options", { method: "POST" });
       const d = await res.json() as { options?: MenuOptionRow[] };
       if (!res.ok || !d.options) { showToast("기본 옵션을 불러오지 못했습니다"); return; }
       setEditMenu({ id: DEFAULT_OPTIONS_MENU_ID, categoryId: "", name: "기본 옵션", basePrice: 0, isSignature: false, isNew: false, isSoldOut: false });
@@ -728,7 +749,7 @@ export default function OwnerAppPage() {
     if (!editMenu || !window.confirm(`'${editMenu.name}' 메뉴를 삭제할까요?\n고객 앱과 사장님 앱에서 사라집니다.`)) return;
     setSaving(true);
     try {
-      const res = await fetch(`/api/gbrick/admin/menus/${editMenu.id}`, { method: "DELETE" });
+      const res = await posFetch(`/api/gbrick/admin/menus/${editMenu.id}`, { method: "DELETE" });
       if (!res.ok) { showToast("삭제 실패"); return; }
       const id = editMenu.id;
       setCategories(p => p.map(c => ({ ...c, menus: c.menus.filter(m => m.id !== id) })));
@@ -742,7 +763,7 @@ export default function OwnerAppPage() {
     if (!name || newMenu.price === "" || !activeCat) return;
     setSaving(true);
     try {
-      const res = await fetch("/api/gbrick/admin/menus", {
+      const res = await posFetch("/api/gbrick/admin/menus", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ categoryId: activeCat, name, basePrice: Number(newMenu.price) }),
       });
@@ -769,7 +790,7 @@ export default function OwnerAppPage() {
     if (!name) return;
     setSaving(true);
     try {
-      const res = await fetch("/api/gbrick/admin/categories", {
+      const res = await posFetch("/api/gbrick/admin/categories", {
         method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name }),
       });
       const d = await res.json() as { category?: { id: string; name: string }; error?: string };
@@ -787,7 +808,7 @@ export default function OwnerAppPage() {
     if (!window.confirm(`'${cat.name}' 카테고리를 삭제할까요?`)) return;
     setSaving(true);
     try {
-      const res = await fetch("/api/gbrick/admin/categories", {
+      const res = await posFetch("/api/gbrick/admin/categories", {
         method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: cat.id }),
       });
       if (!res.ok) { showToast(res.status === 409 ? "메뉴가 남아 있어 삭제할 수 없습니다" : "삭제 실패"); return; }
@@ -803,7 +824,7 @@ export default function OwnerAppPage() {
     if (catEdit.some(c => !c.name.trim())) { showToast("카테고리 이름을 입력해 주세요"); return; }
     setSaving(true);
     try {
-      const res = await fetch("/api/gbrick/admin/categories", {
+      const res = await posFetch("/api/gbrick/admin/categories", {
         method: "PATCH", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ categories: catEdit.map((c, idx) => ({ id: c.id, name: c.name.trim(), sortOrder: idx + 1, isActive: c.isActive })) }),
       });
@@ -817,7 +838,7 @@ export default function OwnerAppPage() {
   async function saveHours() {
     setSaving(true);
     try {
-      await fetch(`/api/gbrick/admin/stores/${storeId}`, {
+      await posFetch(`/api/gbrick/admin/stores/${storeId}`, {
         method: "PATCH", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ operatingHours: hours }),
       });

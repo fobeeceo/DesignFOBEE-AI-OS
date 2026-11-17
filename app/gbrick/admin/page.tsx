@@ -123,9 +123,17 @@ export default function AdminIndexPage() {
 
   // 브라우저가 열릴 때 sessionStorage 확인 (브라우저 재시작 시 초기화됨)
   useEffect(() => {
-    try {
-      if (sessionStorage.getItem(SESSION_KEY) === "1") setUnlocked(true);
-    } catch { /* private mode — 항상 PIN 요구 */ }
+    // 화면 잠금(sessionStorage)이 풀려 있어도, 서버 인증 쿠키가 없으면 PIN을 다시 받는다
+    let wasUnlocked = false;
+    try { wasUnlocked = sessionStorage.getItem(SESSION_KEY) === "1"; } catch { /* private mode — 항상 PIN 요구 */ }
+    if (!wasUnlocked) return;
+    fetch("/api/gbrick/admin/pin", { cache: "no-store" })
+      .then(r => r.json())
+      .then((d: { ok?: boolean }) => {
+        if (d.ok) setUnlocked(true);
+        else { try { sessionStorage.removeItem(SESSION_KEY); } catch { /* ignore */ } }
+      })
+      .catch(() => setUnlocked(true)); // 확인 자체가 실패하면 막지 않는다 — 수정 요청에서 서버가 다시 확인한다
   }, []);
 
   useEffect(() => {
