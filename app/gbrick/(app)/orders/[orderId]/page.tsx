@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import OrderPushButton from "@/components/gbrick/OrderPushButton";
+import { ON_SITE_PAYMENT_NOTICE } from "@/lib/gbrick/launch";
 
 type OrderItem = { menuName: string; quantity: number; unitPrice: number; optionName?: string };
 type Order = {
@@ -159,6 +160,14 @@ export default function OrderDetailPage() {
             <div style={{ fontSize: 24, marginBottom: 4 }}>🎉</div>
             <div style={{ fontWeight: 800, fontSize: 17 }}>음료가 준비됐습니다!</div>
             <div style={{ fontSize: 13, opacity: 0.9, marginTop: 2 }}>카운터에서 픽업해 주세요</div>
+          </div>
+        )}
+
+        {/* 결제 안내 — 앱 결제 연결 전에는 픽업할 때 매장에서 낸다 */}
+        {!["PICKED_UP", "CANCELLED"].includes(order.status) && (
+          <div style={{ background: "#FEF3E2", border: "1px solid #F3D9AE", borderRadius: 12, padding: "12px 16px", marginBottom: 12, color: "#7A4A12", fontSize: 14, fontWeight: 600, lineHeight: 1.5 }}>
+            💳 {ON_SITE_PAYMENT_NOTICE}
+            <div style={{ fontWeight: 800, fontSize: 15, marginTop: 2 }}>결제 예정 금액 {order.finalAmount.toLocaleString()}원</div>
           </div>
         )}
 

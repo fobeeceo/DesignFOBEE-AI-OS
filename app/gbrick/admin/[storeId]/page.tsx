@@ -261,6 +261,7 @@ function printKitchenTicket(order: OrderRow, storeName: string) {
 <div class="dash"></div>
 ${order.note ? `<div class="note">📝 메모: ${order.note}</div><div class="dash"></div>` : ""}
 <div class="total">${order.finalAmount.toLocaleString()}원</div>
+<div class="total">현장 결제 (카운터에서 받기)</div>
 <script>window.onload=function(){window.print();setTimeout(function(){window.close();},800);}</script>
 </body></html>`;
 
@@ -1097,7 +1098,10 @@ export default function OwnerAppPage() {
                                     ))}
                                   </div>
                                 )}
-                                <div className="mt-2 text-sm font-black text-right" style={{ color: "#2C1A0E" }}>{order.finalAmount.toLocaleString()}원</div>
+                                <div className="mt-2 text-sm font-black text-right" style={{ color: "#2C1A0E" }}>
+                                  <span className="mr-1.5 text-[11px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: "#FEE2E2", color: "#B91C1C" }}>현장결제</span>
+                                  {order.finalAmount.toLocaleString()}원
+                                </div>
                               </div>
                               {(next || canCancel) && (
                                 <div className="px-4 pb-4 flex gap-2">
@@ -1708,7 +1712,8 @@ export default function OwnerAppPage() {
                           <span className="text-base font-black text-stone-800">{order.pickupName || "손님"}</span>
                           {order.note && <p className="text-xs text-amber-600 mt-0.5">📝 {order.note}</p>}
                         </div>
-                        <span className="text-sm font-bold" style={{ color: "#2C1A0E" }}>
+                        <span className="text-sm font-bold text-right" style={{ color: "#2C1A0E" }}>
+                          <span className="block text-[10px] font-bold mb-0.5" style={{ color: "#B91C1C" }}>현장결제</span>
                           {order.finalAmount.toLocaleString()}원
                         </span>
                       </div>

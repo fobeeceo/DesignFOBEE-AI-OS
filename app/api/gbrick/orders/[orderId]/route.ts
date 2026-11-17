@@ -38,7 +38,8 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ ord
       status: r.status ?? "PENDING",
       pickupName: r.pickupName ?? "",
       finalAmount: r.finalAmount ?? 0,
-      pointsEarned: Math.floor(((r.finalAmount as number) ?? 0) * 0.02),
+      // 실제로 적립된 값만 보여 준다 (포인트가 아직 적립되지 않는 동안은 0)
+      pointsEarned: (r.pointEarned as number) ?? 0,
       createdAt: r.createdAt,
       items: rawItems.map((item) => ({
         menuName: item.menuName,

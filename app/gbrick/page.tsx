@@ -107,30 +107,21 @@ export default function GbrickHome() {
           </div>
           {/* 텍스트 & 버튼 */}
           <div style={{ position: "relative", zIndex: 2, padding: "20px 20px 20px" }}>
-            <p style={{ fontSize: 17, fontWeight: 900, color: "#1A0E05" }}>비회원</p>
+            <p style={{ fontSize: 17, fontWeight: 900, color: "#1A0E05" }}>은평뉴타운 본점 오픈</p>
             <p style={{ fontSize: 13, color: "#6B5B45", marginTop: 5, lineHeight: 1.55, maxWidth: 210 }}>
-              지브릭 회원 가입하고,<br />스탬프 10개 모아<br />아메리카노 한 잔 받으세요.
+              앱으로 미리 주문하고,<br />준비되면 알림을 받으세요.<br />결제는 픽업할 때 매장에서 해요.
             </p>
             <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 16 }}>
-              <Link href="/gbrick/login" style={{
+              <Link href="/gbrick/stores" style={{
                 display: "block", textAlign: "center",
                 background: "#C8873A", color: "white",
                 padding: "12px 20px", borderRadius: 50,
                 fontSize: 15, fontWeight: 700, letterSpacing: "0.02em",
                 textDecoration: "none"
               }}>
-                로그인
+                주문하기
               </Link>
-              <Link href="/gbrick/signup" style={{
-                display: "block", textAlign: "center",
-                background: "transparent", color: "#7A6650",
-                padding: "11px 20px", borderRadius: 50,
-                fontSize: 15, fontWeight: 600,
-                border: "1.5px solid #C4B09A",
-                textDecoration: "none"
-              }}>
-                회원가입
-              </Link>
+              <p style={{ textAlign: "center", fontSize: 12, color: "#8A7760" }}>회원·포인트·스탬프는 곧 열려요</p>
             </div>
           </div>
         </div>

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { ON_SITE_PAYMENT_NOTICE } from "@/lib/gbrick/launch";
 
 interface CartItem {
   menuId: string;
@@ -20,7 +21,6 @@ interface CartData {
 export default function CartPage() {
   const router = useRouter();
   const [cart, setCart] = useState<CartData | null>(null);
-  const [pointUse, setPointUse] = useState(0);
   const [pickupName, setPickupName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -95,8 +95,7 @@ export default function CartPage() {
   }
 
   const subtotal = cart.items.reduce((s, i) => s + i.unitPrice * i.quantity, 0);
-  const finalAmount = Math.max(0, subtotal - pointUse);
-  const earnedPoints = Math.floor(finalAmount * 0.02);
+  const finalAmount = subtotal;
 
   async function handleOrder() {
     setLoading(true);
@@ -109,16 +108,12 @@ export default function CartPage() {
           storeId: cart!.storeId,
           items: cart!.items,
           pickupName,
-          pointUsed: pointUse,
         }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "주문 실패");
 
       sessionStorage.removeItem("gbrick_cart");
-      if (data.order?.mock) {
-        sessionStorage.setItem(`gbrick_order_${data.order.id}`, JSON.stringify(data.order));
-      }
       router.push(`/gbrick/orders/${data.order.id}`);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "주문 실패");
@@ -179,6 +174,11 @@ export default function CartPage() {
           ))}
         </div>
 
+        <div className="rounded-2xl px-4 py-3.5 flex items-start gap-3" style={{ background: "#FEF3E2", border: "1px solid #F3D9AE" }}>
+          <span className="text-xl leading-none mt-0.5">💳</span>
+          <p className="text-sm leading-relaxed font-semibold" style={{ color: "#7A4A12" }}>{ON_SITE_PAYMENT_NOTICE}</p>
+        </div>
+
         {/* Pickup name */}
         <div className="bg-white rounded-2xl border border-stone-100 shadow-sm px-4 py-3.5">
           <label className="text-sm font-semibold text-stone-700 mb-2 block">픽업 이름</label>
@@ -197,17 +197,10 @@ export default function CartPage() {
             <span>메뉴 금액</span>
             <span>{subtotal.toLocaleString()}원</span>
           </div>
-          <div className="flex justify-between text-sm text-stone-600">
-            <span>포인트 사용</span>
-            <span>-{pointUse.toLocaleString()}원</span>
-          </div>
           <div className="border-t border-stone-100 pt-2.5 flex justify-between font-bold text-stone-800">
-            <span>결제금액</span>
+            <span>결제 예정 금액 (매장에서 결제)</span>
             <span>{finalAmount.toLocaleString()}원</span>
           </div>
-          <p className="text-xs font-semibold" style={{ color: "#C8873A" }}>
-            +{earnedPoints.toLocaleString()}P 적립 예정
-          </p>
         </div>
 
         {error && (
@@ -226,7 +219,7 @@ export default function CartPage() {
           className="w-full py-4 rounded-2xl text-white font-bold text-base disabled:opacity-60"
           style={{ background: "#2C1A0E" }}
         >
-          {loading ? "주문 처리 중..." : `${finalAmount.toLocaleString()}원 결제하기`}
+          {loading ? "주문 접수 중..." : `${finalAmount.toLocaleString()}원 주문하기`}
         </button>
       </div>
     </main>

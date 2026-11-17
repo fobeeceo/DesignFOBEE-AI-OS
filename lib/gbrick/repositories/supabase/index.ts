@@ -567,6 +567,22 @@ export const sbOrderRepo: IOrderRepository = {
   },
 };
 
+/** 매장 조회 — 없으면 null, DB 오류는 던진다 (장애를 "매장 없음"으로 착각하지 않게) */
+export async function findStoreStrict(storeId: string) {
+  const sb = getAdmin();
+  const { data, error } = await sb.from("gb_stores").select("*").eq("id", storeId).maybeSingle();
+  if (error) throw error;
+  return data as unknown as { id: string; name: string; status?: string | null; operatingHours?: unknown } | null;
+}
+
+/** 기준 시각 이후 이 매장에 들어온 주문 수 (주문이 한꺼번에 몰리는 것을 막는 데 쓴다) */
+export async function countOrdersSince(storeId: string, sinceIso: string): Promise<number> {
+  const sb = getAdmin();
+  const { count, error } = await sb.from("gb_orders").select("id", { count: "exact", head: true }).eq("storeId", storeId).gte("createdAt", sinceIso);
+  if (error) throw error;
+  return count ?? 0;
+}
+
 // 기준 시각 이전에 들어와 아직 끝나지 않은(대기·접수·조리중) 주문을 취소 처리하고 건수를 반환
 export async function cancelUnfinishedOrdersBefore(before: string, note: string): Promise<number> {
   const sb = getAdmin();

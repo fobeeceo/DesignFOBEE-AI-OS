@@ -6,6 +6,8 @@ import Link from "next/link";
 import { haversineKm, formatDistance } from "@/lib/gbrick/utils/distance";
 import { DEFAULT_OPTIONS } from "@/lib/gbrick/defaultOptions";
 import { isSingleSelectGroup, orderGroups } from "@/lib/gbrick/optionGroups";
+import { isLaunchStore, NOT_LAUNCHED_MESSAGE } from "@/lib/gbrick/launch";
+import { isWithinOperatingHours, todayHoursLabel } from "@/lib/gbrick/storeHours";
 
 interface MenuOption {
   id: string;
@@ -48,6 +50,7 @@ interface StoreInfo {
   id: string;
   name: string;
   status: string;
+  operatingHours?: unknown;
   lat?: number | null;
   lng?: number | null;
 }
@@ -175,6 +178,14 @@ export default function MenuPage() {
     });
   }
   const modalTotal = selectedMenu ? selectedMenu.basePrice + modalExtraTotal : 0;
+  // 주문을 받을 수 없는 이유 (메뉴는 볼 수 있지만 담을 수는 없다). 매장 정보를 아직 못 읽었으면 막지 않고 서버가 최종 판단한다.
+  const orderBlockedReason = !isLaunchStore(storeId)
+    ? NOT_LAUNCHED_MESSAGE
+    : storeInfo && storeInfo.status !== "ACTIVE"
+      ? "지금은 영업 준비중이라 주문할 수 없어요"
+      : storeInfo && !isWithinOperatingHours(storeInfo.operatingHours)
+        ? `지금은 영업시간이 아니라 주문할 수 없어요${todayHoursLabel(storeInfo.operatingHours) ? ` (오늘 ${todayHoursLabel(storeInfo.operatingHours)})` : ""}`
+        : null;
   const storeDist = userPos && storeInfo?.lat && storeInfo?.lng
     ? haversineKm(userPos.lat, userPos.lng, storeInfo.lat, storeInfo.lng)
     : null;
@@ -231,6 +242,12 @@ export default function MenuPage() {
           </Link>
         </div>
       </header>
+
+      {orderBlockedReason && (
+        <div className="px-4 py-3 text-sm font-semibold text-center" style={{ background: "#FEF3E2", color: "#7A4A12" }}>
+          {orderBlockedReason}
+        </div>
+      )}
 
       {/* Category tabs */}
       <div className="flex overflow-x-auto gap-1 px-4 py-2.5 bg-white border-b border-stone-100 sticky top-0 z-10">
@@ -427,10 +444,11 @@ export default function MenuPage() {
 
               <button
                 onClick={addToCart}
+                disabled={orderBlockedReason !== null}
                 className="w-full py-4 rounded-2xl text-white font-bold text-base"
-                style={{ background: "#2C1A0E" }}
+                style={{ background: orderBlockedReason ? "#9CA3AF" : "#2C1A0E" }}
               >
-                담기 · {modalTotal.toLocaleString()}원
+                {orderBlockedReason ? "지금은 주문할 수 없어요" : `담기 · ${modalTotal.toLocaleString()}원`}
               </button>
             </div>
           </div>
@@ -540,9 +558,9 @@ export default function MenuPage() {
           )}
           <span
             className="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full text-white"
-            style={{ background: storeInfo?.status === "ACTIVE" ? "#22C55E" : "#6B7280" }}
+            style={{ background: storeInfo?.status === "ACTIVE" && !orderBlockedReason ? "#22C55E" : "#6B7280" }}
           >
-            {storeInfo?.status === "ACTIVE" ? "영업중" : "준비중"}
+            {!isLaunchStore(storeId) ? "오픈 예정" : storeInfo?.status !== "ACTIVE" ? "준비중" : orderBlockedReason ? "영업 종료" : "영업중"}
           </span>
           <span className="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full text-white" style={{ background: "#2C1A0E" }}>
             테이크아웃

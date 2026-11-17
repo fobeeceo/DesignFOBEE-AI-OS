@@ -87,6 +87,8 @@ function encodeText(text: string, out: number[]) {
   const table = eucKrTable();
   for (const ch of text) {
     const code = ch.codePointAt(0)!;
+    // 제어문자(ESC·GS 등)는 프린터 명령으로 해석되므로 글자로 찍지 않고 공백으로 바꾼다
+    if (code < 0x20 || code === 0x7f) { out.push(0x20); continue; }
     if (code < 0x80) { out.push(code); continue; }
     const pair = table.get(ch);
     if (pair === undefined) out.push(0x3f); // 프린터에 없는 글자는 ?
@@ -127,6 +129,7 @@ export function buildKitchenTicket(order: TicketOrder, storeName: string): Uint8
   t.line(RULE);
   if (order.note) t.bold(true).line(`메모: ${order.note}`).bold(false).line(RULE);
   t.line(`수량 ${totalQty}개`).align(2).line(`합계 ${order.finalAmount.toLocaleString("ko-KR")}원`);
+  t.bold(true).line("현장 결제 (카운터에서 받기)").bold(false);
   return t.cut();
 }
 

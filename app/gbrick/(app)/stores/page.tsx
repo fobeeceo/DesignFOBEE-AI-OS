@@ -3,6 +3,8 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { haversineKm, formatDistance, walkingMinutes } from "@/lib/gbrick/utils/distance";
+import { isLaunchStore } from "@/lib/gbrick/launch";
+import { isWithinOperatingHours } from "@/lib/gbrick/storeHours";
 
 interface Store {
   id: string;
@@ -161,7 +163,11 @@ export default function StoreListPage() {
         ) : (
           storesWithDist.map((store) => {
             const hours = store.operatingHours?.[TODAY];
-            const isOpen = store.status === "ACTIVE";
+            const launched = isLaunchStore(store.id);
+            const inHours = isWithinOperatingHours(store.operatingHours);
+            const isOpen = store.status === "ACTIVE" && launched && inHours;
+            const badge = !launched ? "오픈 예정" : store.status !== "ACTIVE" ? "준비중" : inHours ? "영업중" : "영업 종료";
+            const buttonLabel = !launched ? "오픈 예정" : store.status !== "ACTIVE" ? "영업 준비중" : inHours ? "테이크 아웃" : "영업시간이 아니에요";
             return (
               <div key={store.id} className="bg-white rounded-2xl shadow-sm border border-stone-100 overflow-hidden">
                 {/* Store image placeholder */}
@@ -196,7 +202,7 @@ export default function StoreListPage() {
                         <span
                           className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full text-white ${isOpen ? "bg-green-500" : "bg-stone-400"}`}
                         >
-                          {isOpen ? "영업중" : "준비중"}
+                          {badge}
                         </span>
                       </div>
                       <p className="text-xs text-stone-500 mt-0.5">{store.address}</p>
@@ -216,7 +222,7 @@ export default function StoreListPage() {
                       pointerEvents: isOpen ? "auto" : "none",
                     }}
                   >
-                    {isOpen ? "테이크 아웃" : "영업 준비중"}
+                    {buttonLabel}
                   </Link>
                 </div>
               </div>

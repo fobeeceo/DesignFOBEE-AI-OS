@@ -37,6 +37,21 @@ describe("buildKitchenTicket", () => {
     expect(out).toContain("??");
   });
 
+  it("tells the counter that payment is collected on site", () => {
+    expect(text).toContain("현장 결제 (카운터에서 받기)");
+  });
+
+  it("never lets guest-typed control characters reach the printer as commands", () => {
+    // ESC p 0 25 250 = 금전함 열기, GS V 0 = 용지 절단, ESC @ = 초기화 — 손님이 이름·메모에 넣어 보낼 수 있는 것들
+    const hostile = buildKitchenTicket({ ...order, pickupName: "a\u001bp\u0000\u0019\u00fab", note: "x\u001dV\u0000y", items: [{ menuName: "m\u001b@z", quantity: 1 }] }, "매장");
+    const contains = (bytes: number[]) => Array.from(hostile).some((_, i) => bytes.every((b, j) => hostile[i + j] === b));
+    expect(contains([0x1b, 0x70])).toBe(false);              // 금전함
+    expect(contains([0x1d, 0x56, 0x00, 0x79])).toBe(false);  // 손님 글 뒤에 붙은 절단 (코드가 넣는 절단은 GS V B 0)
+    // 초기화(ESC @)는 코드가 맨 앞에 한 번만 넣는다
+    expect(Array.from(hostile).filter((_, i) => hostile[i] === 0x1b && hostile[i + 1] === 0x40)).toHaveLength(1);
+    expect(decode(hostile)).toContain("a p");               // 글자는 공백으로 바뀌어 남는다
+  });
+
   it("prints the order time in the shop's local time, with the date", () => {
     // 00:34 UTC = 09:34 KST
     expect(text).toContain("주문 11/16 오전 09:34");
