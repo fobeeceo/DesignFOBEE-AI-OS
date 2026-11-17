@@ -734,7 +734,7 @@ export default function OwnerAppPage() {
     if (!window.confirm(`선택한 ${copyTargets.size}개 메뉴의 옵션을 '${editMenu.name}'의 옵션과 똑같이 바꿉니다.\n그 메뉴들의 기존 옵션은 사라집니다. 계속할까요?`)) return;
     setSaving(true);
     try {
-      const res = await fetch(`/api/gbrick/admin/menus/${editMenu.id}/options`, {
+      const res = await posFetch(`/api/gbrick/admin/menus/${editMenu.id}/options`, {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ copyTo: [...copyTargets] }),
       });
