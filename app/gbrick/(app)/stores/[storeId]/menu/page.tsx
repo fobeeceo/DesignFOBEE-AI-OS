@@ -133,9 +133,11 @@ export default function MenuPage() {
       unitPrice: selectedMenu.basePrice + extraTotal,
       options: chosenOptions,
     };
+    // 같은 메뉴라도 옵션이 다르면 다른 줄로 담는다 (소이밀크 라떼 + 오트밀크 라떼 → 두 줄)
+    const optionKey = (options: CartItem["options"]) => options.map(o => o.menuOptionId).sort().join("|");
     const updatedCart = [...cart];
-    const existing = updatedCart.findIndex(c => c.menuId === selectedMenu.id);
-    if (existing >= 0) updatedCart[existing].quantity += 1;
+    const existing = updatedCart.findIndex(c => c.menuId === selectedMenu.id && optionKey(c.options) === optionKey(chosenOptions));
+    if (existing >= 0) updatedCart[existing] = { ...updatedCart[existing], quantity: updatedCart[existing].quantity + 1 };
     else updatedCart.push(newItem);
     setCart(updatedCart);
     sessionStorage.setItem("gbrick_cart", JSON.stringify({ storeId, items: updatedCart }));

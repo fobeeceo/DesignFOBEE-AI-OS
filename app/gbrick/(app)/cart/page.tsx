@@ -32,11 +32,12 @@ export default function CartPage() {
     } catch {}
   }, []);
 
-  function updateQty(menuId: string, delta: number) {
+  // 같은 메뉴가 옵션만 달리해 여러 줄일 수 있어, 줄 번호로 고른다
+  function updateQty(index: number, delta: number) {
     setCart((prev) => {
       if (!prev) return prev;
       const items = prev.items
-        .map((i) => i.menuId === menuId ? { ...i, quantity: i.quantity + delta } : i)
+        .map((i, idx) => idx === index ? { ...i, quantity: i.quantity + delta } : i)
         .filter((i) => i.quantity > 0);
       const next = { ...prev, items };
       sessionStorage.setItem("gbrick_cart", JSON.stringify(next));
@@ -145,7 +146,7 @@ export default function CartPage() {
         <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
           {cart.items.map((item, i) => (
             <div
-              key={item.menuId}
+              key={`${item.menuId}-${i}`}
               className={`flex items-center gap-3 px-4 py-3.5 ${i > 0 ? "border-t border-stone-100" : ""}`}
             >
               <div className="flex-1 min-w-0">
@@ -161,14 +162,14 @@ export default function CartPage() {
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 <button
-                  onClick={() => updateQty(item.menuId, -1)}
+                  onClick={() => updateQty(i, -1)}
                   className="w-8 h-8 rounded-full border border-stone-200 text-stone-600 font-bold flex items-center justify-center"
                 >
                   −
                 </button>
                 <span className="w-5 text-center text-sm font-semibold">{item.quantity}</span>
                 <button
-                  onClick={() => updateQty(item.menuId, 1)}
+                  onClick={() => updateQty(i, 1)}
                   className="w-8 h-8 rounded-full border border-stone-200 text-stone-600 font-bold flex items-center justify-center"
                 >
                   +
