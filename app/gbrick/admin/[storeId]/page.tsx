@@ -298,6 +298,8 @@ export default function OwnerAppPage() {
   const [editActive, setEditActive] = useState(true);
   const [optDirty, setOptDirty] = useState(false);
   const [catEdit, setCatEdit] = useState<CategoryEdit[] | null>(null);
+  const [newCatName, setNewCatName] = useState("");
+  const [newMenu, setNewMenu] = useState({ name: "", price: "" });
   const [soldOuts, setSoldOuts] = useState<Record<string, boolean>>({});
   const [sortMode, setSortMode] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -448,9 +450,12 @@ export default function OwnerAppPage() {
     } catch { showToast("서버 오류"); await fetchOrders(false); } finally { setOrderUpdating(null); }
   }
 
+  // 앞선 안내의 타이머가 새 안내를 지우지 않게, 마지막 타이머만 남긴다
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const showToast = (msg: string) => {
     setToast(msg);
-    setTimeout(() => setToast(""), 2200);
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToast(""), 2200);
   };
 
   const fetchData = useCallback(async () => {
@@ -677,10 +682,42 @@ export default function OwnerAppPage() {
         body: JSON.stringify({ importDefaults: true }),
       });
       const d = await res.json() as { options?: MenuOptionRow[] };
-      if (!res.ok || !d.options) { showToast("불러오기 실패"); return; }
-      setMenuOptions(d.options);
-      showToast("기본 옵션을 불러왔습니다");
+      if (!res.ok || !d.options) { showToast("가져오기 실패"); return; }
+      // 저장 전인 수정 내용을 지우지 않도록, 새로 생긴 옵션만 뒤에 붙인다
+      const added = d.options.filter(o => !menuOptions.some(x => x.id === o.id));
+      setMenuOptions(p => [...p, ...added]);
+      showToast(added.length > 0 ? `기본 옵션 ${added.length}개를 가져왔습니다` : "더 가져올 기본 옵션이 없습니다");
     } catch { showToast("오류 발생"); } finally { setSaving(false); }
+  }
+
+  async function removeMenu() {
+    if (!editMenu || !window.confirm(`'${editMenu.name}' 메뉴를 삭제할까요?\n고객 앱과 사장님 앱에서 사라집니다.`)) return;
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/gbrick/admin/menus/${editMenu.id}`, { method: "DELETE" });
+      if (!res.ok) { showToast("삭제 실패"); return; }
+      const id = editMenu.id;
+      setCategories(p => p.map(c => ({ ...c, menus: c.menus.filter(m => m.id !== id) })));
+      setEditMenu(null);
+      showToast("메뉴가 삭제됐습니다");
+    } catch { showToast("삭제 실패"); } finally { setSaving(false); }
+  }
+
+  async function addMenu() {
+    const name = newMenu.name.trim();
+    if (!name || newMenu.price === "" || !activeCat) return;
+    setSaving(true);
+    try {
+      const res = await fetch("/api/gbrick/admin/menus", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ categoryId: activeCat, name, basePrice: Number(newMenu.price) }),
+      });
+      const d = await res.json() as { menu?: Menu; error?: string };
+      if (!res.ok || !d.menu) { showToast(d.error ?? "메뉴 추가 실패"); return; }
+      setCategories(p => p.map(c => (c.id === d.menu!.categoryId ? { ...c, menus: [...c.menus, d.menu!] } : c)));
+      setNewMenu({ name: "", price: "" });
+      showToast("메뉴가 추가됐습니다");
+    } catch { showToast("메뉴 추가 실패"); } finally { setSaving(false); }
   }
 
   // ── 카테고리 관리 ──
@@ -691,6 +728,40 @@ export default function OwnerAppPage() {
       [next[idx], next[idx + dir]] = [next[idx + dir], next[idx]];
       return next;
     });
+  }
+
+  async function addCategory() {
+    const name = newCatName.trim();
+    if (!name) return;
+    setSaving(true);
+    try {
+      const res = await fetch("/api/gbrick/admin/categories", {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name }),
+      });
+      const d = await res.json() as { category?: { id: string; name: string }; error?: string };
+      if (!res.ok || !d.category) { showToast(d.error ?? "카테고리 추가 실패"); return; }
+      const created = d.category;
+      setCategories(p => [...p, { id: created.id, name: created.name, isActive: true, menus: [] }]);
+      setCatEdit(p => p && [...p, { id: created.id, name: created.name, isActive: true }]);
+      setNewCatName("");
+      showToast("카테고리가 추가됐습니다");
+    } catch { showToast("카테고리 추가 실패"); } finally { setSaving(false); }
+  }
+
+  async function removeCategory(cat: CategoryEdit) {
+    if ((categories.find(c => c.id === cat.id)?.menus.length ?? 0) > 0) { showToast("메뉴가 남아 있어 삭제할 수 없습니다"); return; }
+    if (!window.confirm(`'${cat.name}' 카테고리를 삭제할까요?`)) return;
+    setSaving(true);
+    try {
+      const res = await fetch("/api/gbrick/admin/categories", {
+        method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: cat.id }),
+      });
+      if (!res.ok) { showToast(res.status === 409 ? "메뉴가 남아 있어 삭제할 수 없습니다" : "삭제 실패"); return; }
+      setCategories(p => p.filter(c => c.id !== cat.id));
+      setCatEdit(p => p && p.filter(c => c.id !== cat.id));
+      setActiveCat(prev => (prev === cat.id ? categories.find(c => c.id !== cat.id)?.id ?? "" : prev));
+      showToast("카테고리가 삭제됐습니다");
+    } catch { showToast("삭제 실패"); } finally { setSaving(false); }
   }
 
   async function saveCategories() {
@@ -779,6 +850,21 @@ export default function OwnerAppPage() {
     <div className="flex flex-col gap-1 shrink-0">
       {arrowButton("↑", idx === 0, () => moveMenu(activeCat, idx, idx - 1), "위로")}
       {arrowButton("↓", idx === menus.length - 1, () => moveMenu(activeCat, idx, idx + 1), "아래로")}
+    </div>
+  );
+  const addMenuForm = !sortMode && activeCat && (
+    <div className="bg-white rounded-xl border border-dashed border-stone-300 p-3 flex items-center gap-2">
+      <input value={newMenu.name} onChange={e => setNewMenu(p => ({ ...p, name: e.target.value }))} maxLength={50}
+        placeholder="새 메뉴 이름" aria-label="새 메뉴 이름"
+        className="flex-1 min-w-0 text-sm border border-stone-200 rounded-lg px-3 py-2" />
+      <input type="number" min={0} step={100} value={newMenu.price} onChange={e => setNewMenu(p => ({ ...p, price: e.target.value }))}
+        placeholder="가격" aria-label="새 메뉴 가격"
+        className="w-24 text-sm text-right border border-stone-200 rounded-lg px-3 py-2" />
+      <button onClick={addMenu} disabled={saving || !newMenu.name.trim() || newMenu.price === ""}
+        className="shrink-0 px-4 py-2 rounded-lg text-white font-bold text-sm"
+        style={{ background: saving || !newMenu.name.trim() || newMenu.price === "" ? "#9CA3AF" : "#2C1A0E" }}>
+        메뉴 추가
+      </button>
     </div>
   );
   const hiddenBadge = <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-stone-200 text-stone-600 shrink-0">숨김</span>;
@@ -1227,6 +1313,7 @@ export default function OwnerAppPage() {
                     );
                   })}
                 </div>
+                {addMenuForm && <div className="mt-3">{addMenuForm}</div>}
               </div>
             </div>
           )}
@@ -1443,6 +1530,7 @@ export default function OwnerAppPage() {
                   </div>
                 );
               })}
+              {addMenuForm}
             </div>
           </div>
         )}
@@ -1799,6 +1887,9 @@ export default function OwnerAppPage() {
                     style={{ background: (saving || uploading) ? "#9CA3AF" : "#C8873A" }}>
                     {saving ? "저장 중..." : "저장"}
                   </button>
+                  <button onClick={removeMenu} disabled={saving} className="w-full py-2.5 text-sm font-semibold text-red-500">
+                    이 메뉴 삭제
+                  </button>
                 </div>
               )}
               {modalTab === "options" && (
@@ -1856,6 +1947,11 @@ export default function OwnerAppPage() {
                         className="w-full py-3 rounded-xl text-white font-bold text-sm"
                         style={{ background: saving || !optDirty ? "#9CA3AF" : "#C8873A" }}>
                         {saving ? "저장 중..." : optDirty ? "옵션 변경 저장" : "변경 사항 없음"}
+                      </button>
+                      <button onClick={handleImportDefaults} disabled={saving}
+                        className="w-full mt-2 py-3 rounded-xl font-bold text-sm border bg-white"
+                        style={{ borderColor: "#C8873A", color: "#C8873A" }}>
+                        기본 옵션 가져오기 (없는 것만 추가)
                       </button>
                     </div>
                   )}
@@ -1916,8 +2012,21 @@ export default function OwnerAppPage() {
                     className="flex-1 min-w-0 text-sm border border-stone-200 rounded-lg px-3 py-2 bg-white" />
                   <Toggle on={cat.isActive} label={`${cat.name} 노출`}
                     onChange={() => setCatEdit(p => p && p.map(c => (c.id === cat.id ? { ...c, isActive: !c.isActive } : c)))} />
+                  <button onClick={() => removeCategory(cat)} disabled={saving} aria-label={`${cat.name} 삭제`}
+                    className="w-6 h-6 rounded-full bg-red-100 text-red-500 flex items-center justify-center text-xs font-bold shrink-0">✕</button>
                 </div>
               ))}
+              <div className="flex items-center gap-2 border border-dashed border-stone-300 rounded-xl px-2 py-2 mt-3">
+                <input value={newCatName} onChange={e => setNewCatName(e.target.value)} maxLength={50}
+                  placeholder="새 카테고리 이름" aria-label="새 카테고리 이름"
+                  className="flex-1 min-w-0 text-sm border border-stone-200 rounded-lg px-3 py-2 bg-white" />
+                <button onClick={addCategory} disabled={saving || !newCatName.trim()}
+                  className="shrink-0 px-4 py-2 rounded-lg text-white font-bold text-sm"
+                  style={{ background: saving || !newCatName.trim() ? "#9CA3AF" : "#2C1A0E" }}>
+                  카테고리 추가
+                </button>
+              </div>
+              <p className="text-xs text-stone-500 mt-2">메뉴가 없는 카테고리는 고객 앱에 보이지 않습니다. 삭제는 메뉴를 모두 삭제한 뒤에 할 수 있습니다.</p>
               <div className="flex gap-2 mt-3">
                 <button onClick={() => setCatEdit(null)}
                   className="flex-1 py-3.5 rounded-xl font-bold text-sm border border-stone-200 text-stone-600">취소</button>

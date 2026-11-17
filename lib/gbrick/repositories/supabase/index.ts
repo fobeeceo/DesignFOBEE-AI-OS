@@ -114,7 +114,7 @@ export const sbMenuRepo: IMenuRepository = {
     const sb = getAdmin();
     const includeHidden = opts?.includeHidden === true;
     const visible = (r: Record<string, unknown>) =>
-      includeHidden || r.isActive === undefined || r.isActive === null || r.isActive === true;
+      !isDeleted(r) && (includeHidden || r.isActive === undefined || r.isActive === null || r.isActive === true);
 
     // 1) 카테고리 테이블 조회 (sortOrder 컬럼 없을 수 있으므로 order 없이)
     const { data: catsRaw } = await sb
@@ -206,7 +206,9 @@ export const sbMenuRepo: IMenuRepository = {
         })),
       };
     });
-    return result as unknown as MenuCategoryDto[];
+    // 고객 앱에는 보여 줄 메뉴가 없는 카테고리 탭을 내보내지 않는다 (새로 만든 빈 카테고리 등)
+    const shown = includeHidden ? result : result.filter(c => c.menus.length > 0);
+    return shown as unknown as MenuCategoryDto[];
   },
 };
 
@@ -235,18 +237,84 @@ export async function updateMenuOptions(
   }
 }
 
-/** 옵션을 등록한 적 없는 메뉴에 기본 옵션을 저장해 수정할 수 있게 한다. 이미 옵션이 있으면 아무것도 하지 않는다. */
+/**
+ * 기본 옵션 중 이 메뉴에 없는 것만 추가한다. 여러 번 눌러도 중복되지 않는다.
+ * 온도처럼 하나만 고르는 그룹은 이미 옵션이 있으면 건드리지 않는다 ("뜨겁게"가 있는데 "따뜻하게"가 또 생기지 않게).
+ */
 export async function importDefaultOptions(menuId: string): Promise<void> {
   const sb = getAdmin();
-  const { data: existing, error } = await sb.from("gb_menu_options").select("id").eq("menuId", menuId).not("groupName", "is", null).limit(1);
+  const { data, error } = await sb.from("gb_menu_options").select("name, groupName, sortOrder").eq("menuId", menuId).not("groupName", "is", null);
   if (error) throw error;
-  if ((existing ?? []).length > 0) return;
+  const existing = (data ?? []) as { name: string; groupName: string; sortOrder: number }[];
+  const missing = DEFAULT_OPTIONS.filter(o =>
+    o.groupName === "온도"
+      ? !existing.some(e => e.groupName === "온도")
+      : !existing.some(e => e.name === o.name)
+  );
+  if (missing.length === 0) return;
   const now = new Date().toISOString();
-  const { error: insertErr } = await sb.from("gb_menu_options").insert(DEFAULT_OPTIONS.map((o, idx) => ({
+  const last = Math.max(0, ...existing.map(e => Number(e.sortOrder) || 0));
+  const { error: insertErr } = await sb.from("gb_menu_options").insert(missing.map((o, idx) => ({
     id: `opt-${nanoid()}`, menuId, name: o.name, extraPrice: o.extraPrice, isDefault: o.isDefault,
-    groupName: o.groupName, sortOrder: idx + 1, isActive: true, createdAt: now, updatedAt: now,
+    groupName: o.groupName, sortOrder: last + idx + 1, isActive: true, createdAt: now, updatedAt: now,
   })));
   if (insertErr) throw insertErr;
+}
+
+// ─── 사장님 앱: 카테고리·메뉴 추가와 삭제 ───────────────────────
+// 삭제는 행을 지우지 않는다. 지난 주문이 메뉴를 가리키고 있어 지울 수 없고, 잘못 눌러도 되살릴 수 있어야 한다.
+// 표에 삭제 표시 칸이 없어 "숨김 + 순서 -1" 을 삭제 표시로 쓴다. 화면이 저장하는 순서는 항상 0 이상이다.
+const DELETED_SORT_ORDER = -1;
+function isDeleted(row: Record<string, unknown>): boolean {
+  return row.isActive === false && Number(row.sortOrder) === DELETED_SORT_ORDER;
+}
+
+async function nextSortOrder(sb: ReturnType<typeof getAdmin>, table: "gb_menu_categories" | "gb_menus", categoryId?: string): Promise<number> {
+  let q = sb.from(table).select("sortOrder");
+  if (categoryId) q = q.eq("categoryId", categoryId);
+  const { data, error } = await q.order("sortOrder", { ascending: false }).limit(1);
+  if (error) throw error;
+  return Math.max(0, Number(data?.[0]?.sortOrder ?? 0)) + 1;
+}
+
+export async function createCategory(name: string) {
+  const sb = getAdmin();
+  const now = new Date().toISOString();
+  const { data, error } = await sb.from("gb_menu_categories").insert({
+    id: `cat-${nanoid()}`, name, sortOrder: await nextSortOrder(sb, "gb_menu_categories"), isActive: true, createdAt: now, updatedAt: now,
+  }).select().single();
+  if (error) throw error;
+  return data as { id: string; name: string; sortOrder: number; isActive: boolean };
+}
+
+/** 메뉴가 남아 있는 카테고리는 삭제하지 않고 false 를 돌려준다 */
+export async function deleteCategory(categoryId: string): Promise<boolean> {
+  const sb = getAdmin();
+  const { data: menus, error } = await sb.from("gb_menus").select("isActive, sortOrder").eq("categoryId", categoryId);
+  if (error) throw error;
+  if ((menus ?? []).some(m => !isDeleted(m))) return false;
+  const { error: updateErr } = await sb.from("gb_menu_categories")
+    .update({ isActive: false, sortOrder: DELETED_SORT_ORDER, updatedAt: new Date().toISOString() }).eq("id", categoryId);
+  if (updateErr) throw updateErr;
+  return true;
+}
+
+export async function createMenu(categoryId: string, name: string, basePrice: number) {
+  const sb = getAdmin();
+  const now = new Date().toISOString();
+  const { data, error } = await sb.from("gb_menus").insert({
+    id: `menu-${nanoid()}`, categoryId, name, basePrice, isSignature: false, isNew: false, isSoldOut: false, isActive: true,
+    sortOrder: await nextSortOrder(sb, "gb_menus", categoryId), createdAt: now, updatedAt: now,
+  }).select().single();
+  if (error) throw error;
+  return data as { id: string; categoryId: string; name: string; basePrice: number };
+}
+
+export async function deleteMenu(menuId: string): Promise<void> {
+  const sb = getAdmin();
+  const { error } = await sb.from("gb_menus")
+    .update({ isActive: false, sortOrder: DELETED_SORT_ORDER, updatedAt: new Date().toISOString() }).eq("id", menuId);
+  if (error) throw error;
 }
 
 const optionKey = (menuId: string, optionName: string) => `${menuId}\u0000${optionName}`;

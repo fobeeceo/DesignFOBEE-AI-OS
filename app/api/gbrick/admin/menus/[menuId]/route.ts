@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
-import { sbMenuRepo, sbStoreRepo } from "@/lib/gbrick/repositories/supabase";
+import { sbMenuRepo, sbStoreRepo, deleteMenu } from "@/lib/gbrick/repositories/supabase";
 import { cleanName, cleanPrice, cleanSortOrder } from "@/lib/gbrick/menuInput";
 
 const optionalText = (v: unknown, max: number) => (v === null || (typeof v === "string" && v.length <= max));
@@ -38,5 +38,17 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ me
   } catch (err) {
     console.error("[PATCH /api/gbrick/admin/menus]", err);
     return NextResponse.json({ error: "서버 오류", detail: String(err) }, { status: 500 });
+  }
+}
+
+// DELETE — 메뉴 삭제 (사장님 앱·고객 앱에서 사라진다. 지난 주문 기록을 위해 데이터는 남긴다)
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ menuId: string }> }) {
+  try {
+    const { menuId } = await params;
+    await deleteMenu(menuId);
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    console.error("[DELETE /api/gbrick/admin/menus]", err);
+    return NextResponse.json({ error: "서버 오류" }, { status: 500 });
   }
 }
