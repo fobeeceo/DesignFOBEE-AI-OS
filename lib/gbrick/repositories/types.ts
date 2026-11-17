@@ -237,10 +237,11 @@ export interface IStoreRepository {
 }
 
 export interface IMenuRepository {
-  findCategories(storeId?: string): Promise<MenuCategoryDto[]>;
+  findCategories(storeId?: string, opts?: { includeHidden?: boolean }): Promise<MenuCategoryDto[]>;
   updateMenu(menuId: string, data: {
-    name?: string; nameEn?: string; description?: string;
-    basePrice?: number; imageUrl?: string; isSignature?: boolean; isNew?: boolean;
+    name?: string; nameEn?: string | null; description?: string | null;
+    basePrice?: number; imageUrl?: string | null; isSignature?: boolean; isNew?: boolean;
+    isActive?: boolean; sortOrder?: number;
   }): Promise<void>;
   findOptions(menuId: string): Promise<MenuOptionDto[]>;
   addOption(menuId: string, data: { groupName: string; name: string; extraPrice: number; isDefault?: boolean }): Promise<MenuOptionDto>;

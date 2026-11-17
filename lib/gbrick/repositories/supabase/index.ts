@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { DEFAULT_OPTIONS } from "@/lib/gbrick/defaultOptions";
 import type {
   IStoreRepository, IMenuRepository, IOrderRepository, IPaymentRepository,
   IPointRepository, IStampRepository, ICouponRepository, IChecklistRepository, INoticeRepository,
@@ -79,18 +80,21 @@ export const sbMenuRepo: IMenuRepository = {
     const { error } = await sb.from("gb_menus").update({ ...data, updatedAt: new Date().toISOString() }).eq("id", menuId);
     if (error) throw error;
   },
+  // 사장님 앱용: 숨긴 옵션도 포함한다. groupName 이 없는 행은 지난 주문 기록만 붙들고 있는 보관용이라 제외한다.
   async findOptions(menuId: string) {
     const sb = getAdmin();
-    const { data } = await sb.from("gb_menu_options").select("*").eq("menuId", menuId).eq("isActive", true).order("sortOrder");
+    const { data } = await sb.from("gb_menu_options").select("*").eq("menuId", menuId).not("groupName", "is", null).order("sortOrder");
     return (data ?? []) as unknown as import("../types").MenuOptionDto[];
   },
   async addOption(menuId: string, data: { groupName: string; name: string; extraPrice: number; isDefault?: boolean }) {
     const sb = getAdmin();
     const id = `opt-${nanoid()}`;
+    const { data: last } = await sb.from("gb_menu_options").select("sortOrder").eq("menuId", menuId).not("groupName", "is", null)
+      .order("sortOrder", { ascending: false }).limit(1);
     const { data: row, error } = await sb.from("gb_menu_options").insert({
       id, menuId, name: data.name, extraPrice: data.extraPrice,
       isDefault: data.isDefault ?? false, groupName: data.groupName,
-      sortOrder: 99, isActive: true,
+      sortOrder: ((last?.[0]?.sortOrder as number | undefined) ?? 0) + 1, isActive: true,
       createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
     }).select().single();
     if (error) throw error;
@@ -98,11 +102,19 @@ export const sbMenuRepo: IMenuRepository = {
   },
   async deleteOption(optionId: string) {
     const sb = getAdmin();
-    const { error } = await sb.from("gb_menu_options").update({ isActive: false, updatedAt: new Date().toISOString() }).eq("id", optionId);
-    if (error) throw error;
+    const { error } = await sb.from("gb_menu_options").delete().eq("id", optionId);
+    if (!error) return;
+    // 지난 주문이 이 옵션을 가리키고 있으면 지울 수 없다 → 화면에서만 빼고 기록용으로 남긴다
+    if (error.code !== "23503") throw error;
+    const { error: archiveErr } = await sb.from("gb_menu_options")
+      .update({ isActive: false, groupName: null, updatedAt: new Date().toISOString() }).eq("id", optionId);
+    if (archiveErr) throw archiveErr;
   },
-  async findCategories(storeId?: string) {
+  async findCategories(storeId?: string, opts?: { includeHidden?: boolean }) {
     const sb = getAdmin();
+    const includeHidden = opts?.includeHidden === true;
+    const visible = (r: Record<string, unknown>) =>
+      includeHidden || r.isActive === undefined || r.isActive === null || r.isActive === true;
 
     // 1) 카테고리 테이블 조회 (sortOrder 컬럼 없을 수 있으므로 order 없이)
     const { data: catsRaw } = await sb
@@ -127,16 +139,13 @@ export const sbMenuRepo: IMenuRepository = {
       }
     }
 
-    // isActive 필터 (컬럼 없으면 전체 포함)
-    const activeMenus = (menusRaw ?? []).filter((m: Record<string, unknown>) =>
-      m.isActive === undefined || m.isActive === null || m.isActive === true
-    );
+    // isActive 필터 (컬럼 없으면 전체 포함) — 사장님 앱은 숨긴 메뉴도 본다
+    const activeMenus = (menusRaw ?? []).filter(visible);
 
     // 3) 카테고리 테이블이 비어있으면 메뉴의 categoryId에서 가상 카테고리 생성
     let activeCats: Record<string, unknown>[];
-    const dbCats = (catsRaw ?? []).filter((c: Record<string, unknown>) =>
-      c.isActive === undefined || c.isActive === null || c.isActive === true
-    );
+    const dbCats = (catsRaw ?? []).filter(visible)
+      .sort((a: Record<string, unknown>, b: Record<string, unknown>) => Number(a.sortOrder ?? 0) - Number(b.sortOrder ?? 0));
 
     if (dbCats.length > 0) {
       activeCats = dbCats;
@@ -167,10 +176,14 @@ export const sbMenuRepo: IMenuRepository = {
     // 옵션/재고 테이블 오류는 무시하고 빈 배열로 처리 (테이블 미생성 시에도 카테고리/메뉴 표시)
     // if (optRes.error) throw optRes.error;
 
+    const allOpts = (optRes.data ?? []) as Record<string, unknown>[];
     const optsByMenu = groupBy(
-      (optRes.data ?? []).filter((o: Record<string, unknown>) => o.isActive !== false),
+      allOpts.filter(o => o.isActive !== false)
+        .sort((a, b) => Number(a.sortOrder ?? 0) - Number(b.sortOrder ?? 0)),
       "menuId"
     );
+    // 사장님이 옵션을 직접 관리하는 메뉴 (전부 숨겨도 기본 옵션으로 되돌아가지 않게 구분한다)
+    const configuredMenus = new Set(allOpts.filter(o => o.groupName != null).map(o => String(o.menuId)));
     const availByMenu = groupBy(availRes.data ?? [], "menuId");
 
     const menusByCatId = new Map<string, typeof activeMenus>();
@@ -188,6 +201,7 @@ export const sbMenuRepo: IMenuRepository = {
         menus: catMenus.map((m: Record<string, unknown> & { id: string }) => ({
           ...m,
           options: optsByMenu[m.id] ?? [],
+          optionsConfigured: configuredMenus.has(m.id),
           storeAvailability: availByMenu[m.id] ?? [],
         })),
       };
@@ -197,6 +211,43 @@ export const sbMenuRepo: IMenuRepository = {
 };
 
 // ─── Order Repository ─────────────────────────────────────────
+
+// ─── 사장님 앱: 카테고리·옵션 일괄 수정 ─────────────────────────
+export async function updateCategories(rows: { id: string; name: string; sortOrder: number; isActive: boolean }[]): Promise<void> {
+  const sb = getAdmin();
+  const updatedAt = new Date().toISOString();
+  for (const { id, ...data } of rows) {
+    const { error } = await sb.from("gb_menu_categories").update({ ...data, updatedAt }).eq("id", id);
+    if (error) throw error;
+  }
+}
+
+export async function updateMenuOptions(
+  menuId: string,
+  rows: { id: string; name: string; extraPrice: number; sortOrder: number; isActive: boolean }[],
+): Promise<void> {
+  const sb = getAdmin();
+  const updatedAt = new Date().toISOString();
+  for (const { id, ...data } of rows) {
+    // menuId 조건: 다른 메뉴의 옵션이 섞여 들어와도 바뀌지 않게 한다
+    const { error } = await sb.from("gb_menu_options").update({ ...data, updatedAt }).eq("id", id).eq("menuId", menuId);
+    if (error) throw error;
+  }
+}
+
+/** 옵션을 등록한 적 없는 메뉴에 기본 옵션을 저장해 수정할 수 있게 한다. 이미 옵션이 있으면 아무것도 하지 않는다. */
+export async function importDefaultOptions(menuId: string): Promise<void> {
+  const sb = getAdmin();
+  const { data: existing, error } = await sb.from("gb_menu_options").select("id").eq("menuId", menuId).not("groupName", "is", null).limit(1);
+  if (error) throw error;
+  if ((existing ?? []).length > 0) return;
+  const now = new Date().toISOString();
+  const { error: insertErr } = await sb.from("gb_menu_options").insert(DEFAULT_OPTIONS.map((o, idx) => ({
+    id: `opt-${nanoid()}`, menuId, name: o.name, extraPrice: o.extraPrice, isDefault: o.isDefault,
+    groupName: o.groupName, sortOrder: idx + 1, isActive: true, createdAt: now, updatedAt: now,
+  })));
+  if (insertErr) throw insertErr;
+}
 
 const optionKey = (menuId: string, optionName: string) => `${menuId}\u0000${optionName}`;
 

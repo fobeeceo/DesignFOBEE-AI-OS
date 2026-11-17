@@ -6,6 +6,7 @@ import {
   isSerialSupported, hasPrinter, loadSavedPrinter, connectPrinter,
   printBytes, buildKitchenTicket, buildTestTicket,
 } from "@/lib/gbrick/pos/serialPrinter";
+import { DEFAULT_OPTIONS } from "@/lib/gbrick/defaultOptions";
 
 // ─── 대기 화면 (Standby Screen) ──────────────────────────────
 function StandbyScreen({ storeName, onWake }: { storeName: string; onWake: () => void }) {
@@ -68,7 +69,7 @@ function StandbyScreen({ storeName, onWake }: { storeName: string; onWake: () =>
 
 // ─── Types ───────────────────────────────────────────────────
 
-interface MenuOptionRow { id: string; name: string; extraPrice: number; isDefault: boolean; groupName: string; }
+interface MenuOptionRow { id: string; name: string; extraPrice: number; isDefault: boolean; groupName: string; isActive?: boolean; }
 interface OperatingHour { open: string; close: string; closed: boolean; }
 interface StoreOperatingHours {
   mon: OperatingHour; tue: OperatingHour; wed: OperatingHour;
@@ -91,9 +92,25 @@ interface Menu {
   description?: string | null; basePrice: number; imageUrl?: string | null;
   isSignature: boolean; isNew: boolean; isSoldOut: boolean;
   sortOrder?: number | null;
+  isActive?: boolean;
   storeAvailability?: { isSoldOut: boolean }[];
 }
-interface Category { id: string; name: string; menus: Menu[]; }
+interface Category { id: string; name: string; isActive?: boolean; menus: Menu[]; }
+interface CategoryEdit { id: string; name: string; isActive: boolean; }
+
+// 고객 앱 메뉴 화면이 보여 주는 옵션 그룹 (나머지 그룹은 등록해도 고객에게 보이지 않는다)
+const CUSTOMER_OPTION_GROUPS = ["온도", "추가옵션"];
+
+function Toggle({ on, onChange, label }: { on: boolean; onChange: () => void; label: string }) {
+  return (
+    <button type="button" role="switch" aria-checked={on} aria-label={label} onClick={onChange}
+      className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors shrink-0"
+      style={{ background: on ? "#2C1A0E" : "#D1D5DB" }}>
+      <span className="inline-block h-4 w-4 rounded-full bg-white shadow transition-transform"
+        style={{ transform: on ? "translateX(24px)" : "translateX(2px)" }} />
+    </button>
+  );
+}
 interface Store {
   id: string; name: string; phone?: string | null; address?: string;
   imageUrl?: string | null; operatingHours?: unknown; status?: string;
@@ -278,6 +295,9 @@ export default function OwnerAppPage() {
   const [optLoading, setOptLoading] = useState(false);
   const [newOpt, setNewOpt] = useState({ groupName: "추가옵션", name: "", extraPrice: "0" });
   const [modalTab, setModalTab] = useState<"info" | "options">("info");
+  const [editActive, setEditActive] = useState(true);
+  const [optDirty, setOptDirty] = useState(false);
+  const [catEdit, setCatEdit] = useState<CategoryEdit[] | null>(null);
   const [soldOuts, setSoldOuts] = useState<Record<string, boolean>>({});
   const [sortMode, setSortMode] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -454,7 +474,7 @@ export default function OwnerAppPage() {
       setStore(d.store);
       const cats = d.categories ?? [];
       setCategories(cats);
-      if (cats[0]) setActiveCat(cats[0].id);
+      setActiveCat(prev => (cats.some(c => c.id === prev) ? prev : cats[0]?.id ?? ""));
       if (d.store.operatingHours) setHours({ ...DEFAULT_HOURS, ...(d.store.operatingHours as StoreOperatingHours) });
       const init: Record<string, boolean> = {};
       cats.forEach(cat => cat.menus.forEach(m => { init[m.id] = m.storeAvailability?.[0]?.isSoldOut ?? m.isSoldOut; }));
@@ -504,6 +524,8 @@ export default function OwnerAppPage() {
   function openEdit(menu: Menu) {
     setEditMenu(menu);
     setEditForm({ name: menu.name, nameEn: menu.nameEn ?? "", description: menu.description ?? "", basePrice: String(menu.basePrice), imageUrl: menu.imageUrl ?? "" });
+    setEditActive(menu.isActive !== false);
+    setOptDirty(false);
     setModalTab("info");
     setNewOpt({ groupName: "추가옵션", name: "", extraPrice: "0" });
     setOptLoading(true);
@@ -518,7 +540,7 @@ export default function OwnerAppPage() {
     try {
       const res = await fetch(`/api/gbrick/admin/menus/${editMenu.id}`, {
         method: "PATCH", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: editForm.name, nameEn: editForm.nameEn || null, description: editForm.description || null, basePrice: Number(editForm.basePrice), imageUrl: editForm.imageUrl || null }),
+        body: JSON.stringify({ name: editForm.name, nameEn: editForm.nameEn || null, description: editForm.description || null, basePrice: Number(editForm.basePrice), imageUrl: editForm.imageUrl || null, isActive: editActive }),
       });
       if (!res.ok) { const d = await res.json().catch(() => ({})); showToast(`저장 실패: ${(d as { error?: string }).error ?? res.status}`); return; }
       showToast("저장됐습니다"); setEditMenu(null); await fetchData();
@@ -574,6 +596,11 @@ export default function OwnerAppPage() {
     }
   }
 
+  function closeEdit() {
+    if (optDirty && !window.confirm("저장하지 않은 옵션 변경이 있습니다. 그래도 닫을까요?")) return;
+    setEditMenu(null);
+  }
+
   async function handleAddOption() {
     if (!editMenu || !newOpt.name.trim()) return;
     setSaving(true);
@@ -582,24 +609,104 @@ export default function OwnerAppPage() {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ groupName: newOpt.groupName, name: newOpt.name.trim(), extraPrice: Number(newOpt.extraPrice) }),
       });
-      const d = await res.json() as { option: MenuOptionRow };
-      setMenuOptions(p => [...p, d.option]);
+      const d = await res.json() as { option?: MenuOptionRow; error?: string };
+      if (!res.ok || !d.option) { showToast(d.error ?? "옵션 추가 실패"); return; }
+      setMenuOptions(p => [...p, d.option!]);
       setNewOpt(p => ({ ...p, name: "", extraPrice: "0" }));
       showToast("옵션 추가됨");
     } catch { showToast("오류 발생"); } finally { setSaving(false); }
   }
 
   async function handleDeleteOption(optionId: string) {
-    if (!editMenu) return;
+    if (!editMenu || !window.confirm("이 옵션을 삭제할까요?")) return;
     setSaving(true);
     try {
-      await fetch(`/api/gbrick/admin/menus/${editMenu.id}/options`, {
+      const res = await fetch(`/api/gbrick/admin/menus/${editMenu.id}/options`, {
         method: "DELETE", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ optionId }),
       });
+      if (!res.ok) { showToast("삭제 실패"); return; }
       setMenuOptions(p => p.filter(o => o.id !== optionId));
       showToast("삭제됨");
     } catch { showToast("오류 발생"); } finally { setSaving(false); }
+  }
+
+  function editOption(optionId: string, patch: Partial<MenuOptionRow>) {
+    setMenuOptions(p => p.map(o => (o.id === optionId ? { ...o, ...patch } : o)));
+    setOptDirty(true);
+  }
+
+  // 같은 그룹 안에서 한 칸 위/아래로
+  function moveOption(optionId: string, dir: -1 | 1) {
+    setMenuOptions(p => {
+      const from = p.findIndex(o => o.id === optionId);
+      const group = p[from].groupName;
+      let to = from + dir;
+      while (to >= 0 && to < p.length && p[to].groupName !== group) to += dir;
+      if (to < 0 || to >= p.length) return p;
+      const next = [...p];
+      [next[from], next[to]] = [next[to], next[from]];
+      return next;
+    });
+    setOptDirty(true);
+  }
+
+  async function saveOptions() {
+    if (!editMenu) return;
+    if (menuOptions.some(o => !o.name.trim())) { showToast("옵션명을 입력해 주세요"); return; }
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/gbrick/admin/menus/${editMenu.id}/options`, {
+        method: "PATCH", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ options: menuOptions.map((o, idx) => ({
+          id: o.id, name: o.name.trim(), extraPrice: o.extraPrice, sortOrder: idx + 1, isActive: o.isActive !== false,
+        })) }),
+      });
+      if (!res.ok) { const d = await res.json().catch(() => ({})); showToast((d as { error?: string }).error ?? "저장 실패"); return; }
+      setOptDirty(false);
+      showToast("옵션이 저장됐습니다");
+    } catch { showToast("저장 실패"); } finally { setSaving(false); }
+  }
+
+  async function handleImportDefaults() {
+    if (!editMenu) return;
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/gbrick/admin/menus/${editMenu.id}/options`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ importDefaults: true }),
+      });
+      const d = await res.json() as { options?: MenuOptionRow[] };
+      if (!res.ok || !d.options) { showToast("불러오기 실패"); return; }
+      setMenuOptions(d.options);
+      showToast("기본 옵션을 불러왔습니다");
+    } catch { showToast("오류 발생"); } finally { setSaving(false); }
+  }
+
+  // ── 카테고리 관리 ──
+  function moveCategory(idx: number, dir: -1 | 1) {
+    setCatEdit(p => {
+      if (!p || idx + dir < 0 || idx + dir >= p.length) return p;
+      const next = [...p];
+      [next[idx], next[idx + dir]] = [next[idx + dir], next[idx]];
+      return next;
+    });
+  }
+
+  async function saveCategories() {
+    if (!catEdit) return;
+    if (catEdit.some(c => !c.name.trim())) { showToast("카테고리 이름을 입력해 주세요"); return; }
+    setSaving(true);
+    try {
+      const res = await fetch("/api/gbrick/admin/categories", {
+        method: "PATCH", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ categories: catEdit.map((c, idx) => ({ id: c.id, name: c.name.trim(), sortOrder: idx + 1, isActive: c.isActive })) }),
+      });
+      if (!res.ok) { const d = await res.json().catch(() => ({})); showToast((d as { error?: string }).error ?? "저장 실패"); return; }
+      showToast("카테고리가 저장됐습니다");
+      setCatEdit(null);
+      await fetchData();
+    } catch { showToast("저장 실패"); } finally { setSaving(false); }
   }
 
   async function saveHours() {
@@ -632,6 +739,49 @@ export default function OwnerAppPage() {
   }
 
   const menus = categories.find(c => c.id === activeCat)?.menus ?? [];
+
+  const menuTools = !sortMode ? (
+    <div className="flex shrink-0 gap-1.5">
+      <button onClick={() => setCatEdit(categories.map(c => ({ id: c.id, name: c.name, isActive: c.isActive !== false })))}
+        className="px-3 py-1.5 rounded-full text-xs font-semibold border"
+        style={{ borderColor: "#2C1A0E", color: "#2C1A0E", background: "white" }}>
+        카테고리 관리
+      </button>
+      <button onClick={() => setSortMode(true)}
+        className="px-3 py-1.5 rounded-full text-xs font-semibold border"
+        style={{ borderColor: "#C8873A", color: "#C8873A", background: "white" }}>
+        순서 편집
+      </button>
+    </div>
+  ) : (
+    <div className="flex shrink-0 gap-1.5">
+      <button onClick={() => setSortMode(false)}
+        className="px-3 py-1.5 rounded-full text-xs font-semibold"
+        style={{ background: "#F5F5F4", color: "#6B7280" }}>
+        취소
+      </button>
+      <button onClick={saveSortOrder} disabled={saving}
+        className="px-3 py-1.5 rounded-full text-xs font-semibold text-white"
+        style={{ background: saving ? "#D1C5BB" : "#2C1A0E" }}>
+        저장
+      </button>
+    </div>
+  );
+
+  const arrowButton = (label: string, disabled: boolean, onClick: () => void, title: string) => (
+    <button onClick={onClick} disabled={disabled} aria-label={title}
+      className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold shrink-0"
+      style={{ background: disabled ? "#F3F4F6" : "#2C1A0E", color: disabled ? "#D1D5DB" : "white" }}>
+      {label}
+    </button>
+  );
+  const sortArrows = (idx: number) => (
+    <div className="flex flex-col gap-1 shrink-0">
+      {arrowButton("↑", idx === 0, () => moveMenu(activeCat, idx, idx - 1), "위로")}
+      {arrowButton("↓", idx === menus.length - 1, () => moveMenu(activeCat, idx, idx + 1), "아래로")}
+    </div>
+  );
+  const hiddenBadge = <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-stone-200 text-stone-600 shrink-0">숨김</span>;
   const pendingCount = orders.filter(o => o.status === "PENDING").length;
 
   return (
@@ -1029,31 +1179,37 @@ export default function OwnerAppPage() {
           {tab === "menu" && (
             <div className="flex-1 overflow-hidden flex flex-col">
               <div className="flex items-center gap-3 px-5 py-3 bg-white border-b border-stone-100">
-                <div className="flex overflow-x-auto gap-2">
+                <div className="flex overflow-x-auto gap-2 flex-1 min-w-0">
                   {categories.map(cat => (
                     <button key={cat.id} onClick={() => { setActiveCat(cat.id); setSortMode(false); }}
                       className="shrink-0 px-4 py-1.5 rounded-full text-sm font-medium"
-                      style={{ background: activeCat === cat.id ? "#2C1A0E" : "#F5F5F4", color: activeCat === cat.id ? "#fff" : "#6B7280" }}>
-                      {cat.name} <span className="opacity-60">({cat.menus.length})</span>
+                      style={{ background: activeCat === cat.id ? "#2C1A0E" : "#F5F5F4", color: activeCat === cat.id ? "#fff" : "#6B7280", opacity: cat.isActive === false ? 0.5 : 1 }}>
+                      {cat.name} <span className="opacity-60">({cat.menus.length})</span>{cat.isActive === false && " · 숨김"}
                     </button>
                   ))}
                 </div>
+                {menuTools}
               </div>
               <div className="flex-1 overflow-y-auto p-5">
                 <div className="grid grid-cols-2 xl:grid-cols-3 gap-3">
-                  {menus.map(menu => {
+                  {menus.map((menu, idx) => {
                     const sold = soldOuts[menu.id] ?? false;
+                    const hidden = menu.isActive === false;
                     return (
                       <div key={menu.id} className="bg-white rounded-xl border border-stone-100 p-3 flex items-center gap-3 shadow-sm"
-                        style={{ opacity: sold ? 0.6 : 1 }}>
+                        style={{ opacity: (sold || hidden) && !sortMode ? 0.6 : 1 }}>
+                        {sortMode && sortArrows(idx)}
                         <div className="w-14 h-14 rounded-xl flex items-center justify-center shrink-0 overflow-hidden" style={{ background: "#F5F0EB" }}>
                           {menu.imageUrl ? <img src={menu.imageUrl} alt={menu.name} className="w-full h-full object-cover" /> : <span className="text-2xl">☕</span>}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-sm text-stone-800 truncate">{menu.name}</p>
+                          <div className="flex items-center gap-1.5">
+                            <p className="font-semibold text-sm text-stone-800 truncate">{menu.name}</p>
+                            {hidden && hiddenBadge}
+                          </div>
                           <p className="text-sm font-bold" style={{ color: "#2C1A0E" }}>{menu.basePrice.toLocaleString()}원</p>
                         </div>
-                        <div className="flex items-center gap-2 shrink-0">
+                        {!sortMode && <div className="flex items-center gap-2 shrink-0">
                           <button onClick={() => openEdit(menu)} className="p-2 rounded-lg" style={{ background: "#F5F0EB" }}>
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                               <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
@@ -1066,7 +1222,7 @@ export default function OwnerAppPage() {
                             <span className="inline-block h-4 w-4 rounded-full bg-white shadow transition-transform"
                               style={{ transform: sold ? "translateX(24px)" : "translateX(2px)" }} />
                           </button>
-                        </div>
+                        </div>}
                       </div>
                     );
                   })}
@@ -1214,36 +1370,17 @@ export default function OwnerAppPage() {
         {/* ════ 메뉴 탭 ════ */}
         {tab === "menu" && (
           <div className="pb-4">
-            <div className="flex items-center gap-2 px-4 py-3 bg-white border-b border-stone-100">
-              <div className="flex overflow-x-auto gap-2 flex-1 min-w-0">
+            <div className="flex flex-col items-end gap-2 px-4 py-3 bg-white border-b border-stone-100">
+              <div className="flex overflow-x-auto gap-2 w-full">
                 {categories.map(cat => (
                   <button key={cat.id} onClick={() => { setActiveCat(cat.id); setSortMode(false); }}
                     className="shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-colors"
-                    style={{ background: activeCat === cat.id ? "#2C1A0E" : "#F5F5F4", color: activeCat === cat.id ? "#fff" : "#6B7280" }}>
-                    {cat.name} <span className="opacity-60">({cat.menus.length})</span>
+                    style={{ background: activeCat === cat.id ? "#2C1A0E" : "#F5F5F4", color: activeCat === cat.id ? "#fff" : "#6B7280", opacity: cat.isActive === false ? 0.5 : 1 }}>
+                    {cat.name} <span className="opacity-60">({cat.menus.length})</span>{cat.isActive === false && " · 숨김"}
                   </button>
                 ))}
               </div>
-              {!sortMode ? (
-                <button onClick={() => setSortMode(true)}
-                  className="shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold border"
-                  style={{ borderColor: "#C8873A", color: "#C8873A", background: "white" }}>
-                  순서 편집
-                </button>
-              ) : (
-                <div className="flex shrink-0 gap-1.5">
-                  <button onClick={() => setSortMode(false)}
-                    className="px-3 py-1.5 rounded-full text-xs font-semibold"
-                    style={{ background: "#F5F5F4", color: "#6B7280" }}>
-                    취소
-                  </button>
-                  <button onClick={saveSortOrder} disabled={saving}
-                    className="px-3 py-1.5 rounded-full text-xs font-semibold text-white"
-                    style={{ background: saving ? "#D1C5BB" : "#2C1A0E" }}>
-                    저장
-                  </button>
-                </div>
-              )}
+              {menuTools}
             </div>
 
             <div className="px-4 pt-4 flex flex-col gap-2">
@@ -1262,27 +1399,11 @@ export default function OwnerAppPage() {
               )}
               {menus.map((menu, idx) => {
                 const sold = soldOuts[menu.id] ?? false;
+                const hidden = menu.isActive === false;
                 return (
                   <div key={menu.id} className="bg-white rounded-xl shadow-sm border border-stone-100 p-3 flex items-center gap-3"
-                    style={{ opacity: sold && !sortMode ? 0.6 : 1 }}>
-                    {sortMode && (
-                      <div className="flex flex-col gap-1 shrink-0">
-                        <button
-                          onClick={() => idx > 0 && moveMenu(activeCat, idx, idx - 1)}
-                          disabled={idx === 0}
-                          className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold"
-                          style={{ background: idx === 0 ? "#F3F4F6" : "#2C1A0E", color: idx === 0 ? "#D1D5DB" : "white" }}>
-                          ↑
-                        </button>
-                        <button
-                          onClick={() => idx < menus.length - 1 && moveMenu(activeCat, idx, idx + 1)}
-                          disabled={idx === menus.length - 1}
-                          className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold"
-                          style={{ background: idx === menus.length - 1 ? "#F3F4F6" : "#2C1A0E", color: idx === menus.length - 1 ? "#D1D5DB" : "white" }}>
-                          ↓
-                        </button>
-                      </div>
-                    )}
+                    style={{ opacity: (sold || hidden) && !sortMode ? 0.6 : 1 }}>
+                    {sortMode && sortArrows(idx)}
                     <div className="w-14 h-14 rounded-xl flex items-center justify-center shrink-0 overflow-hidden" style={{ background: "#F5F0EB" }}>
                       {menu.imageUrl
                         ? <img src={menu.imageUrl} alt={menu.name} className="w-full h-full object-cover" />
@@ -1291,6 +1412,7 @@ export default function OwnerAppPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5">
                         <span className="font-semibold text-sm text-stone-800 truncate">{menu.name}</span>
+                        {hidden && hiddenBadge}
                         {menu.isSignature && <span className="text-[10px] px-1.5 py-0.5 rounded-full text-white shrink-0" style={{ background: "#C8873A" }}>시그니처</span>}
                         {menu.isNew && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-green-500 text-white shrink-0">NEW</span>}
                       </div>
@@ -1583,10 +1705,12 @@ export default function OwnerAppPage() {
         </div>
       </div>
 
-      {/* ─── Menu Edit Modal ─── */}
+    </div>
+
+      {/* ─── Menu Edit Modal — 모바일·데스크톱 공통 ─── */}
       {editMenu && (
         <div className="fixed inset-0 z-[300] flex items-end" style={{ background: "rgba(0,0,0,0.5)" }}
-          onClick={() => setEditMenu(null)}>
+          onClick={closeEdit}>
           <div className="w-full max-w-[480px] mx-auto bg-white rounded-t-3xl pt-5 overflow-hidden"
             style={{ maxHeight: "90vh" }} onClick={e => e.stopPropagation()}>
             <div className="w-10 h-1 bg-stone-200 rounded-full mx-auto mb-4" />
@@ -1663,6 +1787,13 @@ export default function OwnerAppPage() {
                       onChange={e => setEditForm(p => ({ ...p, description: e.target.value }))}
                       className="w-full mt-1 px-3 py-2.5 border border-stone-200 rounded-xl text-sm resize-none" rows={2} placeholder="메뉴 설명" />
                   </div>
+                  <div className="flex items-center justify-between gap-3 bg-stone-50 rounded-xl px-3 py-3">
+                    <div>
+                      <p className="text-sm font-semibold text-stone-800">고객 앱에 노출</p>
+                      <p className="text-xs text-stone-500">끄면 고객 메뉴에서 보이지 않습니다</p>
+                    </div>
+                    <Toggle on={editActive} onChange={() => setEditActive(p => !p)} label="고객 앱에 노출" />
+                  </div>
                   <button onClick={saveMenuEdit} disabled={saving || uploading || !editForm.name || !editForm.basePrice}
                     className="w-full mt-2 py-3.5 rounded-xl text-white font-bold text-sm"
                     style={{ background: (saving || uploading) ? "#9CA3AF" : "#C8873A" }}>
@@ -1675,28 +1806,57 @@ export default function OwnerAppPage() {
                   {optLoading ? (
                     <p className="text-xs text-stone-400 text-center py-4">불러오는 중...</p>
                   ) : menuOptions.length === 0 ? (
-                    <p className="text-xs text-stone-400 text-center py-4">등록된 옵션이 없습니다</p>
+                    <div className="bg-amber-50 rounded-2xl p-4 mb-4">
+                      <p className="text-sm text-amber-900 leading-relaxed">
+                        이 메뉴는 옵션을 따로 등록하지 않아, 고객에게 <b>기본 옵션 {DEFAULT_OPTIONS.length}개</b>가 보입니다.
+                        이름·금액을 바꾸거나 숨기려면 먼저 불러오세요.
+                      </p>
+                      <button onClick={handleImportDefaults} disabled={saving}
+                        className="w-full mt-3 py-3 rounded-xl text-white font-bold text-sm"
+                        style={{ background: saving ? "#9CA3AF" : "#C8873A" }}>
+                        {saving ? "처리 중..." : "기본 옵션 불러와서 수정하기"}
+                      </button>
+                    </div>
                   ) : (
                     <div className="mb-4">
-                      {Object.entries(menuOptions.reduce<Record<string, MenuOptionRow[]>>((acc, o) => {
-                        const g = o.groupName || "기타"; if (!acc[g]) acc[g] = []; acc[g].push(o); return acc;
-                      }, {})).map(([group, opts]) => (
-                        <div key={group} className="mb-3">
-                          <p className="text-[11px] font-bold text-stone-500 uppercase tracking-wide mb-1.5">{group}</p>
-                          {opts.map(opt => (
-                            <div key={opt.id} className="flex items-center justify-between bg-stone-50 rounded-xl px-3 py-2.5 mb-1">
-                              <div className="flex items-center gap-2">
-                                <span className="text-sm text-stone-800">{opt.name}</span>
-                                {opt.isDefault && <span className="text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-600 rounded-full">기본</span>}
-                              </div>
-                              <div className="flex items-center gap-3">
-                                <span className="text-xs font-semibold" style={{ color: "#C8873A" }}>{opt.extraPrice > 0 ? `+${opt.extraPrice.toLocaleString()}원` : "무료"}</span>
-                                <button onClick={() => handleDeleteOption(opt.id)} className="w-6 h-6 rounded-full bg-red-100 text-red-500 flex items-center justify-center text-xs font-bold">✕</button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      ))}
+                      {[...new Set(menuOptions.map(o => o.groupName || "기타"))].map(group => {
+                        const opts = menuOptions.filter(o => (o.groupName || "기타") === group);
+                        return (
+                          <div key={group} className="mb-3">
+                            <p className="text-[11px] font-bold text-stone-500 tracking-wide mb-1.5">
+                              {group}
+                              {!CUSTOMER_OPTION_GROUPS.includes(group) && <span className="ml-1.5 font-semibold text-red-500">고객 앱에 아직 표시되지 않는 그룹</span>}
+                            </p>
+                            {opts.map((opt, i) => {
+                              const shown = opt.isActive !== false;
+                              return (
+                                <div key={opt.id} className="flex items-center gap-1.5 bg-stone-50 rounded-xl px-2 py-2 mb-1" style={{ opacity: shown ? 1 : 0.55 }}>
+                                  {/* 휴대폰에서는 세로로 쌓아 옵션명 칸을 넓힌다 */}
+                                  <div className="flex flex-col sm:flex-row gap-1 shrink-0">
+                                    {arrowButton("↑", i === 0, () => moveOption(opt.id, -1), "위로")}
+                                    {arrowButton("↓", i === opts.length - 1, () => moveOption(opt.id, 1), "아래로")}
+                                  </div>
+                                  <input value={opt.name} onChange={e => editOption(opt.id, { name: e.target.value })} aria-label="옵션명" maxLength={50}
+                                    className="flex-1 min-w-0 text-sm border border-stone-200 rounded-lg px-2 py-1.5 bg-white" />
+                                  <input type="number" min={0} step={100} value={opt.extraPrice} aria-label="추가금액"
+                                    onChange={e => editOption(opt.id, { extraPrice: Math.max(0, Math.floor(Number(e.target.value) || 0)) })}
+                                    className="w-[68px] text-sm text-right border border-stone-200 rounded-lg px-2 py-1.5 bg-white" />
+                                  <span className="text-xs text-stone-500 shrink-0">원</span>
+                                  <Toggle on={shown} onChange={() => editOption(opt.id, { isActive: !shown })} label={`${opt.name} 노출`} />
+                                  <button onClick={() => handleDeleteOption(opt.id)} aria-label={`${opt.name} 삭제`}
+                                    className="w-6 h-6 rounded-full bg-red-100 text-red-500 flex items-center justify-center text-xs font-bold shrink-0">✕</button>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        );
+                      })}
+                      <p className="text-xs text-stone-500 mb-2">스위치를 끄면 고객에게 보이지 않습니다. 바꾼 뒤 아래 저장을 눌러야 반영됩니다.</p>
+                      <button onClick={saveOptions} disabled={saving || !optDirty}
+                        className="w-full py-3 rounded-xl text-white font-bold text-sm"
+                        style={{ background: saving || !optDirty ? "#9CA3AF" : "#C8873A" }}>
+                        {saving ? "저장 중..." : optDirty ? "옵션 변경 저장" : "변경 사항 없음"}
+                      </button>
                     </div>
                   )}
                   <div className="bg-stone-50 rounded-2xl p-4">
@@ -1737,8 +1897,40 @@ export default function OwnerAppPage() {
         </div>
       )}
 
-    </div>
-
+      {/* ─── 카테고리 관리 — 모바일·데스크톱 공통 ─── */}
+      {catEdit && (
+        <div className="fixed inset-0 z-[300] flex items-end" style={{ background: "rgba(0,0,0,0.5)" }}
+          onClick={() => setCatEdit(null)}>
+          <div className="w-full max-w-[480px] mx-auto bg-white rounded-t-3xl pt-5 overflow-hidden"
+            style={{ maxHeight: "90vh" }} onClick={e => e.stopPropagation()}>
+            <div className="w-10 h-1 bg-stone-200 rounded-full mx-auto mb-4" />
+            <h3 className="font-bold text-base text-stone-800 px-5">카테고리 관리</h3>
+            <p className="text-xs text-stone-500 px-5 mt-1 mb-3">고객 앱 메뉴 화면 맨 위에 보이는 이름과 순서입니다. 스위치를 끄면 그 카테고리가 통째로 숨겨집니다.</p>
+            <div className="overflow-y-auto px-5" style={{ maxHeight: "calc(90vh - 150px)", paddingBottom: "calc(1.5rem + env(safe-area-inset-bottom))" }}>
+              {catEdit.map((cat, idx) => (
+                <div key={cat.id} className="flex items-center gap-2 bg-stone-50 rounded-xl px-2 py-2 mb-1.5" style={{ opacity: cat.isActive ? 1 : 0.55 }}>
+                  {arrowButton("↑", idx === 0, () => moveCategory(idx, -1), "위로")}
+                  {arrowButton("↓", idx === catEdit.length - 1, () => moveCategory(idx, 1), "아래로")}
+                  <input value={cat.name} aria-label="카테고리 이름" maxLength={50}
+                    onChange={e => setCatEdit(p => p && p.map(c => (c.id === cat.id ? { ...c, name: e.target.value } : c)))}
+                    className="flex-1 min-w-0 text-sm border border-stone-200 rounded-lg px-3 py-2 bg-white" />
+                  <Toggle on={cat.isActive} label={`${cat.name} 노출`}
+                    onChange={() => setCatEdit(p => p && p.map(c => (c.id === cat.id ? { ...c, isActive: !c.isActive } : c)))} />
+                </div>
+              ))}
+              <div className="flex gap-2 mt-3">
+                <button onClick={() => setCatEdit(null)}
+                  className="flex-1 py-3.5 rounded-xl font-bold text-sm border border-stone-200 text-stone-600">취소</button>
+                <button onClick={saveCategories} disabled={saving}
+                  className="flex-1 py-3.5 rounded-xl text-white font-bold text-sm"
+                  style={{ background: saving ? "#9CA3AF" : "#C8873A" }}>
+                  {saving ? "저장 중..." : "저장"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Toast — 모바일·데스크톱 공통 */}
       {toast && (
         <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[400] px-5 py-3 rounded-xl text-white text-sm font-semibold shadow-lg"

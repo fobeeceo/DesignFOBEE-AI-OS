@@ -7,7 +7,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ sto
   try {
     const { storeId } = await params;
 
-    const categoriesPromise = sbMenuRepo.findCategories(storeId);
+    const categoriesPromise = sbMenuRepo.findCategories(storeId, { includeHidden: true });
 
     // 매장 조회 — 없으면 null 반환 (POS가 매장 선택 화면으로 이동)
     const store = await sbStoreRepo.findById(storeId);

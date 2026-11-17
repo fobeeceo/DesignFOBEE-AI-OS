@@ -4,21 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { haversineKm, formatDistance } from "@/lib/gbrick/utils/distance";
-
-const DEFAULT_OPTIONS: MenuOption[] = [
-  { id: "def-van",    name: "바닐라시럽",   extraPrice: 500, isDefault: false, groupName: "추가옵션" },
-  { id: "def-haz",   name: "헤이즐넛시럽", extraPrice: 500, isDefault: false, groupName: "추가옵션" },
-  { id: "def-whip",  name: "휘핑크림",     extraPrice: 500, isDefault: false, groupName: "추가옵션" },
-  { id: "def-eshot", name: "에스프레소샷", extraPrice: 500, isDefault: false, groupName: "추가옵션" },
-  { id: "def-pearl", name: "펄",           extraPrice: 700, isDefault: false, groupName: "추가옵션" },
-  { id: "def-milk",  name: "우유추가",     extraPrice: 500, isDefault: false, groupName: "추가옵션" },
-  { id: "def-decaf", name: "디카페인샷",   extraPrice: 500, isDefault: false, groupName: "추가옵션" },
-  { id: "def-oat",   name: "오트밀크",     extraPrice: 500, isDefault: false, groupName: "추가옵션" },
-  { id: "def-almond",name: "아몬드브리즈", extraPrice: 500, isDefault: false, groupName: "추가옵션" },
-  { id: "def-lowsug",name: "저당시럽",     extraPrice: 300, isDefault: false, groupName: "추가옵션" },
-  { id: "def-hot",   name: "따뜻하게",     extraPrice: 0,   isDefault: true,  groupName: "온도" },
-  { id: "def-ice",   name: "아이스",       extraPrice: 0,   isDefault: false, groupName: "온도" },
-];
+import { DEFAULT_OPTIONS } from "@/lib/gbrick/defaultOptions";
 
 interface MenuOption {
   id: string;
@@ -40,6 +26,7 @@ interface Menu {
   isSoldOut: boolean;
   tags: string[];
   options: MenuOption[];
+  optionsConfigured?: boolean;
 }
 
 interface Category {
@@ -108,7 +95,8 @@ export default function MenuPage() {
 
   function openMenu(menu: Menu) {
     if (menu.isSoldOut) return;
-    const opts = menu.options.length > 0 ? menu.options : DEFAULT_OPTIONS;
+    // 사장님이 옵션을 직접 관리하는 메뉴는 전부 숨겼어도 기본 옵션으로 되돌리지 않는다
+    const opts = menu.options.length > 0 || menu.optionsConfigured ? menu.options : DEFAULT_OPTIONS;
     setSelectedMenu({ ...menu, options: opts });
     setSelectedExtras(new Set());
     setShowOptionsSheet(false);
@@ -356,9 +344,11 @@ export default function MenuPage() {
               {selectedMenu.options.some(o => o.groupName === "온도") && (
                 <div className="flex gap-2 mb-5">
                   {selectedMenu.options.filter(o => o.groupName === "온도").map(opt => {
-                    const isHot = opt.name === "따뜻하게" || opt.name.toLowerCase().includes("hot") || opt.name.includes("뜨겁");
+                    // 옵션 이름은 사장님 앱에서 바꿀 수 있다 — 알아볼 수 없는 이름은 그대로 보여 준다
+                    const isHot = /따뜻|뜨겁|뜨거|핫|hot/i.test(opt.name);
+                    const isIced = /아이스|차갑|차가|시원|ice/i.test(opt.name);
                     const isSelected = selectedTemp === opt.id;
-                    const label = isHot ? "HOT" : "ICED";
+                    const label = isHot ? "HOT" : isIced ? "ICED" : opt.name;
                     return (
                       <button
                         key={opt.id}
