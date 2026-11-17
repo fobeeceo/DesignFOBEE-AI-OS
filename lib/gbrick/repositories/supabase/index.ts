@@ -297,6 +297,53 @@ export async function importDefaultOptions(menuId: string): Promise<void> {
   if (insertErr) throw insertErr;
 }
 
+/**
+ * 한 메뉴의 옵션(이름·금액·그룹·순서·노출)을 다른 메뉴들에 그대로 복사한다.
+ * 대상 메뉴에 같은 이름의 옵션이 있으면 그 행을 고쳐 쓰고(지난 주문 기록과의 연결을 유지), 없으면 만든다.
+ * 원본에 없는 대상 메뉴의 옵션은 지운다. 지난 주문이 가리켜서 지울 수 없으면 화면에서만 빼고 보관한다.
+ * 복사된 메뉴 수를 돌려준다.
+ */
+export async function copyMenuOptions(sourceMenuId: string, targetMenuIds: string[]): Promise<number> {
+  const sb = getAdmin();
+  const targets = [...new Set(targetMenuIds)].filter(id => id !== sourceMenuId && id !== DEFAULT_OPTIONS_MENU_ID);
+  if (targets.length === 0) return 0;
+
+  const { data: source, error: sourceErr } = await sb.from("gb_menu_options")
+    .select("name, extraPrice, isDefault, isRequired, groupName, isActive")
+    .eq("menuId", sourceMenuId).not("groupName", "is", null).order("sortOrder");
+  if (sourceErr) throw sourceErr;
+  const { data: existing, error: existingErr } = await sb.from("gb_menu_options").select("id, menuId, name, groupName").in("menuId", targets);
+  if (existingErr) throw existingErr;
+
+  const now = new Date().toISOString();
+  const rows: Record<string, unknown>[] = [];
+  const leftovers: string[] = [];
+  for (const menuId of targets) {
+    const mine = ((existing ?? []) as { id: string; menuId: string; name: string; groupName: string | null }[]).filter(r => r.menuId === menuId);
+    const reused = new Set<string>();
+    (source ?? []).forEach((o, idx) => {
+      const match = mine.find(r => r.name === o.name && !reused.has(r.id));
+      if (match) reused.add(match.id);
+      rows.push({ ...o, id: match?.id ?? `opt-${nanoid()}`, menuId, sortOrder: idx + 1, updatedAt: now });
+    });
+    leftovers.push(...mine.filter(r => r.groupName !== null && !reused.has(r.id)).map(r => r.id));
+  }
+
+  if (rows.length > 0) {
+    const { error } = await sb.from("gb_menu_options").upsert(rows, { onConflict: "id" });
+    if (error) throw error;
+  }
+  if (leftovers.length > 0) {
+    const { error } = await sb.from("gb_menu_options").delete().in("id", leftovers);
+    if (error && error.code !== "23503") throw error;
+    if (error) {
+      const { error: archiveErr } = await sb.from("gb_menu_options").update({ isActive: false, groupName: null, updatedAt: now }).in("id", leftovers);
+      if (archiveErr) throw archiveErr;
+    }
+  }
+  return targets.length;
+}
+
 // ─── 사장님 앱: 카테고리·메뉴 추가와 삭제 ───────────────────────
 // 삭제는 행을 지우지 않는다. 지난 주문이 메뉴를 가리키고 있어 지울 수 없고, 잘못 눌러도 되살릴 수 있어야 한다.
 // 표에 삭제 표시 칸이 없어 "숨김 + 순서 -1" 을 삭제 표시로 쓴다. 화면이 저장하는 순서는 항상 0 이상이다.

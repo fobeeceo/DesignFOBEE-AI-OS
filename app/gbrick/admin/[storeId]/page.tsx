@@ -299,6 +299,8 @@ export default function OwnerAppPage() {
   const [optDirty, setOptDirty] = useState(false);
   const [catEdit, setCatEdit] = useState<CategoryEdit[] | null>(null);
   const [newCatName, setNewCatName] = useState("");
+  const [copyTargets, setCopyTargets] = useState<Set<string> | null>(null); // null = 창 닫힘
+  const [copyFilter, setCopyFilter] = useState("");
   const [newMenu, setNewMenu] = useState({ name: "", price: "" });
   const [soldOuts, setSoldOuts] = useState<Record<string, boolean>>({});
   const [sortMode, setSortMode] = useState(false);
@@ -704,6 +706,23 @@ export default function OwnerAppPage() {
       setModalTab("options");
       setNewOpt({ groupName: "추가옵션", name: "", extraPrice: "0" });
     } catch { showToast("기본 옵션을 불러오지 못했습니다"); } finally { setSaving(false); }
+  }
+
+  // 지금 편집 중인 메뉴의 옵션을 고른 메뉴들에 그대로 복사한다
+  async function applyOptionsToMenus() {
+    if (!editMenu || !copyTargets || copyTargets.size === 0) return;
+    if (!window.confirm(`선택한 ${copyTargets.size}개 메뉴의 옵션을 '${editMenu.name}'의 옵션과 똑같이 바꿉니다.\n그 메뉴들의 기존 옵션은 사라집니다. 계속할까요?`)) return;
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/gbrick/admin/menus/${editMenu.id}/options`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ copyTo: [...copyTargets] }),
+      });
+      const d = await res.json().catch(() => ({})) as { copied?: number; error?: string };
+      if (!res.ok || typeof d.copied !== "number") { showToast(d.error ?? "적용 실패"); return; }
+      setCopyTargets(null);
+      showToast(`${d.copied}개 메뉴에 적용했습니다`);
+    } catch { showToast("적용 실패"); } finally { setSaving(false); }
   }
 
   async function removeMenu() {
@@ -1979,6 +1998,11 @@ export default function OwnerAppPage() {
                         style={{ background: saving || !optDirty ? "#9CA3AF" : "#C8873A" }}>
                         {saving ? "저장 중..." : optDirty ? "옵션 변경 저장" : "변경 사항 없음"}
                       </button>
+                      <button onClick={() => { setCopyFilter(""); setCopyTargets(new Set()); }} disabled={saving || optDirty}
+                        className="w-full mt-2 py-3 rounded-xl font-bold text-sm border bg-white"
+                        style={optDirty ? { borderColor: "#D1D5DB", color: "#9CA3AF" } : { borderColor: "#2C1A0E", color: "#2C1A0E" }}>
+                        {optDirty ? "다른 메뉴에 적용하려면 먼저 저장하세요" : "이 옵션을 다른 메뉴에 그대로 적용"}
+                      </button>
                       {!editingDefaults && (
                         <button onClick={handleImportDefaults} disabled={saving}
                           className="w-full mt-2 py-3 rounded-xl font-bold text-sm border bg-white"
@@ -2025,6 +2049,66 @@ export default function OwnerAppPage() {
           </div>
         </div>
       )}
+
+      {/* ─── 옵션을 적용할 메뉴 고르기 — 옵션 편집 창 위에 뜬다 ─── */}
+      {editMenu && copyTargets && (() => {
+        const keyword = copyFilter.trim();
+        const groups = categories
+          .map(cat => ({ cat, menus: cat.menus.filter(m => m.id !== editMenu.id && (!keyword || m.name.includes(keyword))) }))
+          .filter(g => g.menus.length > 0);
+        const shownIds = groups.flatMap(g => g.menus.map(m => m.id));
+        const allShownSelected = shownIds.length > 0 && shownIds.every(id => copyTargets.has(id));
+        const toggle = (ids: string[], on: boolean) => setCopyTargets(prev => {
+          const next = new Set(prev);
+          ids.forEach(id => (on ? next.add(id) : next.delete(id)));
+          return next;
+        });
+        return (
+          <div className="fixed inset-0 z-[350] flex items-end" style={{ background: "rgba(0,0,0,0.5)" }} onClick={() => setCopyTargets(null)}>
+            <div className="w-full max-w-[480px] mx-auto bg-white rounded-t-3xl pt-5 flex flex-col" style={{ maxHeight: "90vh" }} onClick={e => e.stopPropagation()}>
+              <div className="w-10 h-1 bg-stone-200 rounded-full mx-auto mb-4 shrink-0" />
+              <div className="px-5 shrink-0">
+                <h3 className="font-bold text-base text-stone-800">옵션을 적용할 메뉴 선택</h3>
+                <p className="text-xs text-stone-500 mt-1 mb-3">
+                  고른 메뉴의 옵션이 <b>{editMenu.name}</b>의 옵션(이름·금액·순서·노출)과 똑같아집니다. 그 메뉴들의 기존 옵션은 사라집니다.
+                </p>
+                <div className="flex items-center gap-2 mb-2">
+                  <input value={copyFilter} onChange={e => setCopyFilter(e.target.value)} placeholder="메뉴 이름 검색 (예: 라떼)" aria-label="메뉴 이름 검색"
+                    className="flex-1 min-w-0 text-sm border border-stone-200 rounded-lg px-3 py-2" />
+                  <button onClick={() => toggle(shownIds, !allShownSelected)} disabled={shownIds.length === 0}
+                    className="shrink-0 px-3 py-2 rounded-lg text-xs font-bold border border-stone-300 text-stone-700">
+                    {allShownSelected ? "보이는 메뉴 모두 해제" : "보이는 메뉴 모두 선택"}
+                  </button>
+                </div>
+              </div>
+              <div className="overflow-y-auto px-5 flex-1 min-h-0">
+                {groups.length === 0 && <p className="text-sm text-stone-500 text-center py-6">해당하는 메뉴가 없습니다</p>}
+                {groups.map(({ cat, menus: list }) => (
+                  <div key={cat.id} className="mb-2">
+                    <p className="text-[11px] font-bold text-stone-500 tracking-wide py-1.5">{cat.name}</p>
+                    {list.map(m => (
+                      <label key={m.id} className="flex items-center gap-3 bg-stone-50 rounded-xl px-3 py-2.5 mb-1 cursor-pointer">
+                        <input type="checkbox" className="w-5 h-5 shrink-0" style={{ accentColor: "#C8873A" }}
+                          checked={copyTargets.has(m.id)} onChange={e => toggle([m.id], e.target.checked)} />
+                        <span className="text-sm text-stone-800 flex-1 min-w-0 truncate">{m.name}</span>
+                        {m.isActive === false && hiddenBadge}
+                      </label>
+                    ))}
+                  </div>
+                ))}
+              </div>
+              <div className="flex gap-2 px-5 pt-3 shrink-0" style={{ paddingBottom: "calc(1rem + env(safe-area-inset-bottom))" }}>
+                <button onClick={() => setCopyTargets(null)} className="flex-1 py-3.5 rounded-xl font-bold text-sm border border-stone-200 text-stone-600">취소</button>
+                <button onClick={applyOptionsToMenus} disabled={saving || copyTargets.size === 0}
+                  className="flex-1 py-3.5 rounded-xl text-white font-bold text-sm"
+                  style={{ background: saving || copyTargets.size === 0 ? "#9CA3AF" : "#C8873A" }}>
+                  {saving ? "적용 중..." : `${copyTargets.size}개 메뉴에 적용`}
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ─── 카테고리 관리 — 모바일·데스크톱 공통 ─── */}
       {catEdit && (

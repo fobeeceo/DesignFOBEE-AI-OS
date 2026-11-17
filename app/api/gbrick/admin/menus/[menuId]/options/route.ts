@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
-import { sbMenuRepo, updateMenuOptions, importDefaultOptions } from "@/lib/gbrick/repositories/supabase";
+import { sbMenuRepo, updateMenuOptions, importDefaultOptions, copyMenuOptions } from "@/lib/gbrick/repositories/supabase";
 import { cleanName, cleanPrice, cleanSortOrder } from "@/lib/gbrick/menuInput";
 
 type Params = { params: Promise<{ menuId: string }> };
@@ -18,7 +18,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
   }
 }
 
-// 옵션 1개 추가, 또는 { importDefaults: true } 로 기본 옵션 불러오기
+// 옵션 1개 추가, { importDefaults: true } 로 기본 옵션 불러오기, { copyTo: [메뉴ID…] } 로 이 메뉴의 옵션을 다른 메뉴에 그대로 복사
 export async function POST(req: NextRequest, { params }: Params) {
   try {
     const { menuId } = await params;
@@ -27,6 +27,14 @@ export async function POST(req: NextRequest, { params }: Params) {
     if (body.importDefaults === true) {
       await importDefaultOptions(menuId);
       return NextResponse.json({ options: await sbMenuRepo.findOptions(menuId) });
+    }
+
+    if ("copyTo" in body) {
+      const ids = body.copyTo;
+      if (!Array.isArray(ids) || ids.length === 0 || ids.length > 200 || ids.some(id => typeof id !== "string" || !id)) {
+        return NextResponse.json({ error: "적용할 메뉴를 선택해 주세요" }, { status: 400 });
+      }
+      return NextResponse.json({ copied: await copyMenuOptions(menuId, ids as string[]) });
     }
 
     const name = cleanName(body.name);
