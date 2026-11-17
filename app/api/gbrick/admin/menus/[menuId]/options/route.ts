@@ -2,9 +2,10 @@ export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { sbMenuRepo, updateMenuOptions, importDefaultOptions, copyMenuOptions } from "@/lib/gbrick/repositories/supabase";
 import { cleanName, cleanPrice, cleanSortOrder } from "@/lib/gbrick/menuInput";
+import { OPTION_GROUPS } from "@/lib/gbrick/optionGroups";
 
 type Params = { params: Promise<{ menuId: string }> };
-const GROUPS = ["추가옵션", "온도", "사이즈", "기타"];
+const GROUPS: readonly string[] = OPTION_GROUPS;
 
 // 숨긴 옵션까지 포함한 이 메뉴의 옵션 목록
 export async function GET(_req: NextRequest, { params }: Params) {
@@ -63,10 +64,11 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       const name = cleanName(raw?.name);
       const extraPrice = cleanPrice(raw?.extraPrice);
       const sortOrder = cleanSortOrder(raw?.sortOrder);
-      if (typeof raw?.id !== "string" || !raw.id || name === null || extraPrice === null || sortOrder === null || typeof raw.isActive !== "boolean") {
+      if (typeof raw?.id !== "string" || !raw.id || name === null || extraPrice === null || sortOrder === null || typeof raw.isActive !== "boolean"
+        || (raw.groupName !== undefined && (typeof raw.groupName !== "string" || !GROUPS.includes(raw.groupName)))) {
         return NextResponse.json({ error: "옵션명·금액을 확인해 주세요" }, { status: 400 });
       }
-      rows.push({ id: raw.id, name, extraPrice, sortOrder, isActive: raw.isActive });
+      rows.push({ id: raw.id, name, extraPrice, sortOrder, isActive: raw.isActive, ...(raw.groupName ? { groupName: raw.groupName as string } : {}) });
     }
     await updateMenuOptions(menuId, rows);
     return NextResponse.json({ ok: true });

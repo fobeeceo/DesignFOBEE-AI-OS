@@ -7,6 +7,7 @@ import {
   printBytes, buildKitchenTicket, buildTestTicket,
 } from "@/lib/gbrick/pos/serialPrinter";
 import { DEFAULT_OPTIONS_MENU_ID } from "@/lib/gbrick/defaultOptions";
+import { OPTION_GROUPS, isSingleSelectGroup, orderGroups } from "@/lib/gbrick/optionGroups";
 
 // ─── 대기 화면 (Standby Screen) ──────────────────────────────
 function StandbyScreen({ storeName, onWake }: { storeName: string; onWake: () => void }) {
@@ -97,9 +98,6 @@ interface Menu {
 }
 interface Category { id: string; name: string; isActive?: boolean; menus: Menu[]; }
 interface CategoryEdit { id: string; name: string; isActive: boolean; }
-
-// 고객 앱 메뉴 화면이 보여 주는 옵션 그룹 (나머지 그룹은 등록해도 고객에게 보이지 않는다)
-const CUSTOMER_OPTION_GROUPS = ["온도", "추가옵션"];
 
 function Toggle({ on, onChange, label }: { on: boolean; onChange: () => void; label: string }) {
   return (
@@ -667,6 +665,7 @@ export default function OwnerAppPage() {
         method: "PATCH", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ options: menuOptions.map((o, idx) => ({
           id: o.id, name: o.name.trim(), extraPrice: o.extraPrice, sortOrder: idx + 1, isActive: o.isActive !== false,
+          ...((OPTION_GROUPS as readonly string[]).includes(o.groupName) ? { groupName: o.groupName } : {}),
         })) }),
       });
       if (!res.ok) { const d = await res.json().catch(() => ({})); showToast((d as { error?: string }).error ?? "저장 실패"); return; }
@@ -1960,16 +1959,17 @@ export default function OwnerAppPage() {
                     </div>
                   ) : (
                     <div className="mb-4">
-                      {[...new Set(menuOptions.map(o => o.groupName || "기타"))].map(group => {
+                      {orderGroups(menuOptions.map(o => o.groupName || "기타")).map(group => {
                         const opts = menuOptions.filter(o => (o.groupName || "기타") === group);
                         return (
                           <div key={group} className="mb-3">
                             <p className="text-[11px] font-bold text-stone-500 tracking-wide mb-1.5">
                               {group}
-                              {!CUSTOMER_OPTION_GROUPS.includes(group) && <span className="ml-1.5 font-semibold text-red-500">고객 앱에 아직 표시되지 않는 그룹</span>}
+                              <span className="ml-1.5 font-normal text-stone-400">{isSingleSelectGroup(group) ? "고객이 하나만 선택" : "고객이 여러 개 선택 가능"}</span>
                             </p>
                             {opts.map((opt, i) => {
                               const shown = opt.isActive !== false;
+                              const groupChoices = (OPTION_GROUPS as readonly string[]).includes(opt.groupName) ? OPTION_GROUPS : [...OPTION_GROUPS, opt.groupName];
                               return (
                                 <div key={opt.id} className="flex items-center gap-1.5 bg-stone-50 rounded-xl px-2 py-2 mb-1" style={{ opacity: shown ? 1 : 0.55 }}>
                                   {/* 휴대폰에서는 세로로 쌓아 옵션명 칸을 넓힌다 */}
@@ -1977,12 +1977,21 @@ export default function OwnerAppPage() {
                                     {arrowButton("↑", i === 0, () => moveOption(opt.id, -1), "위로")}
                                     {arrowButton("↓", i === opts.length - 1, () => moveOption(opt.id, 1), "아래로")}
                                   </div>
-                                  <input value={opt.name} onChange={e => editOption(opt.id, { name: e.target.value })} aria-label="옵션명" maxLength={50}
-                                    className="flex-1 min-w-0 text-sm border border-stone-200 rounded-lg px-2 py-1.5 bg-white" />
-                                  <input type="number" min={0} step={100} value={opt.extraPrice} aria-label="추가금액"
-                                    onChange={e => editOption(opt.id, { extraPrice: Math.max(0, Math.floor(Number(e.target.value) || 0)) })}
-                                    className="w-[68px] text-sm text-right border border-stone-200 rounded-lg px-2 py-1.5 bg-white" />
-                                  <span className="text-xs text-stone-500 shrink-0">원</span>
+                                  {/* 1줄 옵션명 / 2줄 묶음·금액 — 옵션명이 잘리지 않게 */}
+                                  <div className="flex-1 min-w-0 flex flex-col gap-1.5">
+                                    <input value={opt.name} onChange={e => editOption(opt.id, { name: e.target.value })} aria-label="옵션명" maxLength={50}
+                                      className="w-full min-w-0 text-sm border border-stone-200 rounded-lg px-2 py-1.5 bg-white" />
+                                    <div className="flex items-center gap-1.5">
+                                      <select value={opt.groupName} onChange={e => editOption(opt.id, { groupName: e.target.value })} aria-label={`${opt.name} 묶음`}
+                                        className="text-xs border border-stone-200 rounded-lg px-1.5 py-1.5 bg-white">
+                                        {groupChoices.map(g => <option key={g} value={g}>{g}</option>)}
+                                      </select>
+                                      <input type="number" min={0} step={100} value={opt.extraPrice} aria-label="추가금액"
+                                        onChange={e => editOption(opt.id, { extraPrice: Math.max(0, Math.floor(Number(e.target.value) || 0)) })}
+                                        className="w-[68px] text-sm text-right border border-stone-200 rounded-lg px-2 py-1.5 bg-white" />
+                                      <span className="text-xs text-stone-500 shrink-0">원</span>
+                                    </div>
+                                  </div>
                                   <Toggle on={shown} onChange={() => editOption(opt.id, { isActive: !shown })} label={`${opt.name} 노출`} />
                                   <button onClick={() => handleDeleteOption(opt.id)} aria-label={`${opt.name} 삭제`}
                                     className="w-6 h-6 rounded-full bg-red-100 text-red-500 flex items-center justify-center text-xs font-bold shrink-0">✕</button>
@@ -2018,10 +2027,7 @@ export default function OwnerAppPage() {
                       <label className="text-[11px] text-stone-500 font-semibold">그룹</label>
                       <select value={newOpt.groupName} onChange={e => setNewOpt(p => ({ ...p, groupName: e.target.value }))}
                         className="w-full mt-1 text-sm border border-stone-200 rounded-xl px-3 py-2 bg-white">
-                        <option value="추가옵션">추가옵션</option>
-                        <option value="온도">온도</option>
-                        <option value="사이즈">사이즈</option>
-                        <option value="기타">기타</option>
+                        {OPTION_GROUPS.map(g => <option key={g} value={g}>{g}{isSingleSelectGroup(g) ? " (하나만 선택)" : " (여러 개 선택)"}</option>)}
                       </select>
                     </div>
                     <div className="flex gap-2 mb-3">

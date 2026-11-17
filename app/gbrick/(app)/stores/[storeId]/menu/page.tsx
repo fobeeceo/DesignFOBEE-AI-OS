@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { haversineKm, formatDistance } from "@/lib/gbrick/utils/distance";
 import { DEFAULT_OPTIONS } from "@/lib/gbrick/defaultOptions";
+import { isSingleSelectGroup, orderGroups } from "@/lib/gbrick/optionGroups";
 
 interface MenuOption {
   id: string;
@@ -146,8 +147,31 @@ export default function MenuPage() {
   const cartTotal = cart.reduce((s, c) => s + c.unitPrice * c.quantity, 0);
   const cartCount = cart.reduce((s, c) => s + c.quantity, 0);
   const modalExtraTotal = selectedMenu
-    ? [...selectedExtras].reduce((s, id) => s + (selectedMenu.options.find(o => o.id === id)?.extraPrice ?? 0), 0)
+    ? [...selectedExtras, ...(selectedTemp ? [selectedTemp] : [])]
+        .reduce((s, id) => s + (selectedMenu.options.find(o => o.id === id)?.extraPrice ?? 0), 0)
     : 0;
+  // 온도 외의 옵션 — 묶음별로 보여 주고, 우유변경처럼 하나만 고르는 묶음은 같은 묶음의 다른 선택을 지운다
+  const sheetOptions = selectedMenu ? selectedMenu.options.filter(o => o.groupName !== "온도") : [];
+  const sheetGroups = orderGroups(sheetOptions.map(o => o.groupName || "추가옵션"));
+  function toggleSheetOption(opt: MenuOption) {
+    const group = opt.groupName || "추가옵션";
+    setSelectedExtras(prev => {
+      const next = new Set(prev);
+      if (next.has(opt.id)) { next.delete(opt.id); return next; }
+      if (isSingleSelectGroup(group)) {
+        for (const o of sheetOptions) if ((o.groupName || "추가옵션") === group) next.delete(o.id);
+      }
+      next.add(opt.id);
+      return next;
+    });
+  }
+  function clearSheetGroup(group: string) {
+    setSelectedExtras(prev => {
+      const next = new Set(prev);
+      for (const o of sheetOptions) if ((o.groupName || "추가옵션") === group) next.delete(o.id);
+      return next;
+    });
+  }
   const modalTotal = selectedMenu ? selectedMenu.basePrice + modalExtraTotal : 0;
   const storeDist = userPos && storeInfo?.lat && storeInfo?.lng
     ? haversineKm(userPos.lat, userPos.lng, storeInfo.lat, storeInfo.lng)
@@ -370,7 +394,7 @@ export default function MenuPage() {
               )}
 
               {/* Add-on options */}
-              {selectedMenu.options.some(o => o.groupName === "추가옵션") && (
+              {sheetOptions.length > 0 && (
                 <div className="mb-5">
                   <p className="text-sm font-semibold text-stone-700 mb-2">옵션 선택</p>
                   <button
@@ -381,7 +405,7 @@ export default function MenuPage() {
                       color: selectedExtras.size > 0 ? "#C8873A" : "#6B7280",
                     }}
                   >
-                    {selectedExtras.size > 0 ? `${selectedExtras.size}개 옵션 선택됨` : "추가 옵션 선택"}
+                    {selectedExtras.size > 0 ? `${selectedExtras.size}개 옵션 선택됨` : "옵션 선택 (우유·샷·시럽·사이즈)"}
                   </button>
                   {selectedExtras.size > 0 && (
                     <div className="mt-2 flex flex-wrap gap-1">
@@ -390,7 +414,7 @@ export default function MenuPage() {
                         if (!opt) return null;
                         return (
                           <span key={id} className="text-xs px-2 py-0.5 rounded-full" style={{ background: "#FEF3E2", color: "#C8873A" }}>
-                            {opt.name} +{opt.extraPrice.toLocaleString()}원
+                            {opt.name}{opt.extraPrice > 0 ? ` +${opt.extraPrice.toLocaleString()}원` : ""}
                           </span>
                         );
                       })}
@@ -425,26 +449,44 @@ export default function MenuPage() {
           >
             <div className="w-10 h-1 bg-stone-200 rounded-full mx-auto mt-4 mb-3" />
             <div className="px-5 pb-2">
-              <h3 className="font-bold text-base text-stone-800">추가 옵션 선택</h3>
+              <h3 className="font-bold text-base text-stone-800">옵션 선택</h3>
             </div>
 
             <div className="overflow-y-auto px-5" style={{ maxHeight: "calc(80vh - 160px)" }}>
-              {(() => {
-                const extraOpts = selectedMenu.options.filter(o => o.groupName === "추가옵션");
-                const groups = [...new Set(extraOpts.map(o => o.groupName ?? "추가옵션"))];
-                return groups.map(group => (
+              {sheetGroups.map(group => {
+                const single = isSingleSelectGroup(group);
+                const groupOpts = sheetOptions.filter(o => (o.groupName || "추가옵션") === group);
+                const noneSelected = !groupOpts.some(o => selectedExtras.has(o.id));
+                const mark = (selected: boolean) => (
+                  <div className="w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all shrink-0"
+                    style={{ borderColor: selected ? "#C8873A" : "#D1D5DB", background: selected ? "#C8873A" : "transparent" }}>
+                    {selected && (
+                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                        <polyline points="1.5,5 4,7.5 8.5,2.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    )}
+                  </div>
+                );
+                return (
                   <div key={group} className="mb-2">
-                    <p className="text-xs text-stone-400 font-semibold py-2 uppercase tracking-wider">{group}</p>
-                    {extraOpts.filter(o => (o.groupName ?? "추가옵션") === group).map(opt => {
+                    <p className="text-xs text-stone-500 font-semibold py-2 tracking-wider">
+                      {group} <span className="font-normal text-stone-400">{single ? "· 하나만 선택" : "· 여러 개 선택 가능"}</span>
+                    </p>
+                    {single && (
+                      <button onClick={() => clearSheetGroup(group)} className="w-full flex items-center justify-between py-4 border-b border-stone-50 text-left">
+                        <span className="text-sm text-stone-800 font-medium">선택 안 함</span>
+                        <div className="flex items-center gap-3">
+                          <span className="text-sm font-bold" style={{ color: "#22C55E" }}>무료</span>
+                          {mark(noneSelected)}
+                        </div>
+                      </button>
+                    )}
+                    {groupOpts.map(opt => {
                       const selected = selectedExtras.has(opt.id);
                       return (
                         <button
                           key={opt.id}
-                          onClick={() => {
-                            const next = new Set(selectedExtras);
-                            if (next.has(opt.id)) next.delete(opt.id); else next.add(opt.id);
-                            setSelectedExtras(next);
-                          }}
+                          onClick={() => toggleSheetOption(opt)}
                           className="w-full flex items-center justify-between py-4 border-b border-stone-50 text-left"
                         >
                           <span className="text-sm text-stone-800 font-medium">{opt.name}</span>
@@ -452,26 +494,14 @@ export default function MenuPage() {
                             <span className="text-sm font-bold" style={{ color: opt.extraPrice === 0 ? "#22C55E" : "#3B82F6" }}>
                               {opt.extraPrice === 0 ? "무료" : `${opt.extraPrice.toLocaleString()}원`}
                             </span>
-                            <div
-                              className="w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all shrink-0"
-                              style={{
-                                borderColor: selected ? "#C8873A" : "#D1D5DB",
-                                background: selected ? "#C8873A" : "transparent",
-                              }}
-                            >
-                              {selected && (
-                                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                                  <polyline points="1.5,5 4,7.5 8.5,2.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                </svg>
-                              )}
-                            </div>
+                            {mark(selected)}
                           </div>
                         </button>
                       );
                     })}
                   </div>
-                ));
-              })()}
+                );
+              })}
             </div>
 
             <div className="flex gap-3 px-5 pt-3" style={{ paddingBottom: "calc(1rem + env(safe-area-inset-bottom))" }}>

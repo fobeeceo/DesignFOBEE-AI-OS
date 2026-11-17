@@ -226,7 +226,7 @@ export async function updateCategories(rows: { id: string; name: string; sortOrd
 
 export async function updateMenuOptions(
   menuId: string,
-  rows: { id: string; name: string; extraPrice: number; sortOrder: number; isActive: boolean }[],
+  rows: { id: string; name: string; extraPrice: number; sortOrder: number; isActive: boolean; groupName?: string }[],
 ): Promise<void> {
   const sb = getAdmin();
   const updatedAt = new Date().toISOString();
