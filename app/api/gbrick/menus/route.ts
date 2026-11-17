@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { MOCK_MENU_CATEGORIES, MOCK_MENUS, MOCK_MENU_OPTIONS } from "@/lib/gbrick/mockData";
-import { sbMenuRepo } from "@/lib/gbrick/repositories/supabase";
+import { sbMenuRepo, getDefaultOptions } from "@/lib/gbrick/repositories/supabase";
 
 function buildMockCategories() {
   const menusWithOptions = MOCK_MENUS.map((m) => ({
@@ -22,7 +22,9 @@ export async function GET(req: NextRequest) {
   try {
     const categories = await sbMenuRepo.findCategories(storeId);
     if (categories && categories.length > 0) {
-      return NextResponse.json({ categories }, {
+      // 옵션을 따로 등록하지 않은 메뉴에 보여 줄 기본 옵션. 못 읽으면 빼고 보낸다(고객 앱이 처음 값을 쓴다).
+      const defaultOptions = await getDefaultOptions().catch(() => undefined);
+      return NextResponse.json({ categories, defaultOptions }, {
         headers: { "Cache-Control": "no-store, no-cache, must-revalidate" },
       });
     }

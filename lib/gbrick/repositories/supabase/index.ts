@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import { DEFAULT_OPTIONS } from "@/lib/gbrick/defaultOptions";
+import { DEFAULT_OPTIONS, DEFAULT_OPTIONS_MENU_ID, type DefaultOption } from "@/lib/gbrick/defaultOptions";
 import type {
   IStoreRepository, IMenuRepository, IOrderRepository, IPaymentRepository,
   IPointRepository, IStampRepository, ICouponRepository, IChecklistRepository, INoticeRepository,
@@ -237,6 +237,42 @@ export async function updateMenuOptions(
   }
 }
 
+// ─── 기본 옵션 목록 (사장님 앱에서 수정 가능) ─────────────────────
+const DEFAULT_OPTIONS_CATEGORY_ID = "cat-default-options";
+
+/** 기본 옵션 목록을 DB에 만들어 둔다(처음 한 번). 삭제 표시가 붙은 메뉴라 어느 화면에도 메뉴로는 나오지 않는다. */
+export async function ensureDefaultOptionsTemplate(): Promise<void> {
+  const sb = getAdmin();
+  const now = new Date().toISOString();
+  const hidden = { isActive: false, sortOrder: DELETED_SORT_ORDER, createdAt: now, updatedAt: now };
+  const { error: catErr } = await sb.from("gb_menu_categories")
+    .upsert({ id: DEFAULT_OPTIONS_CATEGORY_ID, name: "기본 옵션(시스템)", ...hidden }, { onConflict: "id", ignoreDuplicates: true });
+  if (catErr) throw catErr;
+  const { data: created, error: menuErr } = await sb.from("gb_menus").upsert({
+    id: DEFAULT_OPTIONS_MENU_ID, categoryId: DEFAULT_OPTIONS_CATEGORY_ID, name: "기본 옵션(시스템)", basePrice: 0,
+    isSignature: false, isNew: false, isSoldOut: false, ...hidden,
+  }, { onConflict: "id", ignoreDuplicates: true }).select("id");
+  if (menuErr) throw menuErr;
+  if ((created ?? []).length === 0) return; // 이미 만들어져 있다 — 사장님이 고친 목록을 덮어쓰지 않는다
+  const { error: optErr } = await sb.from("gb_menu_options").insert(DEFAULT_OPTIONS.map((o, idx) => ({
+    id: `opt-${nanoid()}`, menuId: DEFAULT_OPTIONS_MENU_ID, name: o.name, extraPrice: o.extraPrice, isDefault: o.isDefault,
+    groupName: o.groupName, sortOrder: idx + 1, isActive: true, createdAt: now, updatedAt: now,
+  })));
+  if (optErr) throw optErr;
+}
+
+/** 지금 기준이 되는 기본 옵션. 사장님이 관리 화면을 연 적이 없으면 코드에 적힌 처음 값, 그 뒤로는 DB에 저장된 목록(숨긴 것 제외). */
+export async function getDefaultOptions(): Promise<DefaultOption[]> {
+  const sb = getAdmin();
+  const { data: template, error: menuErr } = await sb.from("gb_menus").select("id").eq("id", DEFAULT_OPTIONS_MENU_ID).maybeSingle();
+  if (menuErr) throw menuErr;
+  if (!template) return DEFAULT_OPTIONS;
+  const { data, error } = await sb.from("gb_menu_options").select("id, name, extraPrice, isDefault, groupName")
+    .eq("menuId", DEFAULT_OPTIONS_MENU_ID).eq("isActive", true).not("groupName", "is", null).order("sortOrder");
+  if (error) throw error;
+  return (data ?? []) as DefaultOption[];
+}
+
 /**
  * 기본 옵션 중 이 메뉴에 없는 것만 추가한다. 여러 번 눌러도 중복되지 않는다.
  * 온도처럼 하나만 고르는 그룹은 이미 옵션이 있으면 건드리지 않는다 ("뜨겁게"가 있는데 "따뜻하게"가 또 생기지 않게).
@@ -246,7 +282,7 @@ export async function importDefaultOptions(menuId: string): Promise<void> {
   const { data, error } = await sb.from("gb_menu_options").select("name, groupName, sortOrder").eq("menuId", menuId).not("groupName", "is", null);
   if (error) throw error;
   const existing = (data ?? []) as { name: string; groupName: string; sortOrder: number }[];
-  const missing = DEFAULT_OPTIONS.filter(o =>
+  const missing = (await getDefaultOptions()).filter(o =>
     o.groupName === "온도"
       ? !existing.some(e => e.groupName === "온도")
       : !existing.some(e => e.name === o.name)

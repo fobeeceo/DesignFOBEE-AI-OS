@@ -62,6 +62,7 @@ export default function MenuPage() {
   const [storeInfo, setStoreInfo] = useState<StoreInfo | null>(null);
   const [userPos, setUserPos] = useState<{ lat: number; lng: number } | null>(null);
 
+  const [defaultOptions, setDefaultOptions] = useState<MenuOption[]>(DEFAULT_OPTIONS);
   const [selectedMenu, setSelectedMenu] = useState<Menu | null>(null);
   const [selectedTemp, setSelectedTemp] = useState<string>("");
   const [showOptionsSheet, setShowOptionsSheet] = useState(false);
@@ -88,6 +89,7 @@ export default function MenuPage() {
       fetch(`/api/gbrick/admin/stores/${storeId}`).then(r => r.json()).catch(() => null),
     ]).then(([menuData, storeData]) => {
       setCategories(menuData.categories ?? []);
+      if (Array.isArray(menuData.defaultOptions)) setDefaultOptions(menuData.defaultOptions);
       if (menuData.categories?.[0]) setActiveCategory(menuData.categories[0].id);
       if (storeData?.store) setStoreInfo(storeData.store);
     }).catch(console.error).finally(() => setLoading(false));
@@ -96,7 +98,7 @@ export default function MenuPage() {
   function openMenu(menu: Menu) {
     if (menu.isSoldOut) return;
     // 사장님이 옵션을 직접 관리하는 메뉴는 전부 숨겼어도 기본 옵션으로 되돌리지 않는다
-    const opts = menu.options.length > 0 || menu.optionsConfigured ? menu.options : DEFAULT_OPTIONS;
+    const opts = menu.options.length > 0 || menu.optionsConfigured ? menu.options : defaultOptions;
     setSelectedMenu({ ...menu, options: opts });
     setSelectedExtras(new Set());
     setShowOptionsSheet(false);

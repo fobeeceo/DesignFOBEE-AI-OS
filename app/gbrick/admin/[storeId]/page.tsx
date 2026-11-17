@@ -6,7 +6,7 @@ import {
   isSerialSupported, hasPrinter, loadSavedPrinter, connectPrinter,
   printBytes, buildKitchenTicket, buildTestTicket,
 } from "@/lib/gbrick/pos/serialPrinter";
-import { DEFAULT_OPTIONS } from "@/lib/gbrick/defaultOptions";
+import { DEFAULT_OPTIONS_MENU_ID } from "@/lib/gbrick/defaultOptions";
 
 // ─── 대기 화면 (Standby Screen) ──────────────────────────────
 function StandbyScreen({ storeName, onWake }: { storeName: string; onWake: () => void }) {
@@ -690,6 +690,22 @@ export default function OwnerAppPage() {
     } catch { showToast("오류 발생"); } finally { setSaving(false); }
   }
 
+  // 기본 옵션 목록을 옵션 편집 창으로 연다 (처음 열 때 서버가 목록을 만들어 둔다)
+  async function openDefaultOptions() {
+    setSaving(true);
+    try {
+      const res = await fetch("/api/gbrick/admin/default-options", { method: "POST" });
+      const d = await res.json() as { options?: MenuOptionRow[] };
+      if (!res.ok || !d.options) { showToast("기본 옵션을 불러오지 못했습니다"); return; }
+      setEditMenu({ id: DEFAULT_OPTIONS_MENU_ID, categoryId: "", name: "기본 옵션", basePrice: 0, isSignature: false, isNew: false, isSoldOut: false });
+      setMenuOptions(d.options);
+      setOptDirty(false);
+      setOptLoading(false);
+      setModalTab("options");
+      setNewOpt({ groupName: "추가옵션", name: "", extraPrice: "0" });
+    } catch { showToast("기본 옵션을 불러오지 못했습니다"); } finally { setSaving(false); }
+  }
+
   async function removeMenu() {
     if (!editMenu || !window.confirm(`'${editMenu.name}' 메뉴를 삭제할까요?\n고객 앱과 사장님 앱에서 사라집니다.`)) return;
     setSaving(true);
@@ -818,6 +834,11 @@ export default function OwnerAppPage() {
         style={{ borderColor: "#2C1A0E", color: "#2C1A0E", background: "white" }}>
         카테고리 관리
       </button>
+      <button onClick={openDefaultOptions} disabled={saving}
+        className="px-3 py-1.5 rounded-full text-xs font-semibold border"
+        style={{ borderColor: "#2C1A0E", color: "#2C1A0E", background: "white" }}>
+        기본 옵션 관리
+      </button>
       <button onClick={() => setSortMode(true)}
         className="px-3 py-1.5 rounded-full text-xs font-semibold border"
         style={{ borderColor: "#C8873A", color: "#C8873A", background: "white" }}>
@@ -867,6 +888,7 @@ export default function OwnerAppPage() {
       </button>
     </div>
   );
+  const editingDefaults = editMenu?.id === DEFAULT_OPTIONS_MENU_ID;
   const hiddenBadge = <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-stone-200 text-stone-600 shrink-0">숨김</span>;
   const pendingCount = orders.filter(o => o.status === "PENDING").length;
 
@@ -1803,15 +1825,22 @@ export default function OwnerAppPage() {
             style={{ maxHeight: "90vh" }} onClick={e => e.stopPropagation()}>
             <div className="w-10 h-1 bg-stone-200 rounded-full mx-auto mb-4" />
             <h3 className="font-bold text-base text-stone-800 mb-3 px-5">{editMenu.name}</h3>
-            <div className="flex border-b border-stone-100 px-5 gap-4 mb-4">
-              {(["info", "options"] as const).map(t => (
-                <button key={t} onClick={() => setModalTab(t)}
-                  className="pb-2 text-sm font-semibold transition-colors"
-                  style={{ color: modalTab === t ? "#2C1A0E" : "#9CA3AF", borderBottom: modalTab === t ? "2px solid #C8873A" : "2px solid transparent" }}>
-                  {t === "info" ? "메뉴 정보" : "옵션 관리"}
-                </button>
-              ))}
-            </div>
+            {editingDefaults ? (
+              <p className="text-xs text-stone-500 leading-relaxed px-5 pb-3 mb-4 border-b border-stone-100">
+                옵션을 따로 등록하지 않은 메뉴에 고객에게 보이는 옵션이며, 각 메뉴의 &lsquo;기본 옵션 가져오기&rsquo;로 복사되는 목록입니다.
+                여기서 바꿔도 이미 가져간 메뉴의 옵션은 바뀌지 않습니다.
+              </p>
+            ) : (
+              <div className="flex border-b border-stone-100 px-5 gap-4 mb-4">
+                {(["info", "options"] as const).map(t => (
+                  <button key={t} onClick={() => setModalTab(t)}
+                    className="pb-2 text-sm font-semibold transition-colors"
+                    style={{ color: modalTab === t ? "#2C1A0E" : "#9CA3AF", borderBottom: modalTab === t ? "2px solid #C8873A" : "2px solid transparent" }}>
+                    {t === "info" ? "메뉴 정보" : "옵션 관리"}
+                  </button>
+                ))}
+              </div>
+            )}
             <div className="overflow-y-auto px-5" style={{ maxHeight: "calc(90vh - 160px)", paddingBottom: "calc(1.5rem + env(safe-area-inset-bottom))" }}>
               {modalTab === "info" && (
                 <div className="space-y-3">
@@ -1896,11 +1925,13 @@ export default function OwnerAppPage() {
                 <div>
                   {optLoading ? (
                     <p className="text-xs text-stone-400 text-center py-4">불러오는 중...</p>
+                  ) : menuOptions.length === 0 && editingDefaults ? (
+                    <p className="text-sm text-stone-500 text-center py-4">등록된 기본 옵션이 없습니다. 아래에서 추가하세요.</p>
                   ) : menuOptions.length === 0 ? (
                     <div className="bg-amber-50 rounded-2xl p-4 mb-4">
                       <p className="text-sm text-amber-900 leading-relaxed">
-                        이 메뉴는 옵션을 따로 등록하지 않아, 고객에게 <b>기본 옵션 {DEFAULT_OPTIONS.length}개</b>가 보입니다.
-                        이름·금액을 바꾸거나 숨기려면 먼저 불러오세요.
+                        이 메뉴는 옵션을 따로 등록하지 않아, 고객에게 <b>기본 옵션</b>이 그대로 보입니다.
+                        이 메뉴만 이름·금액을 바꾸거나 숨기려면 먼저 불러오세요.
                       </p>
                       <button onClick={handleImportDefaults} disabled={saving}
                         className="w-full mt-3 py-3 rounded-xl text-white font-bold text-sm"
@@ -1948,11 +1979,13 @@ export default function OwnerAppPage() {
                         style={{ background: saving || !optDirty ? "#9CA3AF" : "#C8873A" }}>
                         {saving ? "저장 중..." : optDirty ? "옵션 변경 저장" : "변경 사항 없음"}
                       </button>
-                      <button onClick={handleImportDefaults} disabled={saving}
-                        className="w-full mt-2 py-3 rounded-xl font-bold text-sm border bg-white"
-                        style={{ borderColor: "#C8873A", color: "#C8873A" }}>
-                        기본 옵션 가져오기 (없는 것만 추가)
-                      </button>
+                      {!editingDefaults && (
+                        <button onClick={handleImportDefaults} disabled={saving}
+                          className="w-full mt-2 py-3 rounded-xl font-bold text-sm border bg-white"
+                          style={{ borderColor: "#C8873A", color: "#C8873A" }}>
+                          기본 옵션 가져오기 (없는 것만 추가)
+                        </button>
+                      )}
                     </div>
                   )}
                   <div className="bg-stone-50 rounded-2xl p-4">

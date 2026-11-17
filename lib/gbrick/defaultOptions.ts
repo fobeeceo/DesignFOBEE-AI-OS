@@ -1,5 +1,5 @@
-// 옵션을 따로 등록하지 않은 메뉴에 고객 앱이 보여 주는 기본 옵션.
-// 사장님 앱에서 "기본 옵션 불러오기"를 누르면 같은 목록이 그 메뉴의 옵션으로 저장되어 수정할 수 있게 된다.
+// 옵션을 따로 등록하지 않은 메뉴에 고객 앱이 보여 주는 기본 옵션의 "처음 값".
+// 사장님 앱의 "기본 옵션 관리"를 한 번 열면 이 목록이 DB에 저장되고, 그 뒤로는 DB에 저장된 목록이 기준이 된다.
 export interface DefaultOption {
   id: string;
   name: string;
@@ -22,3 +22,6 @@ export const DEFAULT_OPTIONS: DefaultOption[] = [
   { id: "def-hot",    name: "따뜻하게",     extraPrice: 0,   isDefault: true,  groupName: "온도" },
   { id: "def-ice",    name: "아이스",       extraPrice: 0,   isDefault: false, groupName: "온도" },
 ];
+
+// 기본 옵션 목록은 이 ID의 "보이지 않는 메뉴"에 딸린 옵션으로 저장한다 (전용 표가 없어 메뉴 옵션 표를 그대로 쓴다)
+export const DEFAULT_OPTIONS_MENU_ID = "menu-default-options";
