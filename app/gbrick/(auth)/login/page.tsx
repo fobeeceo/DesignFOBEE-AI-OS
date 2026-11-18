@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 const ERROR_TEXT: Record<string, string> = {
@@ -16,6 +16,13 @@ function LoginContent() {
   const params = useSearchParams();
   const next = params.get("next") ?? params.get("redirect") ?? "/gbrick/mypage";
   const error = params.get("error");
+  // 아이폰 홈 화면 앱에서는 네이버 로그인이 "등록되지 않은 사이트"로 막힌다 (2026-11-18 실제 기기에서 확인, 카카오는 정상).
+  // 원인을 확인하기 전까지는 홈 화면 앱에서 막힌 버튼을 보이지 않고 브라우저에서 이용하도록 안내한다.
+  const [standalone, setStandalone] = useState(false);
+  useEffect(() => {
+    const nav = navigator as Navigator & { standalone?: boolean };
+    setStandalone(nav.standalone === true || window.matchMedia("(display-mode: standalone)").matches);
+  }, []);
   const href = (provider: "kakao" | "naver") => `/api/gbrick/auth/${provider}?next=${encodeURIComponent(next)}`;
 
   return (
@@ -42,9 +49,15 @@ function LoginContent() {
         <a href={href("kakao")} style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: 15, borderRadius: 50, fontSize: 16, fontWeight: 700, background: "#FEE500", color: "#191919", textDecoration: "none" }}>
           카카오로 시작하기
         </a>
-        <a href={href("naver")} style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: 15, borderRadius: 50, fontSize: 16, fontWeight: 700, background: "#03C75A", color: "white", textDecoration: "none" }}>
-          네이버로 시작하기
-        </a>
+        {standalone ? (
+          <p style={{ fontSize: 14, color: "#5A3E22", background: "#FFF6E5", borderRadius: 12, padding: "12px 14px", margin: 0, lineHeight: 1.6 }}>
+            네이버 로그인은 홈 화면 앱에서 아직 지원되지 않아요. 카카오로 시작하거나, 사파리 등 브라우저에서 이용해 주세요.
+          </p>
+        ) : (
+          <a href={href("naver")} style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: 15, borderRadius: 50, fontSize: 16, fontWeight: 700, background: "#03C75A", color: "white", textDecoration: "none" }}>
+            네이버로 시작하기
+          </a>
+        )}
 
         <p style={{ fontSize: 14, color: "#888", lineHeight: 1.6, margin: "8px 4px 0" }}>
           로그인 없이도 주문할 수 있어요. 로그인하면 내 주문 내역을 앱에서 다시 볼 수 있어요.<br />
