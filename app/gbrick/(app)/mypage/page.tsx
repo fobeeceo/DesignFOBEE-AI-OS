@@ -94,23 +94,26 @@ export default function MyPage() {
           <span className="text-stone-400">›</span>
         </Link>
 
-        <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5">
-          <p className="text-sm text-stone-500">보유 포인트</p>
-          <p className="text-2xl font-black" style={{ color: "#C8873A" }}>{(points?.balance ?? 0).toLocaleString()}P</p>
-          <p className="text-sm text-stone-500 mt-2">
-            {MEMBER_POINT_RATE > 0 ? "픽업한 주문 금액에 따라 자동으로 적립돼요." : "포인트 적립·사용은 곧 열려요."}
-          </p>
-          {ledgers.length > 0 && (
-            <ul className="mt-3 divide-y divide-stone-100">
-              {ledgers.map(l => (
-                <li key={l.id} className="flex justify-between py-2 text-sm">
-                  <span className="text-stone-600">{new Date(l.createdAt).toLocaleDateString("ko-KR")} {l.amount > 0 ? "적립" : "사용"}</span>
-                  <span className={l.amount > 0 ? "font-semibold text-amber-700" : "font-semibold text-stone-600"}>{l.amount > 0 ? "+" : ""}{l.amount.toLocaleString()}P</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+        {/* 포인트는 적립률이 정해져 켜질 때까지 보이지 않는다 (테스트 기간 중 적립 없음 — 대표 결정 2026-11-18) */}
+        {MEMBER_POINT_RATE > 0 && (
+          <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5">
+            <p className="text-sm text-stone-500">보유 포인트</p>
+            <p className="text-2xl font-black" style={{ color: "#C8873A" }}>{(points?.balance ?? 0).toLocaleString()}P</p>
+            <p className="text-sm text-stone-500 mt-2">
+              픽업한 주문 금액에 따라 자동으로 적립돼요.
+            </p>
+            {ledgers.length > 0 && (
+              <ul className="mt-3 divide-y divide-stone-100">
+                {ledgers.map(l => (
+                  <li key={l.id} className="flex justify-between py-2 text-sm">
+                    <span className="text-stone-600">{new Date(l.createdAt).toLocaleDateString("ko-KR")} {l.amount > 0 ? "적립" : "사용"}</span>
+                    <span className={l.amount > 0 ? "font-semibold text-amber-700" : "font-semibold text-stone-600"}>{l.amount > 0 ? "+" : ""}{l.amount.toLocaleString()}P</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="px-5 mt-6 pb-8 flex flex-col gap-2">

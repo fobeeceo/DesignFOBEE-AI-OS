@@ -9,7 +9,7 @@
 - **환경변수(Vercel, 대표 입력)**: `GBRICK_KAKAO_REST_API_KEY`, `GBRICK_KAKAO_CLIENT_SECRET`, `GBRICK_NAVER_CLIENT_ID`, `GBRICK_NAVER_CLIENT_SECRET`. 기업 홈페이지 네이버 로그인(`NAVER_CLIENT_ID`)과 **다른 앱**이라 이름을 분리했다. 키가 없으면 로그인 버튼은 "준비 중" 안내를 보인다.
 - **주문 연결**: 로그인한 회원의 주문은 회원에게 연결(`customerId`), 쿠키가 위조·만료·탈퇴 회원이면 비회원 주문으로 접수.
 - **사실 정정(원칙 1)**: `GET /api/gbrick/orders` 가 **샘플(가짜) 주문 목록**을 돌려주던 것을 회원의 실제 주문만 돌려주도록 수정. 비로그인은 빈 목록.
-- **포인트**: 픽업(PICKED_UP) 확인된 주문만 적립, 같은 주문은 장부(`idempotencyKey`)로 한 번만. 적립률 `MEMBER_POINT_RATE = 0`(대표 결정 전까지 꺼짐 — `lib/gbrick/launch.ts`). 포인트 사용(차감)은 아직 없음.
+- **포인트(테스트 기간 중 적립 없음 — 대표 결정 2026-11-18)**: 다른 매장은 본사 결제 후 정산이라 포인트를 주면 정산이 복잡해진다. 마이페이지의 포인트 박스는 적립이 켜질 때까지 숨긴다. 켜기 전에 매장 간 정산 방식부터 정한다. 기반 기능: 픽업(PICKED_UP) 확인된 주문만 적립, 같은 주문은 장부(`idempotencyKey`)로 한 번만. 적립률 `MEMBER_POINT_RATE = 0`(대표 결정 전까지 꺼짐 — `lib/gbrick/launch.ts`). 포인트 사용(차감)은 아직 없음.
 - **마이페이지·로그인 화면 재작성**: 옛 Supabase 로그인(동작하지 않는 아이디/비밀번호 폼)과 쓸 수 없는 스탬프·쿠폰 탭 제거. 마이페이지 "주문 금액의 2% 자동 적립" 문구는 사실과 달라 삭제.
 - **탈퇴**: 이름 삭제·비활성화, 주문 기록 유지, 진행 중 주문이 있으면 거절.
 - **버그 수정**: `findOrCreateAccount` 가 `updatedAt`(NOT NULL) 없이 INSERT 해 항상 실패하던 것을 수정.
