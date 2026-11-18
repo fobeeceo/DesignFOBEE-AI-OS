@@ -25,6 +25,21 @@ describe("GBRICK_BRAND (대표 확인 2026-10-26, 2026-11-04 갱신)", () => {
     expect(GBRICK_BRAND.patbingsu.note).toContain("달라질 수 있습니다");
   });
 
+  it("원두는 OEM 생산이라 매장 로스팅으로 표현하지 않는다 (대표 확인 2026-11-17)", () => {
+    expect(GBRICK_BRAND.blendSourcing).toContain("파주");
+    expect(GBRICK_BRAND.blendSourcing).toContain("지브릭 블렌드");
+    expect(GBRICK_BRAND.blendSourcing).not.toMatch(/직접 로스팅|매일 로스팅/);
+  });
+
+  it("베이커리·단체 주문이 대표 확인값이다 (2026-11-17)", () => {
+    expect([...GBRICK_BRAND.bakery]).toEqual(
+      expect.arrayContaining(["플레인 베이글", "아시아고 베이글", "스콘", "팥빵", "루뱅쿠키", "인절미토스트"]),
+    );
+    expect([...GBRICK_BRAND.bakery]).toHaveLength(11);
+    expect(GBRICK_BRAND.groupOrder.delivery).toBe(true);
+    expect(GBRICK_BRAND.groupOrder.leadTime).toContain("5시간 전");
+  });
+
   it("전화번호가 대표 확인값이다", () => {
     expect(GBRICK_BRAND.phone).toBe("02-517-1474");
   });

@@ -17,9 +17,25 @@ import { Footer } from "@/components/layout/Footer";
  *   /franchise  → 창업·가맹 상담 전환
  *   /gbrick     → 방문 고객 대상 카페 정보 + AI 검색 소스
  *
- * 데이터 출처: lib/company/profile.ts GBRICK_BRAND (대표 확인 2026-10-26, 2026-11-04 갱신)
+ * 데이터 출처: lib/company/profile.ts GBRICK_BRAND (대표 확인 2026-10-26, 2026-11-04·11-17 갱신)
  * 미확인 항목(영업시간·주차 조건·한옥마을 도보 시간)은 §0-2 원칙 2에 따라 쓰지 않는다.
  */
+
+// 화면 FAQ와 FAQPage JSON-LD가 같은 문장을 쓰도록 한 곳에 둔다 (대표 확인 2026-11-17).
+const OFFER_FAQ = [
+  {
+    q: "지브릭커피에 베이글이나 디저트가 있나요?",
+    a: `네. ${GBRICK_BRAND.bakery.join(", ")}를 판매합니다. 가격은 매장에서 확인해 주세요.`,
+  },
+  {
+    q: "단체 주문이나 배달이 가능한가요?",
+    a: `가능합니다. ${GBRICK_BRAND.groupOrder.leadTime}이 필요합니다. 전화: ${GBRICK_BRAND.phone}`,
+  },
+  {
+    q: "커피 원두는 어디서 로스팅하나요?",
+    a: `지브릭커피의 블렌드 원두는 ${GBRICK_BRAND.blendSourcing}입니다. 아메리카노는 고소한 맛의 스페셜티 원두와 과일 산미의 이디오피아 예가체프 원두 중에서 고르실 수 있습니다.`,
+  },
+];
 
 const gbrickJsonLd = {
   "@context": "https://schema.org",
@@ -31,7 +47,7 @@ const gbrickJsonLd = {
       name: "지브릭커피",
       alternateName: ["GBRICK Coffee", "G.BRICK COFFEE", "지브릭 커피"],
       description:
-        "서울 은평구 스페셜티 커피 전문점. 공간과 커피를 결합한 브랜드. 스페셜티·예가체프 아메리카노, 수제 자몽 에이드, 무알콜 뱅쇼, 수제 팥빙수.",
+        "서울 은평구 스페셜티 커피 전문점. 공간과 커피를 결합한 브랜드. 스페셜티·예가체프 아메리카노, 수제 자몽 에이드, 무알콜 뱅쇼, 수제 팥빙수, 베이글·스콘 등 베이커리. 단체 주문·배달 가능.",
       url: `${SITE_URL}/gbrick/info`,
       telephone: GBRICK_BRAND.phone,
       address: {
@@ -48,7 +64,7 @@ const gbrickJsonLd = {
         latitude: 37.6355,
         longitude: 126.9208,
       },
-      servesCuisine: ["Coffee", "Specialty Coffee", "Korean Dessert"],
+      servesCuisine: ["Coffee", "Specialty Coffee", "Korean Dessert", "Bakery"],
       priceRange: "₩3,500–₩12,000",
       sameAs: [
         GBRICK_BRAND.social.instagram,
@@ -118,6 +134,11 @@ const gbrickJsonLd = {
                 offers: { "@type": "Offer", price: "12000", priceCurrency: "KRW" },
               },
             ],
+          },
+          {
+            "@type": "MenuSection",
+            name: "베이커리·디저트",
+            hasMenuItem: GBRICK_BRAND.bakery.map((name) => ({ "@type": "MenuItem", name })),
           },
         ],
       },
@@ -247,6 +268,11 @@ const gbrickJsonLd = {
             text: "지브릭커피(GBRICK Coffee)는 서울 은평구 연서로48길 12, 제각말푸르지오 5단지 상가 101호(1층)에 위치합니다. 아파트 단지 상가 1층이라 차량 이동 및 도보 접근이 편리합니다. 네이버 지도에서 '지브릭커피'로 검색하면 상세 위치를 확인할 수 있습니다. 전화: 02-517-1474.",
           },
         },
+        ...OFFER_FAQ.map(({ q, a }) => ({
+          "@type": "Question",
+          name: q,
+          acceptedAnswer: { "@type": "Answer", text: a },
+        })),
       ],
     },
     // ── BreadcrumbList ────────────────────────────────────────────────
@@ -271,6 +297,7 @@ export const metadata: Metadata = {
     "수제 에이드 은평", "뱅쇼 은평", "무알콜 뱅쇼", "은평 커피",
     "은평뉴타운 모임 카페", "은평구 아메리카노", "은평 한옥마을 근처 카페",
     "은평뉴타운 조용한 카페", "어르신 동반 카페 은평", "은평구 접근성 좋은 카페",
+    "은평 베이글 카페", "은평뉴타운 베이커리 카페", "은평 단체 커피 주문", "은평뉴타운 커피 배달",
   ],
   alternates: { canonical: "/gbrick/info" },
   openGraph: {
@@ -341,6 +368,7 @@ const VISITOR_FAQ = [
     q: "뱅쇼는 알콜이 들어가나요?",
     a: "지브릭커피 뱅쇼는 무알콜 음료입니다. 레드와인과 과일을 베이스로 하지만 알콜을 제거한 따뜻한 음료입니다. 겨울 시즌 한정으로 ₩7,800에 판매합니다.",
   },
+  ...OFFER_FAQ,
   {
     q: "어르신이나 아이와 함께 방문하기 편한가요?",
     a: `아파트 단지 상가 1층 위치라 계단 없이 출입 가능합니다. 접근이 편리한 환경으로 어르신·어린 자녀와 함께 방문하기 좋습니다. 주소: 서울 은평구 연서로48길 12.`,
@@ -415,7 +443,7 @@ export default function GBrickPage() {
           <div className="container-px mx-auto max-w-4xl">
             <h2 className="text-2xl font-bold sm:text-3xl">메뉴</h2>
             <p className="mt-2 text-[15px] text-muted-foreground">
-              스페셜티 원두 커피, 수제 과일 음료, 계절 한정 메뉴를 제공합니다.
+              스페셜티 원두 커피, 수제 과일 음료, 계절 한정 메뉴, 베이커리·디저트를 제공합니다.
             </p>
             {MENU_ITEMS.map((section) => (
               <div key={section.section} className="mt-10">
@@ -440,8 +468,15 @@ export default function GBrickPage() {
                 </div>
               </div>
             ))}
+            <div className="mt-10">
+              <h3 className="mb-4 text-lg font-semibold text-muted-foreground">베이커리·디저트</h3>
+              <p className="rounded-2xl border border-border bg-muted/40 p-5 text-[15px] leading-relaxed text-foreground">
+                {GBRICK_BRAND.bakery.join(" · ")}
+              </p>
+            </div>
             <p className="mt-6 text-[13px] text-muted-foreground">
-              * 가격은 현장 확인 후 최종 적용됩니다. 계절 한정 메뉴는 시즌 외 판매하지 않습니다.
+              * 가격은 현장 확인 후 최종 적용됩니다. 베이커리·디저트 가격은 매장에서 확인해 주세요.
+              계절 한정 메뉴는 시즌 외 판매하지 않습니다.
             </p>
           </div>
         </section>
@@ -472,6 +507,11 @@ export default function GBrickPage() {
             <p className="mt-4 text-[15px] leading-relaxed text-muted-foreground">
               고소한 맛의 스페셜티 원두와 과일 산미의 이디오피아 예가체프 원두 중 선택하는 아메리카노,
               직접 만든 수제청을 베이스로 한 자몽 에이드, 무알콜 뱅쇼(겨울 한정), 수제 팥빙수(여름 한정)를 제공합니다.
+            </p>
+            <p className="mt-4 text-[15px] leading-relaxed text-muted-foreground">
+              블렌드 원두는 {GBRICK_BRAND.blendSourcing}입니다. 베이글·스콘·팥빵·루뱅쿠키 등 베이커리와
+              허니브레드·크로크무슈 같은 디저트도 함께 즐기실 수 있습니다. 단체 주문과 배달은{" "}
+              {GBRICK_BRAND.groupOrder.leadTime} 시 가능합니다.
             </p>
           </div>
         </section>
