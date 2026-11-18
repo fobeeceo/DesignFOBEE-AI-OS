@@ -1,7 +1,9 @@
 export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { GbOrderStatus } from "@prisma/client";
-import { sbOrderRepo } from "@/lib/gbrick/repositories/supabase";
+import { sbOrderRepo, earnOrderPoints } from "@/lib/gbrick/repositories/supabase";
+import { MEMBER_POINT_RATE } from "@/lib/gbrick/launch";
+import { calcPointEarn } from "@/lib/gbrick/pointPolicy";
 import { sendOrderStatusPush } from "@/lib/gbrick/push";
 
 const VALID_TRANSITIONS: Record<string, string[]> = {
@@ -30,6 +32,14 @@ export async function PATCH(
     }
 
     const updated = await sbOrderRepo.updateStatus(orderId, status as GbOrderStatus, "store_staff", note);
+    // 픽업(결제 완료)이 확인된 주문만 적립한다 — 주문만 하고 오지 않은 경우엔 적립하지 않는다
+    if (status === "PICKED_UP" && order.customerId) {
+      try {
+        await earnOrderPoints({ id: order.id, customerId: order.customerId, finalAmount: order.finalAmount }, calcPointEarn(order.finalAmount, MEMBER_POINT_RATE));
+      } catch (err) {
+        console.error("[order status] 포인트 적립 실패 — 주문 상태는 정상 변경됨:", order.id, err instanceof Error ? err.message : err);
+      }
+    }
     await sendOrderStatusPush({ id: order.id, orderNumber: order.orderNumber, storeId: order.storeId }, status);
     return NextResponse.json({ ok: true, order: updated });
   } catch (err) {

@@ -30,11 +30,12 @@ function HistoryContent() {
   const newOrder = searchParams.get("newOrder");
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loggedIn, setLoggedIn] = useState(true);
 
   useEffect(() => {
     fetch("/api/gbrick/orders")
       .then((r) => r.json())
-      .then((d) => setOrders(d.orders ?? []))
+      .then((d) => { setOrders(d.orders ?? []); setLoggedIn(d.loggedIn !== false); })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
@@ -59,13 +60,13 @@ function HistoryContent() {
         ) : orders.length === 0 ? (
           <div className="flex flex-col items-center gap-4 py-16 text-stone-400">
             <span className="text-5xl">📋</span>
-            <p className="text-sm">주문 내역이 없습니다</p>
+            <p className="text-sm text-center" style={{ whiteSpace: "pre-line" }}>{loggedIn ? "주문 내역이 없습니다" : "로그인하면 내 주문 내역을 볼 수 있어요\n(로그인 전에 한 주문은 주문 화면에서 확인하세요)"}</p>
             <Link
-              href="/gbrick/stores"
+              href={loggedIn ? "/gbrick/stores" : "/gbrick/login?next=/gbrick/history"}
               className="text-sm font-semibold px-5 py-2.5 rounded-xl text-white"
               style={{ background: "#C8873A" }}
             >
-              첫 주문하기
+              {loggedIn ? "첫 주문하기" : "로그인"}
             </Link>
           </div>
         ) : (

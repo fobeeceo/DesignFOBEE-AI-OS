@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
-import { sbOrderRepo, sbMenuRepo, findStoreStrict, getDefaultOptions, countOrdersSince } from "@/lib/gbrick/repositories/supabase";
-import { MOCK_RECENT_ORDERS } from "@/lib/gbrick/mockData";
+import { MEMBER_COOKIE, verifyMemberSession } from "@/lib/gbrick/member";
+import { sbOrderRepo, sbMenuRepo, findStoreStrict, getDefaultOptions, countOrdersSince, findMember } from "@/lib/gbrick/repositories/supabase";
 import { isLaunchStore, NOT_LAUNCHED_MESSAGE } from "@/lib/gbrick/launch";
 import { isWithinOperatingHours, todayHoursLabel } from "@/lib/gbrick/storeHours";
 import { priceOrderItems, cleanGuestText, type PriceableMenu } from "@/lib/gbrick/orderPricing";
@@ -17,8 +17,16 @@ function generateOrderNumber(): string {
 
 const reject = (error: string, status: number) => NextResponse.json({ error }, { status });
 
-export async function GET(_req: NextRequest) {
-  return NextResponse.json({ orders: MOCK_RECENT_ORDERS, mock: true });
+// 로그인한 회원의 실제 주문 내역. 로그인하지 않았으면 빈 목록 (샘플 주문을 만들어 보이지 않는다).
+export async function GET(req: NextRequest) {
+  const memberId = await verifyMemberSession(req.cookies.get(MEMBER_COOKIE)?.value);
+  if (!memberId) return NextResponse.json({ orders: [], loggedIn: false });
+  try {
+    return NextResponse.json({ orders: await sbOrderRepo.findByCustomer(memberId, 30), loggedIn: true });
+  } catch (err) {
+    console.error("[GET /api/gbrick/orders]", err instanceof Error ? err.message : err);
+    return NextResponse.json({ error: "주문 내역을 불러오지 못했어요" }, { status: 500 });
+  }
 }
 
 // 앱 결제 연결 전(소프트 런칭): 결제는 픽업할 때 매장에서 한다. 금액·옵션은 서버가 다시 계산하고, 포인트는 쓰지 않는다.
@@ -54,11 +62,15 @@ export async function POST(req: NextRequest) {
     const priced = priceOrderItems(body.items, menus, defaultOptions);
     if (!priced.ok) return reject(priced.error, 400);
 
+    // 로그인한 회원이면 주문을 회원에게 연결한다. 쿠키가 낡았거나 탈퇴한 회원이면 비회원 주문으로 받는다.
+    const cookieMemberId = await verifyMemberSession(req.cookies.get(MEMBER_COOKIE)?.value);
+    const memberId = cookieMemberId && (await findMember(cookieMemberId))?.isActive ? cookieMemberId : null;
+
     const order = await sbOrderRepo.create({
       orderNumber: generateOrderNumber(),
       storeId,
-      customerId: undefined,
-      isGuest: true,
+      customerId: memberId ?? undefined,
+      isGuest: !memberId,
       items: priced.items,
       pickupName: cleanGuestText(body.pickupName, 20),
       note: cleanGuestText(body.note, 100),

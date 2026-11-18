@@ -1,56 +1,25 @@
 export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { createClient } from "@/lib/supabase/server";
-import { createClient as createAdminClient } from "@supabase/supabase-js";
-import { IS_MOCK_MODE } from "@/lib/gbrick/mockData";
+import { MEMBER_COOKIE, verifyMemberSession } from "@/lib/gbrick/member";
+import { anonymizeMember, sbOrderRepo } from "@/lib/gbrick/repositories/supabase";
 
-export async function DELETE(_req: NextRequest) {
+const IN_PROGRESS = ["PENDING", "CONFIRMED", "PREPARING", "READY"];
+
+/** DELETE /api/gbrick/auth/delete-account — 회원 탈퇴 (이름 지우고 비활성화, 주문 기록은 남김) */
+export async function DELETE(req: NextRequest) {
+  const memberId = await verifyMemberSession(req.cookies.get(MEMBER_COOKIE)?.value);
+  if (!memberId) return NextResponse.json({ error: "로그인이 필요해요" }, { status: 401 });
   try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return NextResponse.json({ error: "인증 필요" }, { status: 401 });
-
-    if (IS_MOCK_MODE) {
-      await supabase.auth.signOut();
-      return NextResponse.json({ deleted: true, mock: true });
+    const orders = await sbOrderRepo.findByCustomer(memberId, 50);
+    if (orders.some(o => IN_PROGRESS.includes(o.status))) {
+      return NextResponse.json({ error: "진행 중인 주문이 있어 탈퇴할 수 없어요. 픽업을 마친 뒤 다시 시도해 주세요." }, { status: 400 });
     }
-
-    // 1. ACTIVE 주문이 있으면 탈퇴 거부
-    const activeOrders = await prisma.gbOrder.count({
-      where: {
-        customerId: user.id,
-        status: { notIn: ["CANCELLED", "PICKED_UP", "REFUNDED"] },
-      },
-    });
-    if (activeOrders > 0) {
-      return NextResponse.json({ error: "진행 중인 주문이 있어 탈퇴할 수 없습니다." }, { status: 400 });
-    }
-
-    // 2. 고객 소프트 삭제 (개인정보 익명화)
-    await prisma.gbCustomer.update({
-      where: { id: user.id },
-      data: {
-        isActive: false,
-        nickname: "탈퇴한 고객",
-        phone: null,
-        birthdate: null,
-        deletedAt: new Date(),
-      },
-    });
-
-    // 3. Supabase Auth 계정 삭제 (service role 필요)
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    if (serviceKey && supabaseUrl) {
-      const adminClient = createAdminClient(supabaseUrl, serviceKey);
-      await adminClient.auth.admin.deleteUser(user.id);
-    }
-
-    await supabase.auth.signOut();
-    return NextResponse.json({ deleted: true });
+    await anonymizeMember(memberId);
+    const res = NextResponse.json({ deleted: true });
+    res.cookies.delete(MEMBER_COOKIE);
+    return res;
   } catch (err) {
-    console.error("[DELETE /api/gbrick/auth/delete-account]", err);
-    return NextResponse.json({ error: "서버 오류" }, { status: 500 });
+    console.error("[DELETE /api/gbrick/auth/delete-account]", err instanceof Error ? err.message : err);
+    return NextResponse.json({ error: "탈퇴 처리 중 오류가 발생했어요" }, { status: 500 });
   }
 }

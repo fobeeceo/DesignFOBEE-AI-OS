@@ -97,14 +97,8 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // 고객 앱: 마이페이지·히스토리는 로그인 필요 (장바구니·주문은 비회원 가능)
-  const gbrickAuthRequired = ["/gbrick/history", "/gbrick/mypage"];
-  if (gbrickAuthRequired.some((p) => pathname.startsWith(p)) && !user) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/gbrick/login";
-    url.searchParams.set("redirect", pathname);
-    return NextResponse.redirect(url);
-  }
+  // 고객 앱: 마이페이지·주문 내역은 카카오·네이버 로그인(gbrick_member 쿠키)을 쓴다.
+  // 로그인 여부는 각 페이지가 /api/gbrick/me 로 확인하고 로그인 안내를 보인다 (옛 Supabase 로그인 게이트는 제거).
 
   // ── 기존 DesignFOBEE HQ 게이트 ──────────────────────────────────
   const isProtected = pathname.startsWith("/hq");

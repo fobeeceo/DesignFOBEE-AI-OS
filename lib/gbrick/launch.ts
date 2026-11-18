@@ -10,3 +10,10 @@ export const isLaunchStore = (storeId: string) => LAUNCH_STORE_IDS.includes(stor
 export const ON_SITE_PAYMENT_NOTICE = "결제는 픽업하실 때 매장 카운터에서 해 주세요.";
 
 export const NOT_LAUNCHED_MESSAGE = "이 매장은 곧 오픈해요. 지금은 은평뉴타운 본점에서 주문할 수 있어요.";
+
+/**
+ * 회원 포인트 적립률 (픽업·결제가 끝난 주문에 대해).
+ * 0 = 적립하지 않음. 대표님이 적립률을 정하면 이 값만 바꾼다 (예: 0.02 = 2%).
+ * 참고: lib/gbrick/constants.ts 의 POINT_DEFAULTS.rate(0.02) 는 예전 초안이며 아직 승인되지 않았다.
+ */
+export const MEMBER_POINT_RATE = 0;

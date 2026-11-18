@@ -691,7 +691,7 @@ export const sbPointRepo: IPointRepository = {
     const sb = getAdmin();
     const { data: existing } = await sb.from("gb_point_accounts").select("*").eq("customerId", customerId).single();
     if (existing) return existing as unknown as PointAccountDto;
-    const { data, error } = await sb.from("gb_point_accounts").insert({ id: nanoid(), customerId, balance: 0, totalEarned: 0, totalUsed: 0 }).select().single();
+    const { data, error } = await sb.from("gb_point_accounts").insert({ id: nanoid(), customerId, balance: 0, totalEarned: 0, totalUsed: 0, updatedAt: new Date().toISOString() }).select().single();
     if (error) throw error;
     return data as unknown as PointAccountDto;
   },
@@ -760,6 +760,78 @@ export const sbPointRepo: IPointRepository = {
     return !!data;
   },
 };
+
+// ─── Member (카카오·네이버 로그인 회원) ─────────────────────────────
+// 회원 번호는 "kakao_123" 형태의 글자 — gb_customers.id 가 TEXT 라서 표를 고치지 않고 그대로 쓴다.
+
+export interface MemberRow { id: string; nickname: string | null; isActive: boolean }
+
+export async function findMember(memberId: string): Promise<MemberRow | null> {
+  const { data, error } = await getAdmin().from("gb_customers").select("id, nickname, isActive").eq("id", memberId).maybeSingle();
+  if (error) throw error;
+  return (data as MemberRow | null) ?? null;
+}
+
+/** 로그인할 때마다 부른다 — 처음이면 회원과 포인트 계정을 만들고, 탈퇴했던 회원이면 다시 살린다 */
+export async function upsertMember(memberId: string, nickname: string): Promise<MemberRow> {
+  const sb = getAdmin();
+  const now = new Date().toISOString();
+  const existing = await findMember(memberId);
+  if (existing) {
+    const { error } = await sb.from("gb_customers").update({ nickname, isActive: true, deletedAt: null, updatedAt: now }).eq("id", memberId);
+    if (error) throw error;
+  } else {
+    const { error } = await sb.from("gb_customers").insert({ id: memberId, nickname, isActive: true, updatedAt: now });
+    // 같은 사람이 동시에 두 번 로그인하면 한쪽이 "이미 있음"(23505)으로 실패한다 — 이미 만들어졌으니 괜찮다
+    if (error && (error as { code?: string }).code !== "23505") throw error;
+  }
+  await sbPointRepo.findOrCreateAccount(memberId);
+  return { id: memberId, nickname, isActive: true };
+}
+
+/** 탈퇴 — 이름을 지우고 비활성화한다. 주문 기록은 매출 자료라 남긴다. */
+export async function anonymizeMember(memberId: string): Promise<void> {
+  const now = new Date().toISOString();
+  const { error } = await getAdmin().from("gb_customers")
+    .update({ isActive: false, nickname: "탈퇴한 고객", phone: null, email: null, birthdate: null, deletedAt: now, updatedAt: now })
+    .eq("id", memberId);
+  if (error) throw error;
+}
+
+/**
+ * 주문 하나에 대한 적립 — 같은 주문은 한 번만 적립된다.
+ * 장부(gb_point_ledger)의 idempotencyKey 는 유일해서, 동시에 두 번 눌려도 한쪽만 들어간다.
+ * 반환값: 적립한 포인트 (이미 적립했거나 0 이면 0)
+ */
+export async function earnOrderPoints(order: { id: string; customerId: string; finalAmount: number }, amount: number): Promise<number> {
+  if (amount <= 0) return 0;
+  const sb = getAdmin();
+  const account = await sbPointRepo.findOrCreateAccount(order.customerId);
+  const { data: ledger, error } = await sb.from("gb_point_ledger").insert({
+    id: nanoid(), accountId: account.id, orderId: order.id, type: "EARN", amount,
+    balanceAfter: account.balance + amount, note: "주문 적립", idempotencyKey: `earn:${order.id}`,
+  }).select("id").single();
+  if (error) {
+    if ((error as { code?: string }).code === "23505") return 0; // 이미 적립됨
+    throw error;
+  }
+  // 잔액은 "읽은 값 그대로일 때만" 바꾼다 — 같은 회원의 다른 적립과 겹쳐도 덮어쓰지 않는다
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const { data: acct, error: readErr } = await sb.from("gb_point_accounts").select("balance, totalEarned").eq("id", account.id).single();
+    if (readErr) throw readErr;
+    const balance = acct.balance as number;
+    const { data: updated, error: updErr } = await sb.from("gb_point_accounts")
+      .update({ balance: balance + amount, totalEarned: (acct.totalEarned as number) + amount, updatedAt: new Date().toISOString() })
+      .eq("id", account.id).eq("balance", balance).select("id");
+    if (updErr) throw updErr;
+    if (updated && updated.length > 0) {
+      await sb.from("gb_point_ledger").update({ balanceAfter: balance + amount }).eq("id", ledger.id);
+      await sb.from("gb_orders").update({ pointEarned: amount }).eq("id", order.id);
+      return amount;
+    }
+  }
+  throw new Error(`포인트 잔액 갱신 충돌 (주문 ${order.id})`);
+}
 
 // ─── Stamp Repository ─────────────────────────────────────────
 

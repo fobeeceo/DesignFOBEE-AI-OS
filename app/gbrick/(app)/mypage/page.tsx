@@ -4,111 +4,72 @@ export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
+import { MEMBER_POINT_RATE } from "@/lib/gbrick/launch";
 
-interface Customer { id: string; nickname?: string; phone?: string; }
-interface PointAccount { balance: number; totalEarned: number; totalUsed: number; }
-interface StampAccount { balance: number; storeId: string; }
-interface CouponIssue {
-  id: string;
-  redeemed: boolean;
-  expiresAt?: string;
-  coupon: { name: string; type: string; discountAmount?: number; discountRate?: number };
-}
+interface Member { id: string; nickname: string | null; provider: string; }
+interface Points { balance: number; totalEarned: number; totalUsed: number; }
+interface Ledger { id: string; type: string; amount: number; balanceAfter: number; createdAt: string; note?: string | null; }
 
-const supabase = createClient();
+const PROVIDER_LABEL: Record<string, string> = { kakao: "카카오", naver: "네이버" };
 
 export default function MyPage() {
-  const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
-  const [customer, setCustomer] = useState<Customer | null>(null);
-  const [pointAccount, setPointAccount] = useState<PointAccount | null>(null);
-  const [coupons, setCoupons] = useState<CouponIssue[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<"points" | "stamps" | "coupons">("points");
-  const [stampCount, setStampCount] = useState(0);
+  const [failed, setFailed] = useState(false);
+  const [member, setMember] = useState<Member | null>(null);
+  const [points, setPoints] = useState<Points | null>(null);
+  const [ledgers, setLedgers] = useState<Ledger[]>([]);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user);
-      if (data.user) loadProfile();
-      else setLoading(false);
-    });
+    fetch("/api/gbrick/me")
+      .then(async r => { if (!r.ok) throw new Error(); return r.json(); })
+      .then(d => { setMember(d.member ?? null); setPoints(d.points ?? null); setLedgers(d.ledgers ?? []); })
+      .catch(() => setFailed(true))
+      .finally(() => setLoading(false));
   }, []);
 
-  async function loadProfile() {
-    setLoading(true);
-    try {
-      const [customerRes, pointsRes, couponsRes, stampsRes] = await Promise.all([
-        fetch("/api/gbrick/customers"),
-        fetch("/api/gbrick/points"),
-        fetch("/api/gbrick/coupons"),
-        fetch("/api/gbrick/stamps"),
-      ]);
-      const [cd, pd, cod, sd] = await Promise.all([customerRes.json(), pointsRes.json(), couponsRes.json(), stampsRes.json()]);
-      setCustomer(cd.customer ?? null);
-      setPointAccount(pd.account ?? null);
-      setCoupons(cod.coupons ?? []);
-      setStampCount(sd.total ?? 0);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleLogout() {
-    await supabase.auth.signOut();
+  async function logout() {
+    await fetch("/api/gbrick/auth/logout", { method: "POST" });
     window.location.href = "/gbrick";
   }
 
-  async function handleDeleteAccount() {
-    if (!confirm("정말 회원탈퇴를 하시겠습니까?\n탈퇴 후에는 복구할 수 없습니다.")) return;
+  async function deleteAccount() {
+    if (!confirm("정말 회원탈퇴를 하시겠어요?\n닉네임이 지워지고 보유 포인트를 더 이상 쓸 수 없어요. 탈퇴 후에는 되돌릴 수 없어요.")) return;
     try {
       const res = await fetch("/api/gbrick/auth/delete-account", { method: "DELETE" });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "탈퇴 실패");
-      alert("탈퇴가 완료되었습니다.");
+      if (!res.ok) throw new Error(data.error ?? "탈퇴에 실패했어요");
+      alert("탈퇴가 완료되었어요.");
       window.location.href = "/gbrick";
-    } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : "탈퇴 처리 중 오류가 발생했습니다.");
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "탈퇴 처리 중 오류가 발생했어요");
     }
   }
 
-  async function claimWelcomeCoupon() {
-    const res = await fetch("/api/gbrick/coupons", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "issue_welcome" }),
-    });
-    const data = await res.json();
-    if (data.issue) {
-      setCoupons((prev) => [...prev, data.issue]);
-    } else {
-      alert(data.error ?? "이미 발급된 쿠폰입니다");
-    }
-  }
+  const header = (
+    <header className="px-5 py-4 text-white flex items-center justify-between" style={{ background: "#2C1A0E" }}>
+      <span className="font-bold">마이페이지</span>
+      {member && <button onClick={logout} className="text-sm text-amber-200">로그아웃</button>}
+    </header>
+  );
 
-  const STAMP_GOAL = 10;
-  const activeCoupons = coupons.filter((c) => !c.redeemed);
-  const usedCoupons = coupons.filter((c) => c.redeemed);
+  if (loading) return <main className="flex flex-col min-h-screen pb-20">{header}<p className="text-stone-400 text-center py-16">불러오는 중...</p></main>;
 
-  if (!user) {
+  if (failed) {
     return (
-      <main className="flex flex-col min-h-screen pb-20">
-        <header className="px-5 py-4 text-white flex items-center gap-3" style={{ background: "#2C1A0E" }}>
-          <span className="font-bold">마이페이지</span>
-        </header>
+      <main className="flex flex-col min-h-screen pb-20">{header}
+        <p className="text-stone-600 text-center py-16 px-6">정보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</p>
+      </main>
+    );
+  }
+
+  if (!member) {
+    return (
+      <main className="flex flex-col min-h-screen pb-20">{header}
         <div className="flex flex-col items-center justify-center flex-1 gap-5 px-6">
           <div className="text-5xl">☕</div>
-          <p className="text-stone-700 font-semibold text-center">로그인 후 포인트·스탬프·쿠폰을 확인하세요</p>
-          <Link
-            href="/gbrick/login"
-            className="w-full py-3.5 rounded-2xl text-white font-bold text-center"
-            style={{ background: "#C8873A" }}
-          >
-            로그인
-          </Link>
-          <Link href="/gbrick/signup" className="text-sm text-stone-500">회원가입</Link>
+          <p className="text-stone-700 font-semibold text-center">로그인하면 내 주문 내역을 앱에서 볼 수 있어요</p>
+          <Link href="/gbrick/login" className="w-full py-3.5 rounded-2xl text-white font-bold text-center" style={{ background: "#C8873A" }}>로그인</Link>
+          <p className="text-sm text-stone-500 text-center">로그인 없이도 주문할 수 있어요</p>
         </div>
       </main>
     );
@@ -116,160 +77,45 @@ export default function MyPage() {
 
   return (
     <main className="flex flex-col min-h-screen pb-20">
-      <header className="px-5 py-4 text-white flex items-center justify-between" style={{ background: "#2C1A0E" }}>
-        <span className="font-bold">마이페이지</span>
-        <button onClick={handleLogout} className="text-xs text-amber-200">로그아웃</button>
-      </header>
-
-      {/* Profile */}
+      {header}
       <div className="px-5 py-4 bg-white border-b border-stone-100">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center text-xl">☕</div>
           <div>
-            <p className="font-bold text-stone-800">{customer?.nickname ?? "GBRICK 회원"}</p>
-            <p className="text-xs text-stone-500">{user.email}</p>
+            <p className="font-bold text-stone-800">{member.nickname ?? "GBRICK 회원"}님</p>
+            <p className="text-sm text-stone-500">{PROVIDER_LABEL[member.provider] ?? ""} 계정으로 로그인 중</p>
           </div>
         </div>
       </div>
 
-      {/* Quick stats */}
-      <div className="grid grid-cols-3 divide-x divide-stone-100 bg-white border-b border-stone-100 mb-3">
-        <div className="flex flex-col items-center py-4 gap-0.5">
-          <p className="text-xl font-black" style={{ color: "#C8873A" }}>{(pointAccount?.balance ?? 0).toLocaleString()}</p>
-          <p className="text-xs text-stone-500">포인트</p>
-        </div>
-        <div className="flex flex-col items-center py-4 gap-0.5">
-          <p className="text-xl font-black" style={{ color: "#2C1A0E" }}>{stampCount}</p>
-          <p className="text-xs text-stone-500">스탬프</p>
-        </div>
-        <div className="flex flex-col items-center py-4 gap-0.5">
-          <p className="text-xl font-black text-green-600">{activeCoupons.length}</p>
-          <p className="text-xs text-stone-500">쿠폰</p>
-        </div>
-      </div>
-
-      {/* Tabs */}
-      <div className="flex border-b border-stone-200 bg-white mb-3">
-        {(["points", "stamps", "coupons"] as const).map((t) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className="flex-1 py-3 text-sm font-semibold transition-colors"
-            style={{
-              color: tab === t ? "#C8873A" : "#9CA3AF",
-              borderBottom: tab === t ? "2px solid #C8873A" : "2px solid transparent",
-            }}
-          >
-            {t === "points" ? "포인트" : t === "stamps" ? "스탬프" : "쿠폰"}
-          </button>
-        ))}
-      </div>
-
-      {/* Menu links */}
-      <div className="px-5 mb-3 flex flex-col gap-2">
+      <div className="px-5 mt-3 flex flex-col gap-2">
         <Link href="/gbrick/history" className="flex items-center justify-between bg-white rounded-xl border border-stone-100 px-4 py-3 shadow-sm">
-          <span className="text-sm font-semibold text-stone-700">📋 주문 내역</span>
-          <span className="text-stone-400 text-sm">›</span>
+          <span className="text-base font-semibold text-stone-700">📋 주문 내역</span>
+          <span className="text-stone-400">›</span>
         </Link>
-      </div>
 
-      <div className="px-5">
-        {tab === "points" && (
-          <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5">
-            <div className="flex justify-between mb-4">
-              <div>
-                <p className="text-xs text-stone-500">보유</p>
-                <p className="text-2xl font-black" style={{ color: "#C8873A" }}>
-                  {(pointAccount?.balance ?? 0).toLocaleString()}P
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="text-xs text-stone-500">총 적립</p>
-                <p className="text-sm font-semibold text-stone-700">
-                  {(pointAccount?.totalEarned ?? 0).toLocaleString()}P
-                </p>
-              </div>
-            </div>
-            <p className="text-xs text-stone-400">주문 금액의 2% 자동 적립 · 100P 단위 사용 가능</p>
-          </div>
-        )}
-
-        {tab === "stamps" && (
-          <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5">
-            <p className="text-sm font-semibold text-stone-700 mb-4">
-              스탬프 ({stampCount}/{STAMP_GOAL})
-            </p>
-            <div className="grid grid-cols-5 gap-2 mb-4">
-              {Array.from({ length: STAMP_GOAL }).map((_, i) => (
-                <div
-                  key={i}
-                  className="aspect-square rounded-full flex items-center justify-center text-lg"
-                  style={{ background: i < stampCount ? "#C8873A" : "#F5F5F4" }}
-                >
-                  {i < stampCount ? "☕" : "○"}
-                </div>
+        <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5">
+          <p className="text-sm text-stone-500">보유 포인트</p>
+          <p className="text-2xl font-black" style={{ color: "#C8873A" }}>{(points?.balance ?? 0).toLocaleString()}P</p>
+          <p className="text-sm text-stone-500 mt-2">
+            {MEMBER_POINT_RATE > 0 ? "픽업한 주문 금액에 따라 자동으로 적립돼요." : "포인트 적립·사용은 곧 열려요."}
+          </p>
+          {ledgers.length > 0 && (
+            <ul className="mt-3 divide-y divide-stone-100">
+              {ledgers.map(l => (
+                <li key={l.id} className="flex justify-between py-2 text-sm">
+                  <span className="text-stone-600">{new Date(l.createdAt).toLocaleDateString("ko-KR")} {l.amount > 0 ? "적립" : "사용"}</span>
+                  <span className={l.amount > 0 ? "font-semibold text-amber-700" : "font-semibold text-stone-600"}>{l.amount > 0 ? "+" : ""}{l.amount.toLocaleString()}P</span>
+                </li>
               ))}
-            </div>
-            <p className="text-xs text-stone-400">{STAMP_GOAL}개 모으면 아메리카노 1잔 무료</p>
-          </div>
-        )}
-
-        {tab === "coupons" && (
-          <div className="flex flex-col gap-3">
-            <button
-              onClick={claimWelcomeCoupon}
-              className="w-full py-3 rounded-2xl border-2 border-dashed text-sm font-semibold"
-              style={{ borderColor: "#C8873A", color: "#C8873A" }}
-            >
-              첫 방문 감사 쿠폰 받기
-            </button>
-            {activeCoupons.length === 0 ? (
-              <p className="text-sm text-stone-400 text-center py-6">사용 가능한 쿠폰이 없습니다</p>
-            ) : (
-              activeCoupons.map((issue) => (
-                <div key={issue.id} className="bg-white rounded-2xl border border-stone-100 shadow-sm px-4 py-3">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="font-semibold text-stone-800">{issue.coupon.name}</p>
-                      <p className="text-xs text-stone-500 mt-0.5">
-                        {issue.coupon.type === "DISCOUNT_AMOUNT"
-                          ? `${issue.coupon.discountAmount?.toLocaleString()}원 할인`
-                          : `${((issue.coupon.discountRate ?? 0) * 100).toFixed(0)}% 할인`}
-                      </p>
-                    </div>
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-green-50 text-green-600 font-semibold">
-                      사용가능
-                    </span>
-                  </div>
-                  {issue.expiresAt && (
-                    <p className="text-xs text-stone-400 mt-2">
-                      ~{new Date(issue.expiresAt).toLocaleDateString("ko-KR")} 까지
-                    </p>
-                  )}
-                </div>
-              ))
-            )}
-            {usedCoupons.length > 0 && (
-              <p className="text-xs text-stone-400 text-center mt-2">사용됨 {usedCoupons.length}개</p>
-            )}
-          </div>
-        )}
+            </ul>
+          )}
+        </div>
       </div>
 
-      {/* Account actions */}
       <div className="px-5 mt-6 pb-8 flex flex-col gap-2">
-        <button
-          onClick={handleLogout}
-          className="w-full py-3 rounded-xl text-sm font-semibold text-stone-600 border border-stone-200 bg-white"
-        >
-          로그아웃
-        </button>
-        <button
-          onClick={handleDeleteAccount}
-          className="w-full py-2.5 rounded-xl text-xs font-medium text-stone-400"
-        >
-          회원탈퇴
-        </button>
+        <button onClick={logout} className="w-full py-3 rounded-xl text-sm font-semibold text-stone-600 border border-stone-200 bg-white">로그아웃</button>
+        <button onClick={deleteAccount} className="w-full py-2.5 rounded-xl text-sm font-medium text-stone-400">회원탈퇴</button>
       </div>
     </main>
   );
