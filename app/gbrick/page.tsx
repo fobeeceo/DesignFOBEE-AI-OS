@@ -73,12 +73,18 @@ export default function GbrickHome() {
             </svg>
           </button>
           {/* 장바구니 */}
-          <button aria-label="장바구니">
+          <Link href="/gbrick/cart" aria-label="장바구니" style={{ display: "flex" }}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1A0E05" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
               <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
               <line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/>
             </svg>
-          </button>
+          </Link>
+          {/* 내 정보 (로그인·주문 내역) — 홈에는 하단 메뉴가 없어서 여기서 들어간다 */}
+          <Link href="/gbrick/mypage" aria-label="내 정보" style={{ display: "flex" }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1A0E05" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/>
+            </svg>
+          </Link>
           {/* 알림 */}
           <Link href="/gbrick/notifications" aria-label="알림">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1A0E05" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
@@ -123,7 +129,7 @@ export default function GbrickHome() {
               }}>
                 주문하기
               </Link>
-              <p style={{ textAlign: "center", fontSize: 12, color: "#8A7760" }}>회원·포인트·스탬프는 곧 열려요</p>
+              <p style={{ textAlign: "center", fontSize: 12, color: "#8A7760" }}>포인트·스탬프는 곧 열려요</p>
             </div>
           </div>
         </div>
