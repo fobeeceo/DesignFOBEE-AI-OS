@@ -22,13 +22,12 @@ import { Footer } from "@/components/layout/Footer";
  */
 
 const won = (n: number) => `₩${n.toLocaleString("ko-KR")}`;
-const BAKERY_PRICED = GBRICK_BRAND.bakery.flatMap((b) => ("price" in b ? [`${b.name} ${won(b.price)}`] : []));
 
 // 화면 FAQ와 FAQPage JSON-LD가 같은 문장을 쓰도록 한 곳에 둔다 (대표 확인 2026-11-17).
 const OFFER_FAQ = [
   {
     q: "지브릭커피에 베이글이나 디저트가 있나요?",
-    a: `네. ${GBRICK_BRAND.bakery.map((b) => b.name).join(", ")}를 판매합니다. 가격은 ${BAKERY_PRICED.join(", ")}이며, 나머지는 매장에서 확인해 주세요.`,
+    a: `네. 베이커리·디저트 메뉴와 가격은 다음과 같습니다: ${GBRICK_BRAND.bakery.map((b) => `${b.name} ${won(b.price)}`).join(", ")}.`,
   },
   {
     q: "단체 주문이나 배달이 가능한가요?",
@@ -68,7 +67,7 @@ const gbrickJsonLd = {
         longitude: 126.9208,
       },
       servesCuisine: ["Coffee", "Specialty Coffee", "Korean Dessert", "Bakery"],
-      priceRange: "₩3,500–₩12,000",
+      priceRange: "₩2,900–₩12,000",
       sameAs: [
         GBRICK_BRAND.social.instagram,
         GBRICK_BRAND.social.youtube,
@@ -144,9 +143,7 @@ const gbrickJsonLd = {
             hasMenuItem: GBRICK_BRAND.bakery.map((b) => ({
               "@type": "MenuItem",
               name: b.name,
-              ...("price" in b && {
-                offers: { "@type": "Offer", price: String(b.price), priceCurrency: "KRW" },
-              }),
+              offers: { "@type": "Offer", price: String(b.price), priceCurrency: "KRW" },
             })),
           },
         ],
@@ -483,14 +480,13 @@ export default function GBrickPage() {
                 {GBRICK_BRAND.bakery.map((b) => (
                   <li key={b.name} className="flex justify-between gap-4">
                     <span>{b.name}</span>
-                    {"price" in b && <span className="tabular-nums text-muted-foreground">{won(b.price)}</span>}
+                    <span className="tabular-nums text-muted-foreground">{won(b.price)}</span>
                   </li>
                 ))}
               </ul>
             </div>
             <p className="mt-6 text-[13px] text-muted-foreground">
-              * 가격은 현장 확인 후 최종 적용됩니다. 가격이 표시되지 않은 베이커리·디저트는 매장에서 확인해 주세요.
-              계절 한정 메뉴는 시즌 외 판매하지 않습니다.
+              * 가격은 현장 확인 후 최종 적용됩니다. 계절 한정 메뉴는 시즌 외 판매하지 않습니다.
             </p>
           </div>
         </section>
