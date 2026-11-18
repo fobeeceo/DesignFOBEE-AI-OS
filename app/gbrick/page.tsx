@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { haversineKm, formatDistance } from "@/lib/gbrick/utils/distance";
+import IosInstallHint from "@/components/gbrick/IosInstallHint";
 
 interface Store {
   id: string; name: string; address: string; status: string;
@@ -41,6 +42,7 @@ export default function GbrickHome() {
 
   return (
     <main style={{ background: "#EDE3CE", minHeight: "100svh", paddingBottom: 90 }}>
+      <IosInstallHint />
 
       {/* ── 헤더 (베이지 배경, 흰 박스 없음) ── */}
       <header style={{

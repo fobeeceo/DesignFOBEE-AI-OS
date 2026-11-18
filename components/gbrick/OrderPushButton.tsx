@@ -37,7 +37,7 @@ async function registerPhone(orderId: string, publicKey: string): Promise<void> 
 const TEXT: Record<Exclude<State, "hidden" | "off">, string> = {
   on: "🔔 메뉴가 준비되면 이 폰으로 알림을 보내드려요.",
   denied: "알림이 꺼져 있어요. 폰 설정에서 이 앱의 알림을 허용하면 준비 알림을 받을 수 있어요.",
-  "needs-install": "아이폰은 홈 화면에 추가한 앱에서만 알림을 받을 수 있어요. 공유 버튼 → ‘홈 화면에 추가’ 후 그 아이콘으로 열어 주세요.",
+  "needs-install": "🔔 알림을 받으려면 홈 화면에 추가해 주세요.\n(아이폰은 홈 화면 앱에서만 알림이 와요)\n① 공유 버튼 누르기\n② ‘홈 화면에 추가’ 누르기\n③ 홈 화면의 지브릭커피 아이콘으로 다시 열기",
   failed: "알림 등록에 실패했어요. 다시 시도해 주세요.",
 };
 
@@ -89,10 +89,15 @@ export default function OrderPushButton({ orderId }: { orderId: string }) {
   if (state === "hidden") return null;
 
   const showButton = state === "off" || state === "failed";
+  // 알림이 아직 안 켜진 상태는 눈에 띄게(주황), 켜졌으면 차분하게
+  const needsAction = state !== "on";
   return (
-    <div style={{ background: "#fff", borderRadius: 12, padding: "16px 20px", marginBottom: 16, boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}>
+    <div style={{
+      background: needsAction ? "#FEF3E2" : "#fff", border: needsAction ? "1px solid #F3D9AE" : "none",
+      borderRadius: 12, padding: "16px 20px", marginBottom: 16, boxShadow: needsAction ? "none" : "0 1px 4px rgba(0,0,0,0.06)",
+    }}>
       {state !== "off" && (
-        <p style={{ fontSize: 15, lineHeight: 1.5, color: state === "on" ? "#047857" : "#6B5B4B", margin: 0 }}>{TEXT[state]}</p>
+        <p style={{ fontSize: 15, lineHeight: 1.6, color: state === "on" ? "#047857" : "#7A4A12", fontWeight: needsAction ? 600 : 400, margin: 0, whiteSpace: "pre-line" }}>{TEXT[state]}</p>
       )}
       {showButton && (
         <button onClick={enable} disabled={busy}

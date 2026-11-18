@@ -171,6 +171,11 @@ export default function OrderDetailPage() {
           </div>
         )}
 
+        {/* 픽업 알림 등록 — 진행 중인 실제 주문에서만 */}
+        {!["PICKED_UP", "CANCELLED"].includes(order.status) && !order.id.startsWith("ord_") && (
+          <OrderPushButton orderId={order.id} />
+        )}
+
         {/* Status Hero */}
         <div style={{ background: "#fff", borderRadius: 16, padding: 28, textAlign: "center", marginBottom: 16, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
           <div style={{ fontSize: 48, marginBottom: 12 }}>{statusInfo.icon}</div>
@@ -184,11 +189,6 @@ export default function OrderDetailPage() {
             </div>
           )}
         </div>
-
-        {/* 픽업 알림 등록 — 진행 중인 실제 주문에서만 */}
-        {!["PICKED_UP", "CANCELLED"].includes(order.status) && !order.id.startsWith("ord_") && (
-          <OrderPushButton orderId={order.id} />
-        )}
 
         {/* Progress Steps */}
         {order.status !== "CANCELLED" && (
