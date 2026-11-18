@@ -34,18 +34,27 @@ describe("GBRICK_BRAND (대표 확인 2026-10-26, 2026-11-04 갱신)", () => {
   it("베이커리·단체 주문이 대표 확인값이다 (2026-11-17)", () => {
     const names = GBRICK_BRAND.bakery.map((b) => b.name);
     expect(names).toEqual(
-      expect.arrayContaining(["플레인 베이글", "아시아고 치즈 베이글", "크랜베리 스콘", "에그타르트", "마카다미아 루뱅쿠키", "햄치즈토스트"]),
+      expect.arrayContaining(["플레인 베이글", "아시아고 치즈 베이글", "크랜베리 스콘", "에그타르트", "마카다미아 르뱅쿠키", "햄치즈토스트"]),
     );
     expect(names).toHaveLength(17);
     expect(new Set(names).size).toBe(names.length);
     const price = (n: string) => GBRICK_BRAND.bakery.find((b) => b.name === n)?.price;
     expect(price("플레인 베이글")).toBe(2900);
     expect(price("아시아고 치즈 베이글")).toBe(3900);
-    expect(price("마카다미아 루뱅쿠키")).toBe(4500);
+    expect(price("마카다미아 르뱅쿠키")).toBe(4500);
     expect(price("허니브레드")).toBe(6500);
     expect(price("크로크무슈")).toBe(6000);
     expect(GBRICK_BRAND.groupOrder.delivery).toBe(true);
     expect(GBRICK_BRAND.groupOrder.leadTime).toContain("5시간 전");
+  });
+
+  it("매장에서 매일 굽는 품목은 스콘·팥빵·르뱅쿠키뿐이고 베이글은 아니다 (대표 확인 2026-11-18)", () => {
+    const baked = GBRICK_BRAND.bakery.filter((b) => "dailyBaked" in b && b.dailyBaked).map((b) => b.name);
+    expect(baked).toEqual([
+      "스콘", "크랜베리 스콘", "팥빵",
+      "황치즈 르뱅쿠키", "초코칩 르뱅쿠키", "레드벨벳 르뱅쿠키", "마카다미아 르뱅쿠키",
+    ]);
+    expect(baked.some((n) => n.includes("베이글"))).toBe(false);
   });
 
   it("전화번호가 대표 확인값이다", () => {

@@ -49,20 +49,23 @@ export const GBRICK_BRAND = {
    * 현재 판매 중인 베이커리·디저트와 가격.
    * 출처: 베이글·브레드 6종은 주문 앱 메뉴 화면(대표 제공 2026-11-18), 나머지는 대표 진술(2026-11-18).
    * 주문 앱 표기 "이지아고 치즈 베이글"은 아시아고(Asiago) 치즈 베이글이다.
+   * dailyBaked: 매일 아침 매장에서 직접 굽는 품목 (대표 확인 2026-11-18). 이 품목에만 "직접 굽는다"고 쓴다.
+   * 베이글은 공급사 냉동 제품(오리지널 베이글, 미국산, 95% 구운 상태로 납품 → 매장 오븐에서 마무리.
+   * 대표 제공 제품 사양 2026-11-18)이라 "수제"·"직접 굽는"이라고 쓰지 않는다.
    */
   bakery: [
     { name: "플레인 베이글", price: 2900 },
     { name: "어니언 베이글", price: 3200 },
     { name: "블루베리 베이글", price: 3600 },
     { name: "아시아고 치즈 베이글", price: 3900 },
-    { name: "스콘", price: 2900 },
-    { name: "크랜베리 스콘", price: 2900 },
-    { name: "팥빵", price: 3900 },
+    { name: "스콘", price: 2900, dailyBaked: true },
+    { name: "크랜베리 스콘", price: 2900, dailyBaked: true },
+    { name: "팥빵", price: 3900, dailyBaked: true },
     { name: "에그타르트", price: 2900 },
-    { name: "황치즈 루뱅쿠키", price: 3900 },
-    { name: "초코칩 루뱅쿠키", price: 3900 },
-    { name: "레드벨벳 루뱅쿠키", price: 3900 },
-    { name: "마카다미아 루뱅쿠키", price: 4500 },
+    { name: "황치즈 르뱅쿠키", price: 3900, dailyBaked: true },
+    { name: "초코칩 르뱅쿠키", price: 3900, dailyBaked: true },
+    { name: "레드벨벳 르뱅쿠키", price: 3900, dailyBaked: true },
+    { name: "마카다미아 르뱅쿠키", price: 4500, dailyBaked: true },
     { name: "허니브레드", price: 6500 },
     { name: "갈릭브레드", price: 6500 },
     { name: "크로크무슈", price: 6000 },

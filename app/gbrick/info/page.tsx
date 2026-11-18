@@ -22,12 +22,17 @@ import { Footer } from "@/components/layout/Footer";
  */
 
 const won = (n: number) => `₩${n.toLocaleString("ko-KR")}`;
+const DAILY_BAKED = GBRICK_BRAND.bakery.filter((b) => "dailyBaked" in b && b.dailyBaked).map((b) => b.name);
 
 // 화면 FAQ와 FAQPage JSON-LD가 같은 문장을 쓰도록 한 곳에 둔다 (대표 확인 2026-11-17).
 const OFFER_FAQ = [
   {
     q: "지브릭커피에 베이글이나 디저트가 있나요?",
     a: `네. 베이커리·디저트 메뉴와 가격은 다음과 같습니다: ${GBRICK_BRAND.bakery.map((b) => `${b.name} ${won(b.price)}`).join(", ")}.`,
+  },
+  {
+    q: "매장에서 직접 굽는 빵이 있나요?",
+    a: `네. ${DAILY_BAKED.join(", ")}는 매일 아침 매장에서 직접 굽습니다.`,
   },
   {
     q: "단체 주문이나 배달이 가능한가요?",
@@ -143,6 +148,7 @@ const gbrickJsonLd = {
             hasMenuItem: GBRICK_BRAND.bakery.map((b) => ({
               "@type": "MenuItem",
               name: b.name,
+              ...("dailyBaked" in b && b.dailyBaked && { description: "매일 아침 매장에서 직접 굽습니다." }),
               offers: { "@type": "Offer", price: String(b.price), priceCurrency: "KRW" },
             })),
           },
@@ -303,7 +309,7 @@ export const metadata: Metadata = {
     "수제 에이드 은평", "뱅쇼 은평", "무알콜 뱅쇼", "은평 커피",
     "은평뉴타운 모임 카페", "은평구 아메리카노", "은평 한옥마을 근처 카페",
     "은평뉴타운 조용한 카페", "어르신 동반 카페 은평", "은평구 접근성 좋은 카페",
-    "은평 베이글 카페", "은평뉴타운 베이커리 카페", "은평 단체 커피 주문", "은평뉴타운 커피 배달",
+    "은평 베이글 카페", "은평뉴타운 디저트 카페", "은평 단체 커피 주문", "은평뉴타운 커피 배달",
   ],
   alternates: { canonical: "/gbrick/info" },
   openGraph: {
@@ -484,6 +490,10 @@ export default function GBrickPage() {
                   </li>
                 ))}
               </ul>
+              <p className="mt-3 text-[15px] text-muted-foreground">
+                {DAILY_BAKED.join(", ")}는 매일 아침 매장에서 직접 굽습니다.
+                베이글은 반죽을 끓는 물에 데친 뒤 구운 뉴욕 스타일입니다.
+              </p>
             </div>
             <p className="mt-6 text-[13px] text-muted-foreground">
               * 가격은 현장 확인 후 최종 적용됩니다. 계절 한정 메뉴는 시즌 외 판매하지 않습니다.
@@ -519,7 +529,7 @@ export default function GBrickPage() {
               직접 만든 수제청을 베이스로 한 자몽 에이드, 무알콜 뱅쇼(겨울 한정), 수제 팥빙수(여름 한정)를 제공합니다.
             </p>
             <p className="mt-4 text-[15px] leading-relaxed text-muted-foreground">
-              블렌드 원두는 {GBRICK_BRAND.blendSourcing}입니다. 베이글·스콘·팥빵·루뱅쿠키 등 베이커리와
+              블렌드 원두는 {GBRICK_BRAND.blendSourcing}입니다. 매일 아침 매장에서 굽는 스콘·팥빵·르뱅쿠키, 뉴욕 스타일 베이글 등 베이커리와
               허니브레드·크로크무슈 같은 디저트도 함께 즐기실 수 있습니다. 단체 주문과 배달은{" "}
               {GBRICK_BRAND.groupOrder.leadTime} 시 가능합니다.
             </p>
