@@ -21,11 +21,14 @@ import { Footer } from "@/components/layout/Footer";
  * 미확인 항목(영업시간·주차 조건·한옥마을 도보 시간)은 §0-2 원칙 2에 따라 쓰지 않는다.
  */
 
+const won = (n: number) => `₩${n.toLocaleString("ko-KR")}`;
+const BAKERY_PRICED = GBRICK_BRAND.bakery.flatMap((b) => ("price" in b ? [`${b.name} ${won(b.price)}`] : []));
+
 // 화면 FAQ와 FAQPage JSON-LD가 같은 문장을 쓰도록 한 곳에 둔다 (대표 확인 2026-11-17).
 const OFFER_FAQ = [
   {
     q: "지브릭커피에 베이글이나 디저트가 있나요?",
-    a: `네. ${GBRICK_BRAND.bakery.join(", ")}를 판매합니다. 가격은 매장에서 확인해 주세요.`,
+    a: `네. ${GBRICK_BRAND.bakery.map((b) => b.name).join(", ")}를 판매합니다. 가격은 ${BAKERY_PRICED.join(", ")}이며, 나머지는 매장에서 확인해 주세요.`,
   },
   {
     q: "단체 주문이나 배달이 가능한가요?",
@@ -138,7 +141,13 @@ const gbrickJsonLd = {
           {
             "@type": "MenuSection",
             name: "베이커리·디저트",
-            hasMenuItem: GBRICK_BRAND.bakery.map((name) => ({ "@type": "MenuItem", name })),
+            hasMenuItem: GBRICK_BRAND.bakery.map((b) => ({
+              "@type": "MenuItem",
+              name: b.name,
+              ...("price" in b && {
+                offers: { "@type": "Offer", price: String(b.price), priceCurrency: "KRW" },
+              }),
+            })),
           },
         ],
       },
@@ -470,12 +479,17 @@ export default function GBrickPage() {
             ))}
             <div className="mt-10">
               <h3 className="mb-4 text-lg font-semibold text-muted-foreground">베이커리·디저트</h3>
-              <p className="rounded-2xl border border-border bg-muted/40 p-5 text-[15px] leading-relaxed text-foreground">
-                {GBRICK_BRAND.bakery.join(" · ")}
-              </p>
+              <ul className="grid gap-x-6 gap-y-2 rounded-2xl border border-border bg-muted/40 p-5 text-[15px] text-foreground sm:grid-cols-2">
+                {GBRICK_BRAND.bakery.map((b) => (
+                  <li key={b.name} className="flex justify-between gap-4">
+                    <span>{b.name}</span>
+                    {"price" in b && <span className="tabular-nums text-muted-foreground">{won(b.price)}</span>}
+                  </li>
+                ))}
+              </ul>
             </div>
             <p className="mt-6 text-[13px] text-muted-foreground">
-              * 가격은 현장 확인 후 최종 적용됩니다. 베이커리·디저트 가격은 매장에서 확인해 주세요.
+              * 가격은 현장 확인 후 최종 적용됩니다. 가격이 표시되지 않은 베이커리·디저트는 매장에서 확인해 주세요.
               계절 한정 메뉴는 시즌 외 판매하지 않습니다.
             </p>
           </div>
