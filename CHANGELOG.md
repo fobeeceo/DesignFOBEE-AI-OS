@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### GBRICK 영업시간 밖에도 메뉴 보기 (2026-11-18, 대표 지시)
+- 매장 목록에서 영업시간 밖(영업 종료)인 은평뉴타운 본점도 **"메뉴 보기 (지금은 주문 불가)"** 로 메뉴 화면에 들어갈 수 있다. 이전에는 버튼이 비활성이라 메뉴를 볼 수 없었다.
+- 주문은 그대로 막는다: 메뉴 화면 상단 안내("지금은 영업시간이 아니라 주문할 수 없어요"), 담기 버튼 비활성, 서버(`POST /api/gbrick/orders`)도 영업시간 밖 주문을 거절한다. 오픈 예정·영업 준비중 매장은 이번 범위가 아니라 그대로.
+
 ### GBRICK 카카오·네이버 회원 로그인 + 회원 포인트 기반 (2026-11-18)
 - **로그인**: `/api/gbrick/auth/kakao|naver`(시작) · `…/callback`(돌아오는 곳). 서명된 쿠키 `gbrick_member`(60일)로 로그인 유지. 회원 번호는 `kakao_<고유번호>` — 기존 `gb_customers.id`(TEXT)를 그대로 쓰므로 **DB 표 변경 없음**. 받는 정보는 닉네임·회원번호뿐.
 - **환경변수(Vercel, 대표 입력)**: `GBRICK_KAKAO_REST_API_KEY`, `GBRICK_KAKAO_CLIENT_SECRET`, `GBRICK_NAVER_CLIENT_ID`, `GBRICK_NAVER_CLIENT_SECRET`. 기업 홈페이지 네이버 로그인(`NAVER_CLIENT_ID`)과 **다른 앱**이라 이름을 분리했다. 키가 없으면 로그인 버튼은 "준비 중" 안내를 보인다.

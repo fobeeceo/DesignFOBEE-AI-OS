@@ -167,7 +167,9 @@ export default function StoreListPage() {
             const inHours = isWithinOperatingHours(store.operatingHours);
             const isOpen = store.status === "ACTIVE" && launched && inHours;
             const badge = !launched ? "오픈 예정" : store.status !== "ACTIVE" ? "준비중" : inHours ? "영업중" : "영업 종료";
-            const buttonLabel = !launched ? "오픈 예정" : store.status !== "ACTIVE" ? "영업 준비중" : inHours ? "테이크 아웃" : "영업시간이 아니에요";
+            // 영업시간 밖에도 메뉴는 볼 수 있다 (주문만 막는다 — 메뉴 화면이 안내 배너를 보이고 담기를 비활성화한다)
+            const canBrowse = store.status === "ACTIVE" && launched;
+            const buttonLabel = !launched ? "오픈 예정" : store.status !== "ACTIVE" ? "영업 준비중" : inHours ? "테이크 아웃" : "메뉴 보기 (지금은 주문 불가)";
             return (
               <div key={store.id} className="bg-white rounded-2xl shadow-sm border border-stone-100 overflow-hidden">
                 {/* Store image placeholder */}
@@ -218,8 +220,8 @@ export default function StoreListPage() {
                     href={`/gbrick/stores/${store.id}/menu`}
                     className="flex items-center justify-center w-full mt-3 py-2.5 rounded-xl text-sm font-bold text-white"
                     style={{
-                      background: isOpen ? "#2C1A0E" : "#9CA3AF",
-                      pointerEvents: isOpen ? "auto" : "none",
+                      background: isOpen ? "#2C1A0E" : canBrowse ? "#8A7760" : "#9CA3AF",
+                      pointerEvents: canBrowse ? "auto" : "none",
                     }}
                   >
                     {buttonLabel}
