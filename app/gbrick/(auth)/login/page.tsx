@@ -63,7 +63,7 @@ function LoginContent() {
           로그인 없이도 주문할 수 있어요. 로그인하면 내 주문 내역을 앱에서 다시 볼 수 있어요.<br />
           카카오·네이버로는 <b>닉네임(이름)과 회원번호</b>만 받아요.
         </p>
-        <Link href="/privacy" style={{ fontSize: 14, color: "#888", margin: "0 4px" }}>개인정보처리방침</Link>
+        <Link href="/privacy#app" style={{ fontSize: 14, color: "#888", margin: "0 4px" }}>개인정보처리방침</Link>
       </div>
     </main>
   );
