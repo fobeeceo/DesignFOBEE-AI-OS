@@ -51,3 +51,21 @@ describe("프로필 받기", () => {
     await expect(fetchMemberProfile("naver", "C", "S", "u", { clientId: "a", clientSecret: "b" }, f)).rejects.toThrow();
   });
 });
+
+import { isKakaoWebhookAuthorized } from "./oauth";
+
+describe("카카오 연결 해제 웹훅 인증", () => {
+  const env = { GBRICK_KAKAO_ADMIN_KEY: "admin-key-123" };
+  it("KakaoAK + 어드민 키가 맞으면 통과", () => {
+    expect(isKakaoWebhookAuthorized("KakaoAK admin-key-123", env)).toBe(true);
+  });
+  it("키가 다르거나 형식이 다르면 거절", () => {
+    for (const h of ["KakaoAK wrong-key-1234", "admin-key-123", "Bearer admin-key-123", "KakaoAK admin-key-1234", "", null, undefined]) {
+      expect(isKakaoWebhookAuthorized(h, env)).toBe(false);
+    }
+  });
+  it("서버에 키가 없으면 무엇이든 거절 (빈 키로 통과 불가)", () => {
+    expect(isKakaoWebhookAuthorized("KakaoAK ", {})).toBe(false);
+    expect(isKakaoWebhookAuthorized("KakaoAK undefined", {})).toBe(false);
+  });
+});

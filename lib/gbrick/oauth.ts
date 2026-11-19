@@ -1,6 +1,7 @@
 // 카카오·네이버 로그인 — 주소 만들기 + 로그인한 사람의 고유번호·닉네임 받기
 // 기업 홈페이지의 네이버 로그인(lib/auth/naver.ts, NAVER_CLIENT_ID)과는 다른 앱이므로 환경변수 이름이 다르다.
 
+import { timingSafeEqual } from "crypto";
 import { SITE_URL } from "@/lib/site";
 import { cleanNickname, type MemberProvider } from "./member";
 
@@ -59,4 +60,16 @@ export async function fetchMemberProfile(
   const user = asRecord(me.response);
   if (!meRes.ok || me.resultcode !== "00" || typeof user.id !== "string") throw new Error("네이버 프로필 조회 실패");
   return { providerUserId: user.id, nickname: cleanNickname(user.name ?? user.nickname) };
+}
+
+/**
+ * 카카오 "연결 끊기 웹훅" 요청이 진짜 카카오가 보낸 것인지 확인한다.
+ * 카카오는 Authorization 헤더에 `KakaoAK {앱 어드민 키}` 를 담아 보낸다.
+ */
+export function isKakaoWebhookAuthorized(authorization: string | null | undefined, env: Env = process.env): boolean {
+  const adminKey = env.GBRICK_KAKAO_ADMIN_KEY;
+  if (!adminKey || !authorization) return false;
+  const expected = Buffer.from(`KakaoAK ${adminKey}`);
+  const actual = Buffer.from(authorization);
+  return expected.length === actual.length && timingSafeEqual(expected, actual);
 }
