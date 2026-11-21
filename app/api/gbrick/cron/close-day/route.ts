@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
-import { cancelUnfinishedOrdersBefore, deleteExpiredPushSubscriptions } from "@/lib/gbrick/repositories/supabase";
+import { cancelUnfinishedOrdersBefore, deleteExpiredPushSubscriptions, deleteExpiredGroupRows } from "@/lib/gbrick/repositories/supabase";
 import { kstDayStartIso } from "@/lib/gbrick/utils/time";
 
 // GET /api/gbrick/cron/close-day — 매일 00:05 KST (vercel.json crons)
@@ -15,6 +15,7 @@ export async function GET(req: NextRequest) {
     const before = kstDayStartIso();
     const cancelled = await cancelUnfinishedOrdersBefore(before, "영업일 종료 자동 취소");
     await deleteExpiredPushSubscriptions().catch(err => console.error("[close-day] push cleanup", err));
+    await deleteExpiredGroupRows().catch(err => console.error("[close-day] group cleanup", err));
     return NextResponse.json({ ok: true, before, cancelled });
   } catch (err) {
     console.error("[GET /api/gbrick/cron/close-day]", err);

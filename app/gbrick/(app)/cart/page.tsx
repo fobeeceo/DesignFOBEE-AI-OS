@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ON_SITE_PAYMENT_NOTICE } from "@/lib/gbrick/launch";
+import { getGroupMode, loadGroupLocal, loadGroupName, saveGroupLocal, setGroupMode } from "@/lib/gbrick/groupClient";
 
 interface CartItem {
   menuId: string;
@@ -25,11 +26,14 @@ export default function CartPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // 함께오더에 담는 중이면 "주문하기" 대신 "함께오더에 올리기"가 된다 (주문은 방장이 방 화면에서 한 번에 한다)
+  const [groupCode, setGroupCode] = useState<string | null>(null);
   useEffect(() => {
     try {
       const stored = sessionStorage.getItem("gbrick_cart");
       if (stored) setCart(JSON.parse(stored));
     } catch {}
+    setGroupCode(getGroupMode());
   }, []);
 
   // 같은 메뉴가 옵션만 달리해 여러 줄일 수 있어, 줄 번호로 고른다
@@ -96,6 +100,29 @@ export default function CartPage() {
 
   const subtotal = cart.items.reduce((s, i) => s + i.unitPrice * i.quantity, 0);
   const finalAmount = subtotal;
+
+  async function uploadToGroup() {
+    if (!groupCode) return;
+    setLoading(true);
+    setError("");
+    try {
+      const mine = loadGroupLocal(groupCode);
+      const res = await fetch(`/api/gbrick/group/${groupCode}/items`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pid: mine.pid, secret: mine.secret, name: loadGroupName() || "손님", items: cart!.items }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "올리지 못했어요");
+      saveGroupLocal(groupCode, { pid: data.pid, secret: data.secret });
+      sessionStorage.removeItem("gbrick_cart");
+      router.push(`/gbrick/group/${groupCode}`);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "올리지 못했어요");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   async function handleOrder() {
     setLoading(true);
@@ -180,7 +207,7 @@ export default function CartPage() {
         </div>
 
         {/* Pickup name */}
-        <div className="bg-white rounded-2xl border border-stone-100 shadow-sm px-4 py-3.5">
+        {!groupCode && <div className="bg-white rounded-2xl border border-stone-100 shadow-sm px-4 py-3.5">
           <label className="text-sm font-semibold text-stone-700 mb-2 block">픽업 이름</label>
           <input
             type="text"
@@ -189,7 +216,7 @@ export default function CartPage() {
             placeholder="호명될 이름을 입력해주세요"
             className="w-full px-3 py-2.5 rounded-xl border border-stone-200 text-sm focus:outline-none focus:border-amber-400"
           />
-        </div>
+        </div>}
 
         {/* Summary */}
         <div className="bg-white rounded-2xl border border-stone-100 shadow-sm px-4 py-3.5 flex flex-col gap-2.5">
@@ -213,6 +240,21 @@ export default function CartPage() {
         className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] px-4 pt-3 bg-white border-t border-stone-100"
         style={{ zIndex: 100, paddingBottom: "calc(env(safe-area-inset-bottom) + 16px)" }}
       >
+        {groupCode ? (
+          <>
+            <button
+              onClick={uploadToGroup}
+              disabled={loading}
+              className="w-full py-4 rounded-2xl font-bold text-base disabled:opacity-60"
+              style={{ background: "#F4C430", color: "#1A0E05" }}
+            >
+              {loading ? "올리는 중..." : `함께오더에 올리기 · ${finalAmount.toLocaleString()}원`}
+            </button>
+            <button onClick={() => { setGroupMode(null); setGroupCode(null); }} className="w-full mt-2 text-xs text-stone-500 underline">
+              함께오더 말고 나 혼자 주문하기
+            </button>
+          </>
+        ) : (
         <button
           onClick={handleOrder}
           disabled={loading}
@@ -221,6 +263,7 @@ export default function CartPage() {
         >
           {loading ? "주문 접수 중..." : `${finalAmount.toLocaleString()}원 주문하기`}
         </button>
+        )}
       </div>
     </main>
   );

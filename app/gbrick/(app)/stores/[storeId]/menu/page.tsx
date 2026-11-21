@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { haversineKm, formatDistance } from "@/lib/gbrick/utils/distance";
 import { DEFAULT_OPTIONS } from "@/lib/gbrick/defaultOptions";
 import { isSingleSelectGroup, orderGroups } from "@/lib/gbrick/optionGroups";
 import { isLaunchStore, NOT_LAUNCHED_MESSAGE } from "@/lib/gbrick/launch";
 import { isWithinOperatingHours, todayHoursLabel } from "@/lib/gbrick/storeHours";
+import { getGroupMode, loadGroupName, saveGroupLocal, setGroupMode } from "@/lib/gbrick/groupClient";
 
 interface MenuOption {
   id: string;
@@ -72,6 +73,29 @@ export default function MenuPage() {
   const [showOptionsSheet, setShowOptionsSheet] = useState(false);
   const [selectedExtras, setSelectedExtras] = useState<Set<string>>(new Set());
   const [addedFeedback, setAddedFeedback] = useState(false);
+  const router = useRouter();
+  const [groupCode, setGroupCode] = useState<string | null>(null);
+  const [groupBusy, setGroupBusy] = useState(false);
+  useEffect(() => { setGroupCode(getGroupMode()); }, []);
+
+  // 함께오더 시작 — 방을 만들고 방 화면으로 간다 (방장 비밀값은 이 기기에만 저장)
+  async function startGroup() {
+    if (groupBusy) return;
+    setGroupBusy(true);
+    try {
+      const res = await fetch("/api/gbrick/group", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ storeId, hostName: loadGroupName() || undefined }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "함께오더를 만들지 못했어요");
+      saveGroupLocal(data.code, { hostSecret: data.hostSecret });
+      setGroupMode(data.code);
+      router.push(`/gbrick/group/${data.code}`);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "함께오더를 만들지 못했어요");
+    } finally { setGroupBusy(false); }
+  }
 
   // Load cart + user position from sessionStorage
   useEffect(() => {
@@ -215,6 +239,15 @@ export default function MenuPage() {
         </Link>
         <span className="font-bold text-base" style={{ color: "#2C1A0E" }}>상품리스트</span>
         <div className="ml-auto flex items-center gap-3">
+          {groupCode ? (
+            <Link href={`/gbrick/group/${groupCode}`} className="px-3 py-1 rounded-full text-xs font-bold" style={{ background: "#FEE500", color: "#1A0E05" }}>
+              함께오더 중 ›
+            </Link>
+          ) : isLaunchStore(storeId) ? (
+            <button onClick={startGroup} disabled={groupBusy} className="px-3 py-1 rounded-full text-xs font-bold border border-stone-800 text-stone-800 disabled:opacity-50">
+              {groupBusy ? "만드는 중…" : "함께오더"}
+            </button>
+          ) : null}
           <button className="p-1" aria-label="검색">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2C1A0E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>

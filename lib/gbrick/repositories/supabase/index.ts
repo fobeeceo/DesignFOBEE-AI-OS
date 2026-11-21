@@ -645,6 +645,62 @@ export async function deleteExpiredPushSubscriptions(): Promise<void> {
   if (error) throw error;
 }
 
+// ─── 함께오더 (임시 저장) ─────────────────────────────────────────
+// 함께오더 방·참여자 목록은 몇 시간만 필요한 임시 자료라 새 표를 만들지 않고, 푸시 구독처럼
+// gb_idempotency_keys(key 는 유일, expiresAt 이 지나면 정리)를 쓴다. 참여자마다 행이 따로라 서로 덮어쓰지 않는다.
+export const GROUP_ROOM = "group_room";
+export const GROUP_MEMBER = "group_member";
+export const GROUP_SUBMIT = "group_submit";
+
+export interface GroupRow { key: string; resource: string; response: Record<string, unknown>; createdAt: string }
+
+/** 같은 key 가 이미 있으면 false (동시에 두 번 만들어도 한쪽만 성공) */
+export async function insertGroupRow(resource: string, key: string, response: Record<string, unknown>, ttlHours = 12): Promise<boolean> {
+  const { error } = await getAdmin().from("gb_idempotency_keys").insert({
+    id: nanoid(), key, resource, response, expiresAt: new Date(Date.now() + ttlHours * 3600_000).toISOString(),
+  });
+  if (!error) return true;
+  if ((error as { code?: string }).code === "23505") return false;
+  throw error;
+}
+
+export async function getGroupRow(key: string): Promise<GroupRow | null> {
+  const { data, error } = await getAdmin().from("gb_idempotency_keys").select("key, resource, response, createdAt")
+    .eq("key", key).gt("expiresAt", new Date().toISOString()).maybeSingle();
+  if (error) throw error;
+  return (data as GroupRow | null) ?? null;
+}
+
+export async function listGroupRows(keyPrefix: string, resource: string): Promise<GroupRow[]> {
+  const { data, error } = await getAdmin().from("gb_idempotency_keys").select("key, resource, response, createdAt")
+    .eq("resource", resource).like("key", `${keyPrefix}%`).gt("expiresAt", new Date().toISOString()).order("createdAt", { ascending: true });
+  if (error) throw error;
+  return (data ?? []) as GroupRow[];
+}
+
+export async function updateGroupRow(key: string, response: Record<string, unknown>): Promise<void> {
+  const { error } = await getAdmin().from("gb_idempotency_keys").update({ response }).eq("key", key);
+  if (error) throw error;
+}
+
+export async function deleteGroupRow(key: string): Promise<void> {
+  const { error } = await getAdmin().from("gb_idempotency_keys").delete().eq("key", key);
+  if (error) throw error;
+}
+
+export async function countGroupRoomsSince(sinceIso: string): Promise<number> {
+  const { count, error } = await getAdmin().from("gb_idempotency_keys").select("id", { count: "exact", head: true })
+    .eq("resource", GROUP_ROOM).gte("createdAt", sinceIso);
+  if (error) throw error;
+  return count ?? 0;
+}
+
+export async function deleteExpiredGroupRows(): Promise<void> {
+  const { error } = await getAdmin().from("gb_idempotency_keys").delete()
+    .in("resource", [GROUP_ROOM, GROUP_MEMBER, GROUP_SUBMIT]).lt("expiresAt", new Date().toISOString());
+  if (error) throw error;
+}
+
 // ─── Payment Repository ───────────────────────────────────────
 
 export const sbPaymentRepo: IPaymentRepository = {
