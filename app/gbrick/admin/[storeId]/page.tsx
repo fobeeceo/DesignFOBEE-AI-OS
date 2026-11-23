@@ -398,10 +398,12 @@ export default function OwnerAppPage() {
       .catch(() => window.dispatchEvent(new Event(PRINT_ERROR_EVENT)));
   }
 
-  // 웹 페이지는 창을 직접 최소화할 수 없다 — 전체화면만 풀어 윈도우의 ─ 버튼을 드러낸다
+  // 웹 페이지는 창을 직접 최소화할 수 없다. 전체화면(화면 전환 버튼)이면 풀어서 윈도우의 ─ 버튼을 드러내고,
+  // 키오스크(옛 설치 방식)로 실행 중이면 창 모드로 다시 설치하는 방법을 안내한다.
+  const [windowHelp, setWindowHelp] = useState(false);
   function showWindowControls() {
     if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
-    else showToast("키보드 F11을 누르면 오른쪽 위에 창 버튼(─ ✕)이 나타납니다");
+    else setWindowHelp(true);
   }
 
   const orderRefreshRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -1021,6 +1023,28 @@ export default function OwnerAppPage() {
               </button>
             )}
           </header>
+
+          {windowHelp && (
+            <div role="dialog" aria-label="창 모드 안내" className="fixed inset-0 z-[200] flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.6)" }} onClick={() => setWindowHelp(false)}>
+              <div className="rounded-2xl p-6 max-w-md w-full" style={{ background: "#fff" }} onClick={e => e.stopPropagation()}>
+                <p className="font-black text-lg text-stone-800">창 버튼(─ □ ✕)이 보이게 하려면</p>
+                <p className="text-sm text-stone-600 mt-2 leading-relaxed">
+                  지금 POS는 창 버튼이 없는 전체화면 방식으로 켜져 있어요. 아래 파일을 한 번 받아 실행하면,
+                  다음부터 다른 프로그램처럼 오른쪽 위의 ─ □ ✕ 버튼으로 줄이고 돌아올 수 있어요.
+                </p>
+                <ol className="text-sm text-stone-700 mt-3 list-decimal pl-5 leading-relaxed">
+                  <li>아래 <b>설정 파일 받기</b>를 누르고, 받은 파일을 더블클릭해서 실행해요</li>
+                  <li>묻는 말에는 <b>Y</b>(바로 실행)를 눌러요</li>
+                  <li>이전 POS 창은 <b>Alt + F4</b>로 닫아요</li>
+                </ol>
+                <div className="flex gap-2 mt-5">
+                  <a href="/downloads/gbrick-pos-setup.bat" download className="flex-1 text-center py-3 rounded-xl font-bold text-white" style={{ background: "#2C1A0E" }}>설정 파일 받기</a>
+                  <button onClick={() => setWindowHelp(false)} className="px-5 py-3 rounded-xl font-semibold text-stone-600 border border-stone-200">닫기</button>
+                </div>
+                <p className="text-xs text-stone-400 mt-3">임시로는 키보드 F11을 눌러 전체화면을 풀어 볼 수도 있어요 (PC에 따라 다름).</p>
+              </div>
+            </div>
+          )}
 
           {/* Kanban - Orders */}
           {tab === "orders" && (

@@ -2,7 +2,7 @@
 title GBRICK POS Setup
 
 set "POS_URL=https://design-fobee-ai-os.vercel.app/gbrick/admin/gbrick-esp-001"
-set "ARGS=--kiosk --app=%POS_URL% --disable-infobars --no-first-run --disable-translate --no-default-browser-check --disable-pinch --overscroll-history-navigation=0"
+set "ARGS=--app=%POS_URL% --start-maximized --disable-infobars --no-first-run --disable-translate --no-default-browser-check --disable-pinch --overscroll-history-navigation=0"
 set "BROWSER="
 
 if exist "%ProgramFiles%\Google\Chrome\Application\chrome.exe"       set "BROWSER=%ProgramFiles%\Google\Chrome\Application\chrome.exe"
@@ -35,9 +35,12 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command ^
 
 echo.
 
-:: Ask auto-start
+:: Auto-start: if it was registered before, refresh it without asking (so no old fullscreen shortcut is left behind)
+if exist "%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\GBRICK POS.lnk" goto :make_autostart
 choice /C YN /M "Auto-start on Windows login? (Y=Yes / N=No)"
 if errorlevel 2 goto :no_autostart
+
+:make_autostart
 
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
   "$ws=New-Object -ComObject WScript.Shell;" ^
@@ -55,6 +58,8 @@ echo.
 echo ============================================
 echo   Setup complete!
 echo   - Shortcut: Desktop [GBRICK POS]
+echo   - Window   : minimize / maximize / close buttons are at the top-right (same as other windows)
+echo   - If an old fullscreen POS window is still open, close it with Alt + F4 first
 echo   - Exit POS : Alt + F4
 echo   - Print    : Click printer icon on order
 echo ============================================

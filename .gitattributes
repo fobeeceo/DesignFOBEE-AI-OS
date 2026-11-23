@@ -1,0 +1,2 @@
+# Windows 배치 파일은 줄 끝(CRLF)을 그대로 보존한다 (LF만 있으면 goto 라벨이 틀어질 수 있음)
+*.bat -text
