@@ -1029,19 +1029,22 @@ export default function OwnerAppPage() {
               <div className="rounded-2xl p-6 max-w-md w-full" style={{ background: "#fff" }} onClick={e => e.stopPropagation()}>
                 <p className="font-black text-lg text-stone-800">창 버튼(─ □ ✕)이 보이게 하려면</p>
                 <p className="text-sm text-stone-600 mt-2 leading-relaxed">
-                  지금 POS는 창 버튼이 없는 전체화면 방식으로 켜져 있어요. 아래 파일을 한 번 받아 실행하면,
-                  다음부터 다른 프로그램처럼 오른쪽 위의 ─ □ ✕ 버튼으로 줄이고 돌아올 수 있어요.
+                  지금 POS는 창 버튼이 없는 전체화면 방식으로 켜져 있어요. 바로가기에서 <b>--kiosk</b> 한 단어만 지우면 돼요.
                 </p>
                 <ol className="text-sm text-stone-700 mt-3 list-decimal pl-5 leading-relaxed">
-                  <li>아래 <b>설정 파일 받기</b>를 누르고, 받은 파일을 더블클릭해서 실행해요</li>
-                  <li>묻는 말에는 <b>Y</b>(바로 실행)를 눌러요</li>
-                  <li>이전 POS 창은 <b>Alt + F4</b>로 닫아요</li>
+                  <li>키보드 <b>Alt + F4</b>로 POS를 닫아요</li>
+                  <li>바탕화면의 <b>GBRICK POS</b> 아이콘을 마우스 오른쪽 버튼으로 눌러 <b>속성</b>을 열어요</li>
+                  <li><b>대상</b> 칸 맨 끝의 <b>--kiosk</b>를 지우고(앞 띄어쓰기도) <b>확인</b>을 눌러요</li>
+                  <li>아이콘을 다시 더블클릭하면 오른쪽 위에 ─ □ ✕ 가 나타나요</li>
                 </ol>
-                <div className="flex gap-2 mt-5">
-                  <a href="/downloads/gbrick-pos-setup.bat" download className="flex-1 text-center py-3 rounded-xl font-bold text-white" style={{ background: "#2C1A0E" }}>설정 파일 받기</a>
-                  <button onClick={() => setWindowHelp(false)} className="px-5 py-3 rounded-xl font-semibold text-stone-600 border border-stone-200">닫기</button>
+                <p className="text-xs text-stone-500 mt-3 leading-relaxed">
+                  윈도우 시작 때 자동으로 켜지게 해 두었다면 <b>Win + R</b> → <b>shell:startup</b> 폴더의 바로가기도 같은 방법으로 고쳐요.
+                </p>
+                <div className="flex gap-2 mt-4">
+                  <a href="/downloads/gbrick-pos-setup.bat" download className="flex-1 text-center py-3 rounded-xl text-sm font-semibold text-stone-700 border border-stone-300">설정 파일로 한 번에 바꾸기</a>
+                  <button onClick={() => setWindowHelp(false)} className="px-6 py-3 rounded-xl font-bold text-white" style={{ background: "#2C1A0E" }}>닫기</button>
                 </div>
-                <p className="text-xs text-stone-400 mt-3">임시로는 키보드 F11을 눌러 전체화면을 풀어 볼 수도 있어요 (PC에 따라 다름).</p>
+                <p className="text-xs text-stone-400 mt-2">설정 파일은 받은 뒤 내 PC의 &lsquo;다운로드&rsquo; 폴더에서 더블클릭해 실행해요. 크롬이 경고하면 위의 바로가기 고치기를 쓰세요.</p>
               </div>
             </div>
           )}
