@@ -31,24 +31,44 @@ export type ManuscriptUnit = {
 /**
  * 장 제목 패턴.
  *
- * 대표 원고 「유리 벽돌을 쌓다」 PDF에서 실제로 나온 형태를 그대로 받는다 —
- * `제1장`, `제3 장`(숫자와 '장' 사이 공백), `PART ONE`, `프롤로그`.
- * PDF에서 글자를 뽑으면 공백이 불규칙하게 끼므로 패턴을 느슨하게 잡는다.
+ * 원고마다 생김새가 다르다. 대표 원고에서 실제로 나온 세 가지를 모두 받는다:
+ *   `제1장`           — 제목이 다음 줄에 있다 (2026-08 PDF)
+ *   `제3 장 거친 건축 현장에서의 고뇌` — 제목이 같은 줄에 붙어 있다 (2026-11 docx)
+ *   `제20장  하나님 앞에서…`          — 숫자와 '장' 사이에 공백이 없고 뒤에 공백 둘
+ * PDF·Word에서 글자를 뽑으면 공백이 불규칙하게 끼므로 패턴을 느슨하게 잡는다.
  */
-const PART_RE = /^(?:#{1,3}\s*)?(PART\s+[A-Z0-9]+|제\s*\d+\s*부)\b.*$/i;
-const CHAPTER_RE = /^(?:#{1,3}\s*)?제?\s*\d+\s*장\s*$/;
+const PART_RE = /^(?:#{1,6}\s*)?(PART\s+[A-Z0-9]+|제\s*\d+\s*부)\b.*$/i;
+const CHAPTER_RE = /^(?:#{1,6}\s*)?제\s*\d+\s*장(?:\s+(.*))?$/;
 /** 마크다운 제목으로 적힌 장 (자서전 코너 내보내기 형식). */
 const MD_CHAPTER_RE = /^#{3}\s+(.+)$/;
+/**
+ * 장 제목 줄의 최대 길이.
+ *
+ * "제3 장 이야기를 꺼낸 것은 그해 겨울이었고…" 같은 본문 문장이 장 제목으로
+ * 잘못 잡히는 것을 막는다. 장 제목은 짧고 본문 문장은 길다.
+ */
+const MAX_HEADING_CHARS = 60;
 const FRONT_WORDS = ["저자의 말", "머리말", "서문", "들어가며", "프롤로그"];
 const BACK_WORDS = ["에필로그", "맺음말", "나가며", "부록", "감사의 말"];
 
 function matchWord(line: string, words: string[]): string | null {
-  const bare = line.replace(/^#{1,3}\s*/, "").trim();
+  // 제목 줄만 본다. 본문 한가운데의 "부록 에 실린 자료는…" 같은 문장이
+  // 제목으로 잡히지 않게 길이로 거른다.
+  if (line.length > MAX_HEADING_CHARS) return null;
+  const bare = line.replace(/^#{1,6}\s*/, "").trim();
+
   for (const w of words) {
-    // "프롤로그: 선 하나가 세계를 바꾼다" 처럼 뒤에 부제가 붙는 경우도 받는다.
-    if (bare === w || bare.startsWith(`${w}:`) || bare.startsWith(`${w} —`)) return bare;
+    if (bare === w || bare.startsWith(`${w}:`)) return bare;
+    // "부록 자료(편집 검토용)" 처럼 뒤에 말이 더 붙는 제목도 받는다.
+    // 다만 문장부호로 끝나면 본문이다 — 제목은 마침표로 끝나지 않는다.
+    if (bare.startsWith(`${w} `) && !/[.。?!]$/.test(bare)) return bare;
   }
   return null;
+}
+
+function isChapterLine(line: string): RegExpMatchArray | null {
+  if (line.length > MAX_HEADING_CHARS) return null;
+  return line.match(CHAPTER_RE);
 }
 
 type Pending = {
@@ -67,18 +87,34 @@ type Pending = {
  */
 export function splitManuscript(text: string): ManuscriptUnit[] {
   const lines = text.replace(/\r\n/g, "\n").split("\n");
+
+  /**
+   * `제N장` 표시가 하나라도 있으면 그것만 장 경계로 쓴다.
+   *
+   * Word 원고는 장 안의 소제목을 Heading3(`###`)으로 달아둔다 — 1권만 237개다.
+   * 그걸 장으로 보면 원고가 237조각으로 부서진다. 명시적인 장 표시가 있는
+   * 원고에서는 마크다운 제목을 장 경계로 쓰지 않는다.
+   */
+  const hasExplicitChapters = lines.some((l) => isChapterLine(l.trim()) !== null);
+
   const units: ManuscriptUnit[] = [];
   let currentPart = "";
   let pending: Pending | null = null;
   let chapterNo = 0;
   let frontNo = 0;
   let backNo = 0;
+  let partNo = 0;
   /** 장 제목 바로 다음 줄은 부제일 수 있다. 그 줄을 기다리는 중인지. */
   let awaitingSubtitle = false;
 
   const flush = () => {
     if (!pending) return;
     const body = pending.lines.join("\n").trim();
+    // 내용이 없는 부(PART) 구분선은 단위로 만들지 않는다 — 장 사이에 빈 조각만 생긴다.
+    if (pending.kind === "part" && !body) {
+      pending = null;
+      return;
+    }
     const id =
       pending.kind === "chapter"
         ? `ch-${++chapterNo}`
@@ -86,7 +122,7 @@ export function splitManuscript(text: string): ManuscriptUnit[] {
           ? `front-${++frontNo}`
           : pending.kind === "back"
             ? `back-${++backNo}`
-            : `part-${units.length + 1}`;
+            : `part-${++partNo}`;
     units.push({
       id,
       kind: pending.kind,
@@ -110,18 +146,31 @@ export function splitManuscript(text: string): ManuscriptUnit[] {
 
     // 부(PART) — 장을 담는 묶음이지 그 자체로 본문은 아니다.
     if (PART_RE.test(line)) {
+      // 부(PART) 속표지에는 부제·연도·인용구가 실린다. 구분선으로만 쓰고 넘기면
+      // 그 글이 통째로 사라진다 — 대표 원고 1권에서 24줄이 그렇게 빠졌다.
+      // 하나의 단위로 담되, 내용이 없으면 flush()에서 버린다.
       flush();
-      currentPart = line.replace(/^#{1,3}\s*/, "").trim();
-      awaitingSubtitle = false;
+      currentPart = line.replace(/^#{1,6}\s*/, "").trim();
+      open("part", currentPart, false);
       continue;
     }
 
-    if (CHAPTER_RE.test(line)) {
-      open("chapter", line.replace(/^#{1,3}\s*/, "").trim(), true);
+    const chapter = isChapterLine(line);
+    if (chapter) {
+      const inline = (chapter[1] ?? "").trim();
+      const bare = line.replace(/^#{1,6}\s*/, "").trim();
+      if (inline) {
+        // `제3 장 거친 건축 현장에서의 고뇌` — 제목이 같은 줄에 있다.
+        open("chapter", bare.slice(0, bare.length - inline.length).trim(), false);
+        pending!.subtitle = inline;
+      } else {
+        // `제1장` — 제목은 다음 줄에 있다.
+        open("chapter", bare, true);
+      }
       continue;
     }
 
-    const mdChapter = line.match(MD_CHAPTER_RE);
+    const mdChapter = hasExplicitChapters ? null : line.match(MD_CHAPTER_RE);
     if (mdChapter && !matchWord(line, [...FRONT_WORDS, ...BACK_WORDS])) {
       open("chapter", mdChapter[1].trim(), false);
       continue;

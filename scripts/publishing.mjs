@@ -84,6 +84,15 @@ function cmdInit() {
 `);
 }
 
+// ── docx ───────────────────────────────────────────────
+async function cmdDocx(file, out) {
+  if (!file) die("바꿀 .docx 파일을 지정해 주세요.");
+  const { convertFile } = await import("./lib/docx-to-md.mjs");
+  const r = convertFile(file, out);
+  console.log(`\n${r.name} → ${r.outPath}`);
+  console.log(`  ${r.chars.toLocaleString()}자 · ${r.lines.toLocaleString()}줄\n`);
+}
+
 // ── split ──────────────────────────────────────────────
 async function cmdSplit(file) {
   const { splitManuscript, summarize, unitFileName } = await loadTs("lib/publishing/manuscript.ts");
@@ -180,6 +189,7 @@ const USAGE = `
 AI 출판부
 
   npm run publishing -- init                      작업 폴더 만들기
+  npm run publishing -- docx   <파일.docx> [.md]   Word 원고 → 마크다운 (AI 불필요)
   npm run publishing -- split  <원고파일>          장 단위로 분해 (AI 불필요)
   npm run publishing -- editor <원고파일>          편집장 — 구성·중복·흐름
   npm run publishing -- proof  <원고파일> [장id]   교정 — 원문·수정안·사유
@@ -189,6 +199,7 @@ editor·proof 는 GEMINI_API_KEY 가 필요합니다.
 
 try {
   if (cmd === "init") cmdInit();
+  else if (cmd === "docx") await cmdDocx(file, extra);
   else if (cmd === "split") await cmdSplit(file);
   else if (cmd === "editor") await cmdEditor(file);
   else if (cmd === "proof") await cmdProof(file, extra);
